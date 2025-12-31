@@ -6,6 +6,19 @@
 
 MediInside는 의료 분야 구직자와 구인처를 연결하는 AI 기반 채용 플랫폼입니다. 피부과, 성형외과 등 의료 기관과 간호사, 의료인력 간의 효율적인 매칭을 제공합니다.
 
+## 스크린샷
+
+<p align="center">
+  <img src="./public/screenshots/seeker-home.png" width="200" alt="구직자 홈" />
+  <img src="./public/screenshots/employer-home.png" width="200" alt="구인처 홈" />
+  <img src="./public/screenshots/seeker-matching.png" width="200" alt="매칭 센터" />
+  <img src="./public/screenshots/seeker-ai-interview.png" width="200" alt="AI 인터뷰" />
+</p>
+
+| 구직자 홈 | 구인처 홈 | 매칭 센터 | AI 인터뷰 |
+|:---:|:---:|:---:|:---:|
+| 맞춤 일자리 추천 | 후보자 현황 | 병원 매칭 리스트 | 면접 워크플로우 |
+
 ## 주요 기능
 
 ### 구직자 (Seeker)
