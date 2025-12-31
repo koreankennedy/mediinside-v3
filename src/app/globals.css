@@ -1,26 +1,229 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   MediInside Design System - Tailwind v3.4
+   ============================================ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-bg-primary text-text-primary;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* ============================================
+     Cards
+     ============================================ */
+  .card-base {
+    @apply bg-white border border-border-light rounded-2xl p-5 transition-all duration-200;
+  }
+
+  .card-matching {
+    @apply card-base hover:border-brand-mint hover:shadow-card-hover cursor-pointer;
+  }
+
+  .card-active-offer {
+    @apply card-base border-2 border-match-gold bg-gradient-to-r from-amber-50 to-white;
+  }
+
+  .card-blur-offer {
+    @apply card-base backdrop-blur-sm bg-white/60 border-gray-200;
+  }
+
+  /* ============================================
+     Badges
+     ============================================ */
+  .badge-base {
+    @apply inline-flex items-center px-2 py-1 rounded text-xs font-bold uppercase tracking-wider;
+  }
+
+  .badge-tier-1 {
+    @apply badge-base bg-gray-100 text-gray-600;
+  }
+
+  .badge-tier-2 {
+    @apply badge-base bg-blue-100 text-blue-600;
+  }
+
+  .badge-tier-3 {
+    @apply badge-base bg-green-100 text-green-600;
+  }
+
+  .badge-active {
+    @apply badge-base bg-match-gold/10 text-match-gold;
+  }
+
+  .badge-success {
+    @apply badge-base bg-green-100 text-green-700;
+  }
+
+  .badge-warning {
+    @apply badge-base bg-amber-100 text-amber-700;
+  }
+
+  .badge-error {
+    @apply badge-base bg-red-100 text-red-700;
+  }
+
+  /* ============================================
+     Buttons
+     ============================================ */
+  .btn-base {
+    @apply inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98];
+  }
+
+  .btn-primary {
+    @apply btn-base px-6 py-3 bg-brand-mint text-white hover:bg-brand-mint-dark;
+  }
+
+  .btn-secondary {
+    @apply btn-base px-6 py-3 bg-expert-navy text-white hover:bg-expert-navy-light;
+  }
+
+  .btn-outline {
+    @apply btn-base px-6 py-3 border-2 border-brand-mint text-brand-mint
+           hover:bg-brand-mint hover:text-white;
+  }
+
+  .btn-ghost {
+    @apply btn-base px-4 py-2 text-text-secondary hover:bg-bg-secondary hover:text-text-primary;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
+  /* ============================================
+     Typography
+     ============================================ */
+  .text-dashboard-title {
+    @apply text-xl font-bold text-expert-navy tracking-tight;
+  }
+
+  .text-section-title {
+    @apply text-lg font-semibold text-text-primary;
+  }
+
+  .text-card-title {
+    @apply text-base font-medium text-text-primary;
+  }
+
+  .text-card-body {
+    @apply text-sm text-text-secondary leading-relaxed;
+  }
+
+  .text-nudge-highlight {
+    @apply text-sm font-semibold text-brand-mint leading-snug;
+  }
+
+  .text-label {
+    @apply text-sm font-medium text-text-secondary;
+  }
+
+  /* ============================================
+     Form Elements
+     ============================================ */
+  .input-base {
+    @apply w-full px-4 py-3 bg-white border border-border-default rounded-xl
+           text-text-primary placeholder:text-text-tertiary
+           focus:outline-none focus:border-brand-mint focus:ring-2 focus:ring-brand-mint/20
+           transition-all duration-200
+           disabled:bg-bg-secondary disabled:cursor-not-allowed;
+  }
+
+  .input-error {
+    @apply border-error focus:border-error focus:ring-error/20;
+  }
+
+  /* ============================================
+     Nudge Box
+     ============================================ */
+  .nudge-box {
+    @apply bg-brand-mint/10 border border-brand-mint/20 rounded-xl p-4 text-sm text-expert-navy;
+  }
+
+  .nudge-box-highlight {
+    @apply bg-match-gold/10 border border-match-gold/30 rounded-xl p-4 text-sm text-expert-navy;
+  }
+
+  /* ============================================
+     Progress
+     ============================================ */
+  .progress-bar {
+    @apply h-2 bg-bg-tertiary rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-brand-mint rounded-full transition-all duration-500;
+  }
+
+  /* ============================================
+     Bottom Navigation (Mobile)
+     ============================================ */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-border-light
+           safe-area-bottom z-50;
+  }
+
+  .bottom-nav-item {
+    @apply flex flex-col items-center justify-center py-2 px-4
+           text-text-tertiary transition-colors;
+  }
+
+  .bottom-nav-item-active {
+    @apply text-brand-mint;
+  }
+}
+
+@layer utilities {
+  /* Safe area for mobile */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Gradient text */
+  .text-gradient-mint {
+    @apply bg-gradient-to-r from-brand-mint to-brand-mint-light bg-clip-text text-transparent;
+  }
+
+  /* Blur overlay */
+  .blur-overlay {
+    @apply absolute inset-0 backdrop-blur-sm bg-white/60 flex items-center justify-center;
+  }
 }
