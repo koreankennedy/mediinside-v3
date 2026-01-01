@@ -126,8 +126,8 @@ src/
 
 | 버전 | 배포 URL | 상태 | 비고 |
 |:---:|:---|:---:|:---|
-| v3.0 | MVP_ver3.0.vercel.app | **현재** | 법무 검토 중 |
-| v2.0 | mediinside.vercel.app | 안정 | 롤백 가능 |
+| v3.0 | https://mvp-ver3-0.vercel.app | **현재** | 법무 검토 중 |
+| v2.0 | https://mediinside.vercel.app | 안정 | 롤백 가능 |
 
 ## 라이선스
 
