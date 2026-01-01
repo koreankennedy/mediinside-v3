@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 import {
   Building2,
   MapPin,
@@ -44,6 +45,7 @@ import { mockEmployerProfile } from '@/lib/mock/data';
 const profileSections = [
   { id: 'basic', label: '기본 정보', icon: Building2 },
   { id: 'intro', label: '병원 소개', icon: FileText },
+  { id: 'work-env', label: '업무환경', icon: Briefcase },
   { id: 'culture', label: '조직 문화', icon: Heart },
   { id: 'benefits', label: '복리후생', icon: Award },
   { id: 'team', label: '팀 소개', icon: Users },
@@ -90,22 +92,119 @@ const cultureKeywords = [
   '교육 중시',
 ];
 
-export default function EmployerProfilePage() {
+function ProfileContent() {
+  const searchParams = useSearchParams();
+  const sectionParam = searchParams.get('section');
+  const showCompletionParam = searchParams.get('showCompletion');
   const [activeSection, setActiveSection] = useState('basic');
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(mockEmployerProfile);
   const [showPreview, setShowPreview] = useState(false);
+  const [showCompletionGuide, setShowCompletionGuide] = useState(false);
   const [selectedCultureKeywords, setSelectedCultureKeywords] = useState<string[]>([
     '수평적 조직문화',
     '성장 지향',
     '환자 중심',
   ]);
+
+  // URL 쿼리 파라미터로 섹션 이동
+  useEffect(() => {
+    if (sectionParam && profileSections.some(s => s.id === sectionParam)) {
+      setActiveSection(sectionParam);
+      // 편집 모드 자동 활성화
+      setIsEditing(true);
+    }
+  }, [sectionParam]);
+
+  // showCompletion 파라미터로 완성도 가이드 모달 표시
+  useEffect(() => {
+    if (showCompletionParam === 'true') {
+      setShowCompletionGuide(true);
+    }
+  }, [showCompletionParam]);
+
+  // 업무환경 섹션 진입 시 자동 편집 모드 활성화
+  useEffect(() => {
+    if (activeSection === 'work-env') {
+      setIsEditing(true);
+    }
+  }, [activeSection]);
   const [selectedBenefits, setSelectedBenefits] = useState<Record<string, string[]>>({
     salary: ['경쟁력 있는 급여', '성과급 지급'],
     worklife: ['주 5일 근무', '정시 퇴근'],
     growth: ['학회 지원', '자격증 취득 지원'],
     welfare: ['중식 제공', '건강검진'],
   });
+
+  // 업무환경 4단계 상태
+  const [workEnvStep, setWorkEnvStep] = useState(1);
+  const [workEnvironment, setWorkEnvironment] = useState({
+    // 1단계: 시설 규모
+    chairs: 8,
+    beds: 4,
+    dailyPatients: 50,
+    // 2단계: 근무 조건
+    workDays: 5,
+    workHours: 9,
+    breakTime: 60,
+    overtimeFreq: 'rare' as 'none' | 'rare' | 'sometimes' | 'often',
+    // 3단계: 인력 배치
+    doctors: 3,
+    nurses: 5,
+    staff: 4,
+    patientPerNurse: 10,
+    // 4단계: 보유 장비
+    equipment: ['최신 레이저 장비', 'LDM', '울쎄라'] as string[],
+  });
+
+  // 장비 목록 옵션 (진료과별)
+  const equipmentCategories: Record<string, string[]> = {
+    '피부과': ['최신 레이저 장비', 'LDM', '울쎄라', '인모드', '피부분석기', 'IPL', '프락셀', '슈링크', '올리지오', 'CO2 레이저', '포텐자', '리쥬란 주입기', 'HIFU', '써마지', '클라리티'],
+    '성형외과': ['수술현미경', '내시경', '지방흡입기', '레이저', '초음파', 'RF장비', '마취모니터', '봉합세트', '수술조명', '멸균기'],
+    '치과': ['파노라마', 'CT', '임플란트장비', 'CAD/CAM', '레이저', '스케일러', '치과현미경', '근관장측정기', '광중합기', '석션장비'],
+    '가정의학과': ['초음파', '심전도', 'X-ray', '혈액분석기', '내시경', '골밀도측정기', '폐기능검사기', '혈압계', '체성분분석기', '당화혈색소측정기'],
+    '이비인후과': ['내시경(비/후두)', '청력검사기', '알레르기검사기', '비강통기도검사기', '수술현미경', '레이저치료기', 'CT촬영기', '중이검사기', '음성분석기', '비점막수축기'],
+    '안과': ['세극등현미경', '안압계', '검안경', '시야검사기', 'OCT', '각막지형도', '자동굴절검사기', '안저카메라', '레이저', 'A/B스캔'],
+    '정형외과': ['X-ray', 'C-arm', '초음파', '체외충격파', '도수치료대', '관절경', '골절고정기', '재활장비', '견인장치', 'MRI'],
+    '내과': ['심전도', '초음파', '내시경', '혈액분석기', 'X-ray', '폐기능검사기', '동맥경화측정기', '혈압계', 'EKG모니터', '인바디'],
+    '산부인과': ['초음파', '태아감시장치', '자궁경', '콜포스코프', '유방촬영기', '골밀도측정기', 'HPV검사기', '분만대', '신생아보육기', '레이저'],
+    '소아과': ['체성분분석기', '청력검사기', '시력검사기', '네뷸라이저', '산소포화도계', '황달측정기', '혈액분석기', '초음파', '성장판검사기', 'X-ray'],
+    '재활의학과': ['체외충격파', '초음파', '전기자극치료기', '도수치료대', '운동치료기구', '보행분석기', '근전도', '레이저', '온열치료기', '견인장치'],
+    '정신건강의학과': ['뇌파측정기', '심리검사도구', '바이오피드백', '광치료기', 'rTMS', '수면다원검사기'],
+    '기타': [],
+  };
+
+  const departmentList = Object.keys(equipmentCategories);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('피부과');
+
+  // 커스텀 장비 입력
+  const [customEquipment, setCustomEquipment] = useState('');
+
+  // 업무강도 자동 계산
+  const calculateIntensity = () => {
+    let score = 0;
+    // 환자 수 대비 간호인력
+    const patientRatio = workEnvironment.dailyPatients / (workEnvironment.nurses || 1);
+    if (patientRatio > 15) score += 3;
+    else if (patientRatio > 10) score += 2;
+    else score += 1;
+    // 근무시간
+    if (workEnvironment.workHours > 9) score += 2;
+    else if (workEnvironment.workHours > 8) score += 1;
+    // 야근빈도
+    if (workEnvironment.overtimeFreq === 'often') score += 2;
+    else if (workEnvironment.overtimeFreq === 'sometimes') score += 1;
+    // 체어/베드 대비 인력
+    const chairRatio = (workEnvironment.chairs + workEnvironment.beds) / (workEnvironment.nurses || 1);
+    if (chairRatio > 3) score += 2;
+    else if (chairRatio > 2) score += 1;
+
+    if (score >= 6) return { level: 'high', label: '바쁨', color: 'text-error', bgColor: 'bg-error/10', description: '빠른 업무 속도, 높은 집중력 필요' };
+    if (score >= 3) return { level: 'middle', label: '보통', color: 'text-warning', bgColor: 'bg-warning/10', description: '적정 업무량, 균형잡힌 환경' };
+    return { level: 'low', label: '여유', color: 'text-success', bgColor: 'bg-success/10', description: '안정적인 업무 페이스' };
+  };
+
+  const intensity = calculateIntensity();
 
   const toggleCultureKeyword = (keyword: string) => {
     setSelectedCultureKeywords((prev) =>
@@ -154,44 +253,51 @@ export default function EmployerProfilePage() {
         </button>
       </div>
 
-      {/* AI 자동적재 배너 */}
-      <Link href="/employer/profile/setup">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-brand-mint to-brand-mint-dark rounded-2xl p-4 mb-4 text-white"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <Zap className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="font-semibold">AI 자동적재로 프로필 완성하기</div>
-                <div className="text-sm text-white/80">웹에서 병원 정보를 자동으로 수집해요</div>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5" />
-          </div>
-        </motion.div>
-      </Link>
-
-      {/* 프로필 완성도 */}
-      <div className="bg-expert-navy/5 rounded-2xl p-4 mb-6 border border-expert-navy/10">
+      {/* 프로필 완성도 - 상단 CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-expert-navy/5 rounded-2xl p-4 mb-4 border border-expert-navy/10"
+      >
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-text-secondary">프로필 완성도</span>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-expert-navy" />
+            <span className="font-medium text-text-primary">프로필 완성도</span>
+          </div>
           <span className="text-lg font-bold text-expert-navy">
             {profile.profileCompleteness}%
           </span>
         </div>
-        <div className="progress-bar mb-2">
+        <div className="progress-bar mb-3">
           <div
             className="progress-fill bg-expert-navy"
             style={{ width: `${profile.profileCompleteness}%` }}
           />
         </div>
-        <div className="text-xs text-text-tertiary">
-          프로필을 100% 완성하면 후보자에게 더 매력적으로 보여요!
+        <button
+          onClick={() => setShowCompletionGuide(true)}
+          className="w-full py-2.5 bg-expert-navy text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
+        >
+          <FileText className="w-4 h-4" />
+          미완성 항목 확인하고 완성하기
+        </button>
+      </motion.div>
+
+      {/* AI 자동적재 - 하단 보조 CTA */}
+      <div className="bg-brand-mint/5 rounded-2xl p-4 mb-6 border border-brand-mint/10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-brand-mint/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-5 h-5 text-brand-mint" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-text-primary">AI가 자동으로 정보를 채워줬어요</div>
+            <div className="text-xs text-text-tertiary mt-0.5">웹에서 수집한 정보 기반 · 수정 가능</div>
+          </div>
+          <Link href="/employer/profile/setup">
+            <button className="px-3 py-1.5 text-xs bg-brand-mint text-white rounded-lg font-medium">
+              수정
+            </button>
+          </Link>
         </div>
       </div>
 
@@ -408,6 +514,554 @@ export default function EmployerProfilePage() {
                 </button>
               )}
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Work Environment Section - 3단계 업무환경 */}
+      {activeSection === 'work-env' && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          {/* 업무강도 자동 추정 결과 */}
+          <div className={`rounded-2xl p-4 border ${intensity.bgColor} border-${intensity.level === 'high' ? 'error' : intensity.level === 'middle' ? 'warning' : 'success'}/20`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className={`w-5 h-5 ${intensity.color}`} />
+                <span className="font-semibold text-text-primary">추정 업무강도</span>
+              </div>
+              <span className={`text-lg font-bold ${intensity.color}`}>{intensity.label}</span>
+            </div>
+            <p className="text-sm text-text-secondary">{intensity.description}</p>
+            <div className="mt-3 pt-3 border-t border-border-light">
+              <p className="text-xs text-text-tertiary">
+                * 입력하신 시설 규모, 근무 조건, 인력 배치를 바탕으로 자동 추정됩니다.
+              </p>
+            </div>
+          </div>
+
+          {/* 4단계 스텝 인디케이터 */}
+          <div className="bg-white rounded-2xl p-4 border border-border-light">
+            <div className="flex items-center justify-between mb-4 gap-1">
+              {[
+                { step: 1, label: '시설', icon: '🏥' },
+                { step: 2, label: '근무', icon: '⏰' },
+                { step: 3, label: '인력', icon: '👥' },
+                { step: 4, label: '장비', icon: '🔬' },
+              ].map(({ step, label, icon }) => (
+                <button
+                  key={step}
+                  onClick={() => setWorkEnvStep(step)}
+                  className={`flex-1 flex flex-col items-center py-2 rounded-xl transition-all ${
+                    workEnvStep === step
+                      ? 'bg-expert-navy/10'
+                      : 'hover:bg-bg-secondary'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
+                    workEnvStep >= step ? 'bg-expert-navy text-white' : 'bg-bg-secondary text-text-tertiary'
+                  }`}>
+                    {workEnvStep > step ? <Check className="w-4 h-4" /> : step}
+                  </div>
+                  <span className={`text-xs ${workEnvStep >= step ? 'text-expert-navy font-medium' : 'text-text-tertiary'}`}>
+                    {label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* 1단계: 시설 규모 */}
+            {workEnvStep === 1 && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-1">시설 규모</h4>
+                  <p className="text-xs text-text-tertiary mb-3">병원의 시설 규모를 입력해주세요</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">💺</span>
+                        <span className="text-sm font-medium text-text-primary">체어 수</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, chairs: Math.max(0, workEnvironment.chairs - 1)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.chairs}</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, chairs: workEnvironment.chairs + 1})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🛏️</span>
+                        <span className="text-sm font-medium text-text-primary">베드 수</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, beds: Math.max(0, workEnvironment.beds - 1)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.beds}</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, beds: workEnvironment.beds + 1})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">👤</span>
+                        <span className="text-sm font-medium text-text-primary">일 평균 환자 수</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, dailyPatients: Math.max(0, workEnvironment.dailyPatients - 5)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.dailyPatients}</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, dailyPatients: workEnvironment.dailyPatients + 5})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setWorkEnvStep(2)}
+                  className="w-full py-2.5 bg-expert-navy text-white rounded-xl text-sm font-medium"
+                >
+                  다음 →
+                </button>
+              </div>
+            )}
+
+            {/* 2단계: 근무 조건 */}
+            {workEnvStep === 2 && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-1">근무 조건</h4>
+                  <p className="text-xs text-text-tertiary mb-3">근무 시간 및 조건을 입력해주세요</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">📅</span>
+                        <span className="text-sm font-medium text-text-primary">주 근무일</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, workDays: Math.max(1, workEnvironment.workDays - 1)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.workDays}일</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, workDays: Math.min(7, workEnvironment.workDays + 1)})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">⏰</span>
+                        <span className="text-sm font-medium text-text-primary">일 근무시간</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, workHours: Math.max(4, workEnvironment.workHours - 1)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.workHours}h</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, workHours: Math.min(12, workEnvironment.workHours + 1)})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">☕</span>
+                        <span className="text-sm font-medium text-text-primary">휴게시간</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, breakTime: Math.max(30, workEnvironment.breakTime - 15)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-12 text-center font-semibold text-expert-navy">{workEnvironment.breakTime}분</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, breakTime: Math.min(120, workEnvironment.breakTime + 15)})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-text-primary block mb-2">야근 빈도</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { value: 'none', label: '없음', emoji: '😊' },
+                      { value: 'rare', label: '거의없음', emoji: '😌' },
+                      { value: 'sometimes', label: '가끔', emoji: '😐' },
+                      { value: 'often', label: '자주', emoji: '😓' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => isEditing && setWorkEnvironment({...workEnvironment, overtimeFreq: opt.value as typeof workEnvironment.overtimeFreq})}
+                        className={`py-2.5 rounded-xl text-xs font-medium transition-all flex flex-col items-center gap-0.5 ${
+                          workEnvironment.overtimeFreq === opt.value
+                            ? 'bg-expert-navy text-white'
+                            : 'bg-bg-secondary text-text-secondary hover:bg-bg-secondary/80'
+                        } ${!isEditing ? 'cursor-default' : 'cursor-pointer'}`}
+                      >
+                        <span className="text-base">{opt.emoji}</span>
+                        <span>{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setWorkEnvStep(1)}
+                    className="px-4 py-2.5 border border-border-light text-text-secondary rounded-xl text-sm"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => setWorkEnvStep(3)}
+                    className="flex-1 py-2.5 bg-expert-navy text-white rounded-xl text-sm font-medium"
+                  >
+                    다음 →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 3단계: 인력 배치 */}
+            {workEnvStep === 3 && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-1">인력 배치</h4>
+                  <p className="text-xs text-text-tertiary mb-3">의료진 및 직원 수를 입력해주세요</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">👨‍⚕️</span>
+                        <span className="text-sm font-medium text-text-primary">의사 수</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, doctors: Math.max(1, workEnvironment.doctors - 1)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.doctors}명</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, doctors: workEnvironment.doctors + 1})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">👩‍⚕️</span>
+                        <span className="text-sm font-medium text-text-primary">간호인력</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, nurses: Math.max(1, workEnvironment.nurses - 1)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.nurses}명</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, nurses: workEnvironment.nurses + 1})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🧑‍💼</span>
+                        <span className="text-sm font-medium text-text-primary">기타직원</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, staff: Math.max(0, workEnvironment.staff - 1)})}
+                          className="w-7 h-7 rounded-full bg-white border border-border-light flex items-center justify-center text-text-secondary"
+                          disabled={!isEditing}
+                        >-</button>
+                        <span className="w-10 text-center font-semibold text-expert-navy">{workEnvironment.staff}명</span>
+                        <button
+                          onClick={() => isEditing && setWorkEnvironment({...workEnvironment, staff: workEnvironment.staff + 1})}
+                          className="w-7 h-7 rounded-full bg-expert-navy text-white flex items-center justify-center"
+                          disabled={!isEditing}
+                        >+</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 인력 배치 분석 */}
+                <div className="bg-brand-mint/5 rounded-xl p-3 border border-brand-mint/10">
+                  <div className="text-xs font-medium text-brand-mint mb-2">💡 업무강도 분석</div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-tertiary">간호인력 1인당 환자</span>
+                      <span className={`font-semibold ${
+                        workEnvironment.dailyPatients / (workEnvironment.nurses || 1) > 12 ? 'text-error' : 'text-success'
+                      }`}>
+                        {(workEnvironment.dailyPatients / (workEnvironment.nurses || 1)).toFixed(1)}명
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-tertiary">간호인력 1인당 베드</span>
+                      <span className={`font-semibold ${
+                        (workEnvironment.chairs + workEnvironment.beds) / (workEnvironment.nurses || 1) > 2.5 ? 'text-warning' : 'text-success'
+                      }`}>
+                        {((workEnvironment.chairs + workEnvironment.beds) / (workEnvironment.nurses || 1)).toFixed(1)}개
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setWorkEnvStep(2)}
+                    className="px-4 py-2.5 border border-border-light text-text-secondary rounded-xl text-sm"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => setWorkEnvStep(4)}
+                    className="flex-1 py-2.5 bg-expert-navy text-white rounded-xl text-sm font-medium"
+                  >
+                    다음 →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 4단계: 보유 장비 */}
+            {workEnvStep === 4 && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-1">보유 장비</h4>
+                  <p className="text-xs text-text-tertiary mb-3">진료과를 선택하면 대표 장비가 표시됩니다</p>
+
+                  {/* 진료과 선택 */}
+                  <div className="mb-4">
+                    <label className="text-xs font-medium text-text-secondary mb-2 block">진료과 선택</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {departmentList.map((dept) => (
+                        <button
+                          key={dept}
+                          onClick={() => setSelectedDepartment(dept)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                            selectedDepartment === dept
+                              ? 'bg-expert-navy text-white'
+                              : 'bg-bg-secondary text-text-secondary hover:bg-bg-secondary/80'
+                          }`}
+                        >
+                          {dept}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 선택된 분과의 장비 목록 */}
+                  {selectedDepartment && selectedDepartment !== '기타' && (
+                    <div className="mb-4">
+                      <label className="text-xs font-medium text-text-secondary mb-2 block">{selectedDepartment} 대표 장비</label>
+                      <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                        {equipmentCategories[selectedDepartment]?.map((item) => (
+                          <button
+                            key={item}
+                            onClick={() => {
+                              if (!isEditing) return;
+                              const current = workEnvironment.equipment;
+                              if (current.includes(item)) {
+                                setWorkEnvironment({...workEnvironment, equipment: current.filter(e => e !== item)});
+                              } else {
+                                setWorkEnvironment({...workEnvironment, equipment: [...current, item]});
+                              }
+                            }}
+                            className={`px-2.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                              workEnvironment.equipment.includes(item)
+                                ? 'bg-expert-navy text-white'
+                                : 'bg-bg-secondary text-text-secondary hover:bg-bg-secondary/80'
+                            } ${!isEditing ? 'cursor-default opacity-70' : 'cursor-pointer'}`}
+                          >
+                            {workEnvironment.equipment.includes(item) && <Check className="w-3 h-3 inline mr-1" />}
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 직접 입력 */}
+                  <div>
+                    <label className="text-xs font-medium text-text-secondary mb-2 block">장비 직접 입력</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={customEquipment}
+                        onChange={(e) => setCustomEquipment(e.target.value)}
+                        placeholder="장비명을 입력하세요"
+                        disabled={!isEditing}
+                        className="flex-1 px-3 py-2 bg-bg-secondary rounded-xl text-sm disabled:opacity-70"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && customEquipment.trim() && isEditing) {
+                            if (!workEnvironment.equipment.includes(customEquipment.trim())) {
+                              setWorkEnvironment({...workEnvironment, equipment: [...workEnvironment.equipment, customEquipment.trim()]});
+                            }
+                            setCustomEquipment('');
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          if (!isEditing || !customEquipment.trim()) return;
+                          if (!workEnvironment.equipment.includes(customEquipment.trim())) {
+                            setWorkEnvironment({...workEnvironment, equipment: [...workEnvironment.equipment, customEquipment.trim()]});
+                          }
+                          setCustomEquipment('');
+                        }}
+                        disabled={!isEditing || !customEquipment.trim()}
+                        className="px-4 py-2 bg-expert-navy text-white rounded-xl text-sm font-medium disabled:opacity-50"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 선택된 장비 요약 */}
+                {workEnvironment.equipment.length > 0 && (
+                  <div className="bg-expert-navy/5 rounded-xl p-3 border border-expert-navy/10">
+                    <div className="text-xs font-medium text-expert-navy mb-2">🔬 선택된 장비 ({workEnvironment.equipment.length}개)</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {workEnvironment.equipment.map((item) => (
+                        <span
+                          key={item}
+                          className="px-2 py-1 bg-expert-navy/10 text-expert-navy rounded-full text-xs flex items-center gap-1"
+                        >
+                          {item}
+                          {isEditing && (
+                            <button
+                              onClick={() => setWorkEnvironment({...workEnvironment, equipment: workEnvironment.equipment.filter(e => e !== item)})}
+                              className="hover:text-error"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setWorkEnvStep(3)}
+                    className="px-4 py-2.5 border border-border-light text-text-secondary rounded-xl text-sm"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => {
+                      // 저장 완료 후 다음 미완성 섹션으로 이동
+                      setActiveSection('gallery');
+                      setIsEditing(true);
+                    }}
+                    className="flex-1 py-2.5 bg-success text-white rounded-xl text-sm font-medium"
+                  >
+                    ✓ 저장 완료
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 플랫폼 인증 배지 */}
+          <div className="bg-white rounded-2xl p-4 border border-border-light">
+            <h3 className="text-card-title mb-3 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-brand-mint" />
+              업무환경 인증 배지
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between p-3 bg-success/5 border border-success/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-success" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-text-primary">정시퇴근 병원</div>
+                    <div className="text-xs text-text-tertiary">야근빈도 '거의없음' 이하</div>
+                  </div>
+                </div>
+                {workEnvironment.overtimeFreq === 'none' || workEnvironment.overtimeFreq === 'rare' ? (
+                  <CheckCircle className="w-5 h-5 text-success" />
+                ) : (
+                  <X className="w-5 h-5 text-text-tertiary" />
+                )}
+              </div>
+              <div className="flex items-center justify-between p-3 bg-brand-mint/5 border border-brand-mint/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-brand-mint" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-text-primary">적정인력 병원</div>
+                    <div className="text-xs text-text-tertiary">간호인력 1인당 환자 12명 이하</div>
+                  </div>
+                </div>
+                {workEnvironment.dailyPatients / (workEnvironment.nurses || 1) <= 12 ? (
+                  <CheckCircle className="w-5 h-5 text-brand-mint" />
+                ) : (
+                  <X className="w-5 h-5 text-text-tertiary" />
+                )}
+              </div>
+              <div className="flex items-center justify-between p-3 bg-info/5 border border-info/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-info/10 rounded-full flex items-center justify-center">
+                    <Coffee className="w-5 h-5 text-info" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-text-primary">워라밸 우수 병원</div>
+                    <div className="text-xs text-text-tertiary">주5일, 일 9시간 이하 근무</div>
+                  </div>
+                </div>
+                {workEnvironment.workDays <= 5 && workEnvironment.workHours <= 9 ? (
+                  <CheckCircle className="w-5 h-5 text-info" />
+                ) : (
+                  <X className="w-5 h-5 text-text-tertiary" />
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-text-tertiary mt-3">
+              * 배지는 입력하신 정보를 바탕으로 자동 부여되며, 구직자에게 노출됩니다.
+            </p>
           </div>
         </motion.div>
       )}
@@ -919,6 +1573,168 @@ export default function EmployerProfilePage() {
         </button>
       </div>
 
+      {/* 프로필 완성도 가이드 모달 */}
+      <AnimatePresence>
+        {showCompletionGuide && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowCompletionGuide(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed inset-x-4 top-20 z-50 bg-white rounded-2xl max-w-md mx-auto overflow-hidden max-h-[calc(100vh-6rem)] overflow-y-auto shadow-xl"
+            >
+              <div className="p-5">
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-expert-navy/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-8 h-8 text-expert-navy" />
+                  </div>
+                  <h2 className="text-lg font-bold text-text-primary mb-1">프로필 완성도 높이기</h2>
+                  <p className="text-sm text-text-secondary">
+                    아래 항목을 완성하면 더 많은 인재를 만나요
+                  </p>
+                </div>
+
+                {/* 프로필 완성도 진행바 */}
+                <div className="bg-expert-navy/5 rounded-xl p-3 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-text-secondary">현재 프로필 완성도</span>
+                    <span className="text-lg font-bold text-expert-navy">{profile.profileCompleteness}%</span>
+                  </div>
+                  <div className="h-2 bg-white rounded-full overflow-hidden">
+                    <div className="h-full bg-expert-navy rounded-full" style={{ width: `${profile.profileCompleteness}%` }} />
+                  </div>
+                </div>
+
+                {/* 단계별 완성 가이드 */}
+                <div className="space-y-2 mb-5">
+                  <div className="text-sm font-medium text-text-primary mb-2">미완성 항목</div>
+
+                  {/* 업무환경 - 미완성 */}
+                  <button
+                    onClick={() => { setShowCompletionGuide(false); setActiveSection('work-env'); setIsEditing(true); }}
+                    className="w-full flex items-center justify-between p-3 bg-warning/5 border border-warning/20 rounded-xl hover:bg-warning/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-warning/10 rounded-full flex items-center justify-center">
+                        <Briefcase className="w-4 h-4 text-warning" />
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm font-medium text-text-primary">업무환경 입력</div>
+                        <div className="text-xs text-text-tertiary">시설, 근무조건, 인력배치</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-warning font-medium">+15%</span>
+                      <ChevronRight className="w-4 h-4 text-text-tertiary" />
+                    </div>
+                  </button>
+
+                  {/* 갤러리 - 미완성 */}
+                  <button
+                    onClick={() => { setShowCompletionGuide(false); setActiveSection('gallery'); setIsEditing(true); }}
+                    className="w-full flex items-center justify-between p-3 bg-info/5 border border-info/20 rounded-xl hover:bg-info/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-info/10 rounded-full flex items-center justify-center">
+                        <Image className="w-4 h-4 text-info" />
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm font-medium text-text-primary">병원 사진 등록</div>
+                        <div className="text-xs text-text-tertiary">시설 사진 3장 이상</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-info font-medium">+8%</span>
+                      <ChevronRight className="w-4 h-4 text-text-tertiary" />
+                    </div>
+                  </button>
+
+                  {/* 팀소개 - 미완성 */}
+                  <button
+                    onClick={() => { setShowCompletionGuide(false); setActiveSection('team'); setIsEditing(true); }}
+                    className="w-full flex items-center justify-between p-3 bg-brand-mint/5 border border-brand-mint/20 rounded-xl hover:bg-brand-mint/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                        <Users className="w-4 h-4 text-brand-mint" />
+                      </div>
+                      <div className="text-left">
+                        <div className="text-sm font-medium text-text-primary">팀 소개 추가</div>
+                        <div className="text-xs text-text-tertiary">팀원 인터뷰, 분위기</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-brand-mint font-medium">+5%</span>
+                      <ChevronRight className="w-4 h-4 text-text-tertiary" />
+                    </div>
+                  </button>
+
+                  <div className="text-sm font-medium text-text-primary mt-3 mb-2">완성된 항목</div>
+
+                  {/* 기본정보 - 완성됨 */}
+                  <div className="flex items-center justify-between p-3 bg-success/5 border border-success/20 rounded-xl opacity-70">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-text-primary">기본 정보</div>
+                        <div className="text-xs text-text-tertiary">병원명, 주소, 연락처</div>
+                      </div>
+                    </div>
+                    <span className="text-xs text-success font-medium">완료</span>
+                  </div>
+
+                  {/* 병원소개 - 완성됨 */}
+                  <div className="flex items-center justify-between p-3 bg-success/5 border border-success/20 rounded-xl opacity-70">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-text-primary">병원 소개</div>
+                        <div className="text-xs text-text-tertiary">핵심가치, 비전</div>
+                      </div>
+                    </div>
+                    <span className="text-xs text-success font-medium">완료</span>
+                  </div>
+
+                  {/* 복리후생 - 완성됨 */}
+                  <div className="flex items-center justify-between p-3 bg-success/5 border border-success/20 rounded-xl opacity-70">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-text-primary">복리후생</div>
+                        <div className="text-xs text-text-tertiary">급여, 워라밸, 복지</div>
+                      </div>
+                    </div>
+                    <span className="text-xs text-success font-medium">완료</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setShowCompletionGuide(false)}
+                    className="w-full py-3 bg-expert-navy text-white rounded-xl font-semibold"
+                  >
+                    확인
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* 프로필 미리보기 모달 */}
       <AnimatePresence>
         {showPreview && (
@@ -1217,5 +2033,13 @@ export default function EmployerProfilePage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function EmployerProfilePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩 중...</div>}>
+      <ProfileContent />
+    </Suspense>
   );
 }

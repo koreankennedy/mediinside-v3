@@ -39,13 +39,71 @@ import { mockFitTestQuestions, mockRecommendedDepartments, mockRecommendedHospit
 type FitType = 'high_end_achiever' | 'practical_expert' | 'self_actualizer' | 'trust_centered_expert';
 type DiagnosisMode = 'test' | 'resume-ai' | 'ai-chat';
 
-const fitTypeInfo: Record<FitType, { label: string; description: string; icon: React.ComponentType<{ className?: string }>; color: string; traits: string[] }> = {
+// 채용상품 정보
+const hiringProducts = {
+  'HP-SHARE': {
+    code: 'HP-SHARE',
+    label: '매출 셰어',
+    description: '매출의 1% 인센티브',
+    color: '#FF2D55',
+    targetType: 'high_end_achiever',
+  },
+  'HP-BONUS': {
+    code: 'HP-BONUS',
+    label: '근속 보너스',
+    description: '1년 200만, 3년 500만',
+    color: '#AF52DE',
+    targetType: 'trust_centered_expert',
+  },
+  'HP-VACATION': {
+    code: 'HP-VACATION',
+    label: '휴가 자유',
+    description: '연차 자유사용 보장',
+    color: '#5AC8FA',
+    targetType: 'self_actualizer',
+  },
+  'HP-ALLOWANCE': {
+    code: 'HP-ALLOWANCE',
+    label: '수당 보장',
+    description: '야근/주말 150%',
+    color: '#FF9500',
+    targetType: 'practical_expert',
+  },
+};
+
+// 성향별 추천 채용상품 매핑
+const fitTypeToProducts: Record<FitType, string[]> = {
+  high_end_achiever: ['HP-SHARE', 'HP-ALLOWANCE', 'HP-BONUS'],
+  practical_expert: ['HP-ALLOWANCE', 'HP-BONUS', 'HP-SHARE'],
+  self_actualizer: ['HP-VACATION', 'HP-BONUS', 'HP-SHARE'],
+  trust_centered_expert: ['HP-BONUS', 'HP-VACATION', 'HP-ALLOWANCE'],
+};
+
+const fitTypeInfo: Record<FitType, {
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  traits: string[];
+  workStyle: {
+    summary: string;
+    strengths: string[];
+    environment: string;
+    motivation: string;
+  };
+}> = {
   high_end_achiever: {
     label: '하이엔드 성과자',
     description: '성과 보상과 성장 기회를 중시해요. 인센티브가 강한 대형 병원과 잘 맞아요.',
     icon: TrendingUp,
     color: 'text-match-gold',
     traits: ['목표 지향적', '성과 중심', '도전적', '승부욕 강함'],
+    workStyle: {
+      summary: '당신은 도전적인 환경에서 최고의 성과를 내는 타입이에요.',
+      strengths: ['빠른 의사결정', '성과 창출 능력', '목표 달성 의지', '경쟁 상황에서의 집중력'],
+      environment: '성과에 따른 보상이 명확하고, 성장 기회가 많은 대형 병원',
+      motivation: '인센티브, 승진 기회, 전문성 인정',
+    },
   },
   practical_expert: {
     label: '실리적 전문가',
@@ -53,6 +111,12 @@ const fitTypeInfo: Record<FitType, { label: string; description: string; icon: R
     icon: Target,
     color: 'text-info',
     traits: ['실용적', '균형 중시', '효율적', '체계적'],
+    workStyle: {
+      summary: '당신은 안정적인 환경에서 효율적으로 능력을 발휘하는 타입이에요.',
+      strengths: ['효율적 업무 처리', '시간 관리 능력', '체계적인 접근', '꼼꼼한 업무 수행'],
+      environment: '근무 조건이 명확하고, 체계가 잘 잡힌 병원',
+      motivation: '정당한 보상, 예측 가능한 일정, 업무-생활 균형',
+    },
   },
   self_actualizer: {
     label: '자아실현가',
@@ -60,6 +124,12 @@ const fitTypeInfo: Record<FitType, { label: string; description: string; icon: R
     icon: Heart,
     color: 'text-error',
     traits: ['성장 지향', '학습 열정', '창의적', '자기주도적'],
+    workStyle: {
+      summary: '당신은 자율적인 환경에서 창의성을 발휘하며 성장하는 타입이에요.',
+      strengths: ['자기주도적 학습', '창의적 문제해결', '새로운 시도', '지속적 성장 의지'],
+      environment: '교육과 성장 기회가 많고, 자율성이 보장되는 병원',
+      motivation: '학습 기회, 의미 있는 업무, 전문성 개발',
+    },
   },
   trust_centered_expert: {
     label: '신뢰 중심 전문가',
@@ -67,6 +137,12 @@ const fitTypeInfo: Record<FitType, { label: string; description: string; icon: R
     icon: Shield,
     color: 'text-success',
     traits: ['협력적', '신뢰 중시', '안정 추구', '관계 지향'],
+    workStyle: {
+      summary: '당신은 신뢰할 수 있는 팀과 함께할 때 최고의 역량을 발휘하는 타입이에요.',
+      strengths: ['팀워크', '신뢰 구축 능력', '안정적인 업무 수행', '동료 지원'],
+      environment: '가족적인 분위기에서 오래 근속하는 직원이 많은 병원',
+      motivation: '좋은 동료, 안정적인 고용, 소속감',
+    },
   },
 };
 
@@ -192,6 +268,9 @@ export default function FitTestPage() {
   // 공유하기 모달 상태
   const [showShareModal, setShowShareModal] = useState(false);
 
+  // 빠른 클릭 방지
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const questions = mockFitTestQuestions;
   const totalQuestions = questions.length;
   const progress = ((currentQuestion + 1) / totalQuestions) * 100;
@@ -223,11 +302,18 @@ export default function FitTestPage() {
   };
 
   const handleAnswer = (value: number) => {
+    // 빠른 클릭 방지
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     const newAnswers = { ...answers, [questions[currentQuestion].id]: value };
     setAnswers(newAnswers);
 
     if (currentQuestion < totalQuestions - 1) {
-      setTimeout(() => setCurrentQuestion((prev) => prev + 1), 300);
+      setTimeout(() => {
+        setCurrentQuestion((prev) => prev + 1);
+        setIsProcessing(false);
+      }, 300);
     } else {
       // 마지막 답변 포함하여 점수 계산
       let x = 0;
@@ -251,7 +337,12 @@ export default function FitTestPage() {
       setXScore(x);
       setYScore(y);
       setFitType(type);
-      setStage('conditions');
+
+      // 안전하게 상태 전환
+      setTimeout(() => {
+        setStage('conditions');
+        setIsProcessing(false);
+      }, 300);
     }
   };
 
@@ -265,12 +356,22 @@ export default function FitTestPage() {
   ];
 
   const handleConditionSelect = (key: string, value: string) => {
+    // 빠른 클릭 방지
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     setWorkConditions((prev) => ({ ...prev, [key]: value }));
 
     if (conditionStep < conditionSteps.length - 1) {
-      setTimeout(() => setConditionStep((prev) => prev + 1), 200);
+      setTimeout(() => {
+        setConditionStep((prev) => prev + 1);
+        setIsProcessing(false);
+      }, 200);
     } else {
-      setTimeout(() => setStage('result'), 300);
+      setTimeout(() => {
+        setStage('result');
+        setIsProcessing(false);
+      }, 300);
     }
   };
 
@@ -902,8 +1003,13 @@ export default function FitTestPage() {
   // 근로조건 설정 화면
   // ============================================
   if (stage === 'conditions') {
-    const currentStep = conditionSteps[conditionStep];
-    const options = workConditionOptions[currentStep.key as keyof typeof workConditionOptions];
+    const currentStep = conditionSteps[conditionStep] || conditionSteps[0];
+    const options = workConditionOptions[currentStep?.key as keyof typeof workConditionOptions] || [];
+
+    if (!currentStep || !options.length) {
+      setStage('result');
+      return null;
+    }
 
     return (
       <div className="px-4 py-6 flex flex-col min-h-[calc(100vh-8rem)]">
@@ -983,8 +1089,8 @@ export default function FitTestPage() {
   // ============================================
   // 결과 화면
   // ============================================
-  const fitInfo = fitTypeInfo[fitType];
-  const FitIcon = fitInfo.icon;
+  const fitInfo = fitTypeInfo[fitType] || fitTypeInfo.high_end_achiever;
+  const FitIcon = fitInfo?.icon || Target;
 
   return (
     <div className="px-4 py-6 pb-24">
@@ -1048,6 +1154,109 @@ export default function FitTestPage() {
                     {trait}
                   </span>
                 ))}
+              </div>
+            </div>
+
+            {/* 업무 스타일 분석 */}
+            {fitInfo?.workStyle && (
+              <div className="bg-white rounded-2xl p-4 border border-border-light">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="w-5 h-5 text-brand-mint" />
+                  <h3 className="text-card-title">업무 스타일 분석</h3>
+                </div>
+
+                {/* 요약 */}
+                <p className="text-sm text-text-primary bg-brand-mint/5 rounded-xl p-3 mb-4">
+                  {fitInfo.workStyle.summary}
+                </p>
+
+                {/* 강점 */}
+                <div className="mb-4">
+                  <div className="text-xs text-text-tertiary mb-2">나의 강점</div>
+                  <div className="flex flex-wrap gap-2">
+                    {fitInfo.workStyle.strengths.map((strength) => (
+                      <span
+                        key={strength}
+                        className="px-3 py-1.5 bg-success/10 text-success rounded-full text-sm"
+                      >
+                        {strength}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 적합한 환경 & 동기부여 */}
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="bg-bg-secondary rounded-xl p-3">
+                    <div className="text-xs text-text-tertiary mb-1">적합한 근무 환경</div>
+                    <div className="text-sm text-text-primary">{fitInfo.workStyle.environment}</div>
+                  </div>
+                  <div className="bg-bg-secondary rounded-xl p-3">
+                    <div className="text-xs text-text-tertiary mb-1">동기부여 요소</div>
+                    <div className="text-sm text-text-primary">{fitInfo.workStyle.motivation}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 추천 채용상품 */}
+            <div className="bg-white rounded-2xl p-4 border border-border-light">
+              <div className="flex items-center gap-2 mb-3">
+                <Gift className="w-5 h-5 text-brand-mint" />
+                <h3 className="text-card-title">추천 채용상품</h3>
+              </div>
+              <p className="text-xs text-text-secondary mb-4">
+                당신의 성향에 맞는 채용상품이 있는 병원을 우선 추천해드려요
+              </p>
+
+              <div className="space-y-3">
+                {(fitTypeToProducts[fitType] || []).map((productCode, index) => {
+                  const product = hiringProducts[productCode as keyof typeof hiringProducts];
+                  if (!product) return null;
+                  const isTop = index === 0;
+                  return (
+                    <div
+                      key={productCode}
+                      className={`rounded-xl p-3 border-2 transition-all ${
+                        isTop
+                          ? 'border-brand-mint bg-brand-mint/5'
+                          : 'border-border-light bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: `${product.color}20` }}
+                        >
+                          <span className="text-lg">
+                            {productCode === 'HP-SHARE' && '💰'}
+                            {productCode === 'HP-BONUS' && '🎁'}
+                            {productCode === 'HP-VACATION' && '🏖️'}
+                            {productCode === 'HP-ALLOWANCE' && '💵'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="text-sm font-semibold"
+                              style={{ color: product.color }}
+                            >
+                              {product.label}
+                            </span>
+                            {isTop && (
+                              <span className="text-xs bg-brand-mint text-white px-2 py-0.5 rounded-full">
+                                Best Match
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-text-secondary mt-0.5">
+                            {product.description}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

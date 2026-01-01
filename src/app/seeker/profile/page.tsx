@@ -27,6 +27,9 @@ import {
   MessageCircle,
   Lock,
   Unlock,
+  Building2,
+  Clock,
+  AlertCircle,
 } from 'lucide-react';
 
 // 추천 술기 목록 (피부과/성형외과 기반)
@@ -161,6 +164,10 @@ export default function ProfilePage() {
   const [profileVisibility, setProfileVisibility] = useState<'all' | 'interested' | 'hidden'>(mockProfile.profileVisibility);
   const [jobStatus, setJobStatus] = useState<'active' | 'passive' | 'notLooking'>(mockProfile.jobStatus);
 
+  // 과거/재직 병원 숨김 설정
+  const [hideFromPastEmployers, setHideFromPastEmployers] = useState(true);
+  const [hideFromCurrentEmployer, setHideFromCurrentEmployer] = useState(true);
+
   // 술기 편집 상태
   const [skills, setSkills] = useState<string[]>(mockProfile.skills);
   const [isEditingSkills, setIsEditingSkills] = useState(false);
@@ -291,7 +298,8 @@ export default function ProfilePage() {
 
       {/* 프로필 공개 */}
       <div className="bg-white rounded-2xl p-4 border border-border-light mb-6">
-        <div className="flex items-center justify-between">
+        {/* 메인 공개 토글 */}
+        <div className="flex items-center justify-between pb-3 border-b border-border-light">
           <div className="flex items-center gap-3">
             {isPublic ? (
               <Eye className="w-5 h-5 text-brand-mint" />
@@ -317,6 +325,65 @@ export default function ProfilePage() {
             />
           </button>
         </div>
+
+        {/* 세부 공개 설정 */}
+        {isPublic && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            className="pt-3 space-y-3"
+          >
+            <div className="text-xs text-text-tertiary mb-2">공개 제외 병원</div>
+
+            {/* 현재 재직 중인 병원 숨김 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-text-tertiary" />
+                <div>
+                  <div className="text-sm text-text-primary">현재 재직중인 병원에 숨기기</div>
+                  <div className="text-xs text-text-tertiary">{mockProfile.experience[0]?.hospital || '강남스마일치과'}</div>
+                </div>
+              </div>
+              <button
+                onClick={() => setHideFromCurrentEmployer(!hideFromCurrentEmployer)}
+                className={`w-10 h-6 rounded-full transition-colors ${
+                  hideFromCurrentEmployer ? 'bg-brand-mint' : 'bg-bg-tertiary'
+                }`}
+              >
+                <motion.div
+                  className="w-4 h-4 bg-white rounded-full shadow-sm"
+                  animate={{ x: hideFromCurrentEmployer ? 20 : 3 }}
+                />
+              </button>
+            </div>
+
+            {/* 과거 근무 병원 숨김 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-text-tertiary" />
+                <div>
+                  <div className="text-sm text-text-primary">과거 근무 병원에 숨기기</div>
+                  <div className="text-xs text-text-tertiary">이전 직장 {mockProfile.experience.length - 1}곳</div>
+                </div>
+              </div>
+              <button
+                onClick={() => setHideFromPastEmployers(!hideFromPastEmployers)}
+                className={`w-10 h-6 rounded-full transition-colors ${
+                  hideFromPastEmployers ? 'bg-brand-mint' : 'bg-bg-tertiary'
+                }`}
+              >
+                <motion.div
+                  className="w-4 h-4 bg-white rounded-full shadow-sm"
+                  animate={{ x: hideFromPastEmployers ? 20 : 3 }}
+                />
+              </button>
+            </div>
+
+            <div className="text-xs text-text-tertiary bg-bg-secondary rounded-lg p-2">
+              💡 숨김 설정된 병원에서는 내 프로필을 검색하거나 볼 수 없어요
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Section Tabs */}
@@ -776,8 +843,18 @@ export default function ProfilePage() {
                       )}
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-border-light/50 text-xs text-text-tertiary">
-                      {review.date}
+                    <div className="mt-3 pt-2 border-t border-border-light/50 flex items-center justify-between">
+                      <span className="text-xs text-text-tertiary">{review.date}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          alert(`"${review.content.slice(0, 20)}..." 리뷰에 대한 마스킹(수정) 요청이 접수되었습니다.\n\n검토 후 3일 내 처리됩니다.`);
+                        }}
+                        className="flex items-center gap-1 text-xs text-text-tertiary hover:text-warning transition-colors"
+                      >
+                        <AlertCircle className="w-3 h-3" />
+                        마스킹 요청
+                      </button>
                     </div>
                   </motion.div>
                 );

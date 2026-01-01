@@ -58,6 +58,21 @@ const fitTypeColors: Record<string, string> = {
   trust_centered_expert: 'text-success',
 };
 
+// 업무강도 정보
+const intensityInfo: Record<string, { label: string; color: string; bgColor: string }> = {
+  low: { label: '여유', color: 'text-success', bgColor: 'bg-success/10' },
+  middle: { label: '보통', color: 'text-warning', bgColor: 'bg-warning/10' },
+  high: { label: '바쁨', color: 'text-error', bgColor: 'bg-error/10' },
+};
+
+// 채용상품 정보
+const productInfo: Record<string, { label: string; color: string; icon: string }> = {
+  share: { label: '매출 셰어', color: '#FF2D55', icon: '💰' },
+  bonus: { label: '근속 보너스', color: '#AF52DE', icon: '🎁' },
+  vacation: { label: '휴가 자유', color: '#5AC8FA', icon: '🏖️' },
+  allowance: { label: '수당 보장', color: '#FF9500', icon: '💵' },
+};
+
 function MatchingCenterContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') || 'all';
@@ -348,6 +363,30 @@ function MatchingCenterContent() {
                 ))}
               </div>
 
+              {/* 희망 업무강도 & 선호 채용상품 */}
+              <div className="flex items-center gap-2 flex-wrap mb-3">
+                {/* 희망 업무강도 */}
+                {candidate.preferredIntensity && (
+                  <span className={`text-xs px-2 py-1 rounded-full ${intensityInfo[candidate.preferredIntensity]?.bgColor} ${intensityInfo[candidate.preferredIntensity]?.color}`}>
+                    희망 {intensityInfo[candidate.preferredIntensity]?.label}
+                  </span>
+                )}
+                {/* 선호 채용상품 */}
+                {candidate.preferredProducts?.slice(0, 2).map((productType: string) => {
+                  const product = productInfo[productType];
+                  if (!product) return null;
+                  return (
+                    <span
+                      key={productType}
+                      className="text-xs px-2 py-1 rounded-full text-white"
+                      style={{ backgroundColor: product.color }}
+                    >
+                      {product.icon} {product.label}
+                    </span>
+                  );
+                })}
+              </div>
+
               {/* 성향 FIT */}
               {candidate.hasColleagueFit && (
                 <div className="nudge-box text-xs mb-3">
@@ -524,7 +563,7 @@ function MatchingCenterContent() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25 }}
-              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[85vh] overflow-y-auto"
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] overflow-y-auto"
             >
               <div className="p-4 pb-8">
                 <div className="w-12 h-1.5 bg-bg-tertiary rounded-full mx-auto mb-4" />
@@ -542,17 +581,21 @@ function MatchingCenterContent() {
                       <div className="text-sm text-text-secondary">
                         {selectedCandidate.licenseType} · {selectedCandidate.experience}
                       </div>
+                      <div className={`text-xs mt-0.5 ${fitTypeColors[selectedCandidate.fitType]}`}>
+                        {selectedCandidate.fitTypeLabel}
+                      </div>
                     </div>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-brand-mint">
                       {selectedCandidate.matchScore}%
                     </div>
+                    <div className="text-xs text-text-tertiary">매칭</div>
                   </div>
                 </div>
 
                 {/* 현재 상태 */}
-                <div className="bg-bg-secondary rounded-xl p-4 mb-4">
+                <div className="bg-bg-secondary rounded-xl p-3 mb-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-text-secondary">현재 상태</span>
                     <span className={`font-semibold ${statusConfig[selectedCandidate.status]?.color || 'text-brand-mint'}`}>
@@ -561,37 +604,160 @@ function MatchingCenterContent() {
                   </div>
                 </div>
 
-                {/* 상세 정보 */}
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center justify-between py-2 border-b border-border-light">
-                    <span className="text-text-secondary text-sm">현 직장</span>
-                    <span className="font-medium">{selectedCandidate.currentHospital}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b border-border-light">
-                    <span className="text-text-secondary text-sm">희망 급여</span>
-                    <span className="font-medium">{selectedCandidate.desiredSalary}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-2 border-b border-border-light">
-                    <span className="text-text-secondary text-sm">성향 유형</span>
-                    <span className={`font-medium ${fitTypeColors[selectedCandidate.fitType]}`}>
-                      {selectedCandidate.fitTypeLabel}
-                    </span>
+                {/* 1. 희망조건 (희망 채용상품, 희망 업무강도 포함) */}
+                <div className="bg-white rounded-2xl border border-border-light p-4 mb-4">
+                  <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-info" />
+                    희망조건
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b border-border-light">
+                      <span className="text-text-secondary text-sm">희망 급여</span>
+                      <span className="font-semibold text-text-primary">{selectedCandidate.desiredSalary}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-border-light">
+                      <span className="text-text-secondary text-sm">선호 근무형태</span>
+                      <span className="font-medium text-text-primary">정규직</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-border-light">
+                      <span className="text-text-secondary text-sm">입사 가능일</span>
+                      <span className="font-medium text-text-primary">협의 가능</span>
+                    </div>
+                    {/* 희망 업무강도 */}
+                    <div className="flex items-center justify-between py-2 border-b border-border-light">
+                      <span className="text-text-secondary text-sm">희망 업무강도</span>
+                      {selectedCandidate.preferredIntensity ? (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${intensityInfo[selectedCandidate.preferredIntensity]?.bgColor} ${intensityInfo[selectedCandidate.preferredIntensity]?.color}`}>
+                          {intensityInfo[selectedCandidate.preferredIntensity]?.label}
+                        </span>
+                      ) : (
+                        <span className="text-text-tertiary text-sm">무관</span>
+                      )}
+                    </div>
+                    {/* 희망 채용상품 */}
+                    <div className="pt-2">
+                      <span className="text-text-secondary text-sm block mb-2">희망 채용상품</span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedCandidate.preferredProducts?.map((productType: string) => {
+                          const product = productInfo[productType];
+                          if (!product) return null;
+                          return (
+                            <span
+                              key={productType}
+                              className="text-xs px-3 py-1.5 rounded-full text-white font-medium"
+                              style={{ backgroundColor: product.color }}
+                            >
+                              {product.icon} {product.label}
+                            </span>
+                          );
+                        }) || <span className="text-text-tertiary text-sm">선호 없음</span>}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* 보유 술기 */}
-                <div className="mb-4">
-                  <h3 className="text-sm font-semibold mb-2">보유 술기</h3>
+                {/* 2. 경력 */}
+                <div className="bg-white rounded-2xl border border-border-light p-4 mb-4">
+                  <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-expert-navy" />
+                    경력
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b border-border-light">
+                      <span className="text-text-secondary text-sm">총 경력</span>
+                      <span className="font-semibold text-text-primary">{selectedCandidate.experience}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-border-light">
+                      <span className="text-text-secondary text-sm">현 직장</span>
+                      <span className="font-medium text-text-primary">{selectedCandidate.currentHospital}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-border-light">
+                      <span className="text-text-secondary text-sm">면허 종류</span>
+                      <span className="font-medium text-text-primary">{selectedCandidate.licenseType}</span>
+                    </div>
+                    {/* 주요 경력 */}
+                    <div className="pt-2">
+                      <span className="text-text-secondary text-sm block mb-2">주요 경력</span>
+                      <div className="space-y-2">
+                        <div className="bg-bg-secondary rounded-lg p-3">
+                          <div className="text-sm font-medium text-text-primary">{selectedCandidate.currentHospital}</div>
+                          <div className="text-xs text-text-tertiary">2021.03 ~ 현재 · 3년 10개월</div>
+                        </div>
+                        <div className="bg-bg-secondary rounded-lg p-3">
+                          <div className="text-sm font-medium text-text-primary">연세플러스치과</div>
+                          <div className="text-xs text-text-tertiary">2018.01 ~ 2021.02 · 3년 2개월</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. 보유 술기 */}
+                <div className="bg-white rounded-2xl border border-border-light p-4 mb-4">
+                  <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-brand-mint" />
+                    보유 술기
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedCandidate.skills.map((skill) => (
                       <span
                         key={skill}
-                        className="px-3 py-1.5 bg-brand-mint/10 text-brand-mint rounded-full text-sm"
+                        className="px-3 py-1.5 bg-brand-mint/10 text-brand-mint rounded-full text-sm font-medium"
                       >
                         {skill}
                       </span>
                     ))}
                   </div>
+                </div>
+
+                {/* 4. 동료 리뷰 */}
+                <div className="bg-white rounded-2xl border border-border-light p-4 mb-4">
+                  <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+                    <Star className="w-4 h-4 text-match-gold" />
+                    동료 리뷰
+                  </h3>
+                  {selectedCandidate.hasColleagueFit ? (
+                    <div className="space-y-3">
+                      <div className="bg-match-gold/5 rounded-xl p-3 border border-match-gold/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 bg-match-gold/20 rounded-full flex items-center justify-center">
+                            <span className="text-xs">👨‍⚕️</span>
+                          </div>
+                          <span className="text-xs text-text-secondary">함께 근무한 동료</span>
+                          <div className="ml-auto flex items-center gap-1">
+                            <Star className="w-3 h-3 text-match-gold fill-match-gold" />
+                            <span className="text-xs font-semibold text-match-gold">4.8</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-text-primary">
+                          &ldquo;환자 응대가 친절하고 꼼꼼해요. 시술 보조도 능숙하게 잘 합니다.&rdquo;
+                        </p>
+                      </div>
+                      <div className="bg-bg-secondary rounded-xl p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 bg-bg-tertiary rounded-full flex items-center justify-center">
+                            <span className="text-xs">👩‍⚕️</span>
+                          </div>
+                          <span className="text-xs text-text-secondary">이전 직장 동료</span>
+                          <div className="ml-auto flex items-center gap-1">
+                            <Star className="w-3 h-3 text-match-gold fill-match-gold" />
+                            <span className="text-xs font-semibold text-match-gold">4.5</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-text-primary">
+                          &ldquo;책임감이 강하고 배우려는 자세가 좋아요. 팀워크도 좋습니다.&rdquo;
+                        </p>
+                      </div>
+                      <div className="nudge-box text-xs">
+                        <Sparkles className="w-3 h-3 text-brand-mint inline mr-1" />
+                        비슷한 성향의 기존 직원과 <strong>잘 맞아요</strong>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-text-tertiary text-sm">
+                      아직 등록된 동료 리뷰가 없어요
+                    </div>
+                  )}
                 </div>
 
                 {/* 채용 단계별 액션 */}
@@ -1337,7 +1503,7 @@ function MatchingCenterContent() {
                 </div>
 
                 <div className="space-y-3 mb-5">
-                  <Link href="/employer/profile">
+                  <Link href="/employer/profile?showCompletion=true">
                     <button
                       onClick={() => handleResetLimit('profile')}
                       className="w-full p-4 bg-expert-navy/10 border border-expert-navy/20 rounded-xl flex items-center gap-4 hover:bg-expert-navy/20 transition-colors"
@@ -1346,8 +1512,8 @@ function MatchingCenterContent() {
                         <FileText className="w-6 h-6 text-white" />
                       </div>
                       <div className="text-left flex-1">
-                        <div className="font-semibold text-text-primary">병원 프로필 완성하기</div>
-                        <div className="text-xs text-text-secondary">상세 정보를 추가하면 초기화!</div>
+                        <div className="font-semibold text-text-primary">프로필 완성도 올리기</div>
+                        <div className="text-xs text-text-secondary">미완성 항목 입력하고 초기화!</div>
                       </div>
                       <ChevronRight className="w-5 h-5 text-expert-navy" />
                     </button>
@@ -1549,7 +1715,7 @@ function MatchingCenterContent() {
           </>
         )}
 
-        {/* 병원 프로필 완성 CTA 모달 */}
+        {/* 병원 프로필 완성 CTA 모달 - 단계별 완성 가이드 */}
         {showProfileCTA && (
           <>
             <motion.div
@@ -1563,49 +1729,131 @@ function MatchingCenterContent() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl max-w-md mx-auto overflow-hidden"
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white rounded-2xl max-w-md mx-auto overflow-hidden max-h-[80vh] overflow-y-auto"
             >
               <div className="p-5">
-                <div className="text-center mb-5">
+                <div className="text-center mb-4">
                   <div className="w-16 h-16 bg-expert-navy/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <FileText className="w-8 h-8 text-expert-navy" />
                   </div>
-                  <h2 className="text-lg font-bold text-text-primary mb-1">병원 프로필 완성하기</h2>
+                  <h2 className="text-lg font-bold text-text-primary mb-1">프로필 완성도 높이기</h2>
                   <p className="text-sm text-text-secondary">
-                    병원 정보를 더 추가해주세요!<br />
-                    프로필이 풍부할수록 좋은 인재를 만날 수 있어요.
+                    아래 항목을 완성하면 거절 횟수가 초기화돼요
                   </p>
                 </div>
 
-                <div className="bg-bg-secondary rounded-xl p-4 mb-5">
-                  <div className="text-sm font-medium text-text-primary mb-3">추가하면 좋은 정보</div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-text-secondary">
-                      <CheckCircle className="w-4 h-4 text-brand-mint" />
-                      <span>병원 사진 등록</span>
+                {/* 프로필 완성도 진행바 */}
+                <div className="bg-expert-navy/5 rounded-xl p-3 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-text-secondary">현재 프로필 완성도</span>
+                    <span className="text-lg font-bold text-expert-navy">72%</span>
+                  </div>
+                  <div className="h-2 bg-white rounded-full overflow-hidden">
+                    <div className="h-full bg-expert-navy rounded-full" style={{ width: '72%' }} />
+                  </div>
+                  <p className="text-xs text-text-tertiary mt-2">100% 달성 시 거절 횟수가 초기화됩니다</p>
+                </div>
+
+                {/* 단계별 완성 가이드 */}
+                <div className="space-y-2 mb-5">
+                  <div className="text-sm font-medium text-text-primary mb-2">미완성 항목</div>
+
+                  {/* 업무환경 - 미완성 */}
+                  <Link href="/employer/profile?section=work-env" onClick={() => { setShowProfileCTA(false); completeReset(); }}>
+                    <div className="flex items-center justify-between p-3 bg-warning/5 border border-warning/20 rounded-xl cursor-pointer hover:bg-warning/10 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-warning/10 rounded-full flex items-center justify-center">
+                          <Briefcase className="w-4 h-4 text-warning" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-text-primary">업무환경 입력</div>
+                          <div className="text-xs text-text-tertiary">시설, 근무조건, 인력배치</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-warning font-medium">+15%</span>
+                        <ChevronRight className="w-4 h-4 text-text-tertiary" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-text-secondary">
-                      <CheckCircle className="w-4 h-4 text-brand-mint" />
-                      <span>근무 환경 상세 설명</span>
+                  </Link>
+
+                  {/* 갤러리 - 미완성 */}
+                  <Link href="/employer/profile?section=gallery" onClick={() => { setShowProfileCTA(false); completeReset(); }}>
+                    <div className="flex items-center justify-between p-3 bg-info/5 border border-info/20 rounded-xl cursor-pointer hover:bg-info/10 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-info/10 rounded-full flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-info" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-text-primary">병원 사진 등록</div>
+                          <div className="text-xs text-text-tertiary">시설 사진 3장 이상</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-info font-medium">+8%</span>
+                        <ChevronRight className="w-4 h-4 text-text-tertiary" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-text-secondary">
-                      <CheckCircle className="w-4 h-4 text-brand-mint" />
-                      <span>복리후생 정보</span>
+                  </Link>
+
+                  {/* 팀소개 - 미완성 */}
+                  <Link href="/employer/profile?section=team" onClick={() => { setShowProfileCTA(false); completeReset(); }}>
+                    <div className="flex items-center justify-between p-3 bg-brand-mint/5 border border-brand-mint/20 rounded-xl cursor-pointer hover:bg-brand-mint/10 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                          <Users className="w-4 h-4 text-brand-mint" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-text-primary">팀 소개 추가</div>
+                          <div className="text-xs text-text-tertiary">팀원 인터뷰, 분위기</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-brand-mint font-medium">+5%</span>
+                        <ChevronRight className="w-4 h-4 text-text-tertiary" />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-text-secondary">
-                      <CheckCircle className="w-4 h-4 text-brand-mint" />
-                      <span>팀 소개 및 문화</span>
+                  </Link>
+
+                  <div className="text-sm font-medium text-text-primary mt-3 mb-2">완성된 항목</div>
+
+                  {/* 기본정보 - 완성됨 */}
+                  <div className="flex items-center justify-between p-3 bg-success/5 border border-success/20 rounded-xl opacity-70">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-text-primary">기본 정보</div>
+                        <div className="text-xs text-text-tertiary">병원명, 주소, 연락처</div>
+                      </div>
                     </div>
+                    <span className="text-xs text-success font-medium">완료</span>
+                  </div>
+
+                  {/* 병원소개 - 완성됨 */}
+                  <div className="flex items-center justify-between p-3 bg-success/5 border border-success/20 rounded-xl opacity-70">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-success/10 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-text-primary">병원 소개</div>
+                        <div className="text-xs text-text-tertiary">핵심가치, 비전</div>
+                      </div>
+                    </div>
+                    <span className="text-xs text-success font-medium">완료</span>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <Link href="/employer/profile">
                     <button
-                      onClick={() => completeReset()}
-                      className="w-full py-3 bg-expert-navy text-white rounded-xl font-semibold"
+                      onClick={() => { setShowProfileCTA(false); completeReset(); }}
+                      className="w-full py-3 bg-expert-navy text-white rounded-xl font-semibold flex items-center justify-center gap-2"
                     >
-                      프로필 수정하러 가기
+                      <FileText className="w-4 h-4" />
+                      전체 프로필 수정하기
                     </button>
                   </Link>
                   <button

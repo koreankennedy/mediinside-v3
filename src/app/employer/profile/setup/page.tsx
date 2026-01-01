@@ -44,8 +44,50 @@ const steps = [
   { id: 1, title: '기본 정보', description: '사업자 정보 입력', icon: FileText },
   { id: 2, title: 'AI 자동적재', description: '웹 정보 자동 수집', icon: Sparkles },
   { id: 3, title: '정보 확인', description: '수집 정보 검토', icon: Eye },
-  { id: 4, title: '브랜딩', description: '병원 이미지 설정', icon: Camera },
-  { id: 5, title: '완료', description: '프로필 공개 설정', icon: CheckCircle2 },
+  { id: 4, title: '시설 정보', description: '장비/인력 정보 입력', icon: Building2 },
+  { id: 5, title: '채용상품', description: '채용 혜택 설정', icon: Award },
+  { id: 6, title: '브랜딩', description: '병원 이미지 설정', icon: Camera },
+  { id: 7, title: '완료', description: '프로필 공개 설정', icon: CheckCircle2 },
+];
+
+// 채용상품 정보
+const hiringProductOptions = [
+  {
+    code: 'HP-SHARE',
+    label: '매출 셰어',
+    description: '성과에 따른 인센티브',
+    color: '#FF2D55',
+    icon: '💰',
+    targetType: '고수익 추구형',
+    defaultValue: '매출의 1%',
+  },
+  {
+    code: 'HP-BONUS',
+    label: '근속 보너스',
+    description: '장기 근속 시 보너스 지급',
+    color: '#AF52DE',
+    icon: '🎁',
+    targetType: '안정 추구형',
+    defaultValue: '1년 200만원',
+  },
+  {
+    code: 'HP-VACATION',
+    label: '휴가 자유',
+    description: '연차 자유사용 보장',
+    color: '#5AC8FA',
+    icon: '🏖️',
+    targetType: '워라밸형',
+    defaultValue: '연차 15일 보장',
+  },
+  {
+    code: 'HP-ALLOWANCE',
+    label: '수당 보장',
+    description: '야근/주말 수당 지급',
+    color: '#FF9500',
+    icon: '💵',
+    targetType: '실속형',
+    defaultValue: '야근 150%',
+  },
 ];
 
 // AI 수집 가능한 소스
@@ -98,12 +140,12 @@ export default function ProfileSetupPage() {
   const [sources, setSources] = useState(aiSources);
   const [showPreview, setShowPreview] = useState(false);
 
-  // 기본 정보 입력
+  // 기본 정보 입력 (목업 데이터 사전 입력)
   const [businessInfo, setBusinessInfo] = useState({
-    businessNumber: '',
-    hospitalName: '',
-    website: '',
-    instagram: '',
+    businessNumber: '123-45-67890',
+    hospitalName: '청담리더스피부과',
+    website: 'https://www.leadersderma.co.kr',
+    instagram: '@leadersderma_official',
   });
 
   // 수집된 데이터 상태
@@ -117,6 +159,61 @@ export default function ProfileSetupPage() {
 
   // 편집 모드
   const [editingField, setEditingField] = useState<string | null>(null);
+
+  // 시설 정보 상태 (목업 데이터 사전 입력)
+  const [facilityInfo, setFacilityInfo] = useState({
+    chairs: '8',
+    beds: '4',
+    equipment: ['울쎄라', '인모드', '피코슈어', '레이저토닝', '아큐펄스', '슈링크'],
+    doctors: '3',
+    nurses: '5',
+    staff: '7',
+  });
+  const [newEquipment, setNewEquipment] = useState('');
+  const [facilityInfoCompleted, setFacilityInfoCompleted] = useState(true);
+
+  // 채용상품 상태 (목업 데이터 사전 입력)
+  const [selectedProducts, setSelectedProducts] = useState<Record<string, boolean>>({
+    'HP-SHARE': true,
+    'HP-BONUS': true,
+    'HP-VACATION': false,
+    'HP-ALLOWANCE': true,
+  });
+  const [productDetails, setProductDetails] = useState<Record<string, string>>({
+    'HP-SHARE': '매출의 1%',
+    'HP-BONUS': '1년 200만원, 3년 500만원',
+    'HP-ALLOWANCE': '야근 150%, 주말 200%',
+  });
+
+  // 채용상품 토글
+  const toggleProduct = (code: string) => {
+    setSelectedProducts(prev => ({ ...prev, [code]: !prev[code] }));
+    if (!productDetails[code]) {
+      const product = hiringProductOptions.find(p => p.code === code);
+      if (product) {
+        setProductDetails(prev => ({ ...prev, [code]: product.defaultValue }));
+      }
+    }
+  };
+
+  // 장비 추가
+  const addEquipment = () => {
+    if (newEquipment.trim()) {
+      setFacilityInfo(prev => ({
+        ...prev,
+        equipment: [...prev.equipment, newEquipment.trim()]
+      }));
+      setNewEquipment('');
+    }
+  };
+
+  // 장비 삭제
+  const removeEquipment = (index: number) => {
+    setFacilityInfo(prev => ({
+      ...prev,
+      equipment: prev.equipment.filter((_, i) => i !== index)
+    }));
+  };
 
   // AI 자동적재 시뮬레이션
   const startAICollection = async () => {
@@ -542,10 +639,285 @@ export default function ProfileSetupPage() {
             </motion.div>
           )}
 
-          {/* Step 4: 브랜딩 */}
+          {/* Step 4: 시설 정보 입력 */}
           {currentStep === 4 && (
             <motion.div
-              key="step4"
+              key="step4-facility"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-4"
+            >
+              <div className="bg-brand-mint/5 rounded-xl p-4 border border-brand-mint/20">
+                <div className="flex items-center gap-2 text-brand-mint">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-medium">시설 정보 입력 시 "병원 인증" 배지가 부여됩니다</span>
+                </div>
+              </div>
+
+              {/* 체어/베드 */}
+              <div className="bg-white rounded-2xl p-5 border border-border-light">
+                <h3 className="font-semibold text-text-primary mb-4">진료 시설</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-text-secondary mb-1 block">체어 수</label>
+                    <input
+                      type="number"
+                      placeholder="예: 8"
+                      value={facilityInfo.chairs}
+                      onChange={(e) => setFacilityInfo(prev => ({ ...prev, chairs: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border border-border-light focus:border-brand-mint focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-text-secondary mb-1 block">베드 수</label>
+                    <input
+                      type="number"
+                      placeholder="예: 4"
+                      value={facilityInfo.beds}
+                      onChange={(e) => setFacilityInfo(prev => ({ ...prev, beds: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border border-border-light focus:border-brand-mint focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 장비 현황 */}
+              <div className="bg-white rounded-2xl p-5 border border-border-light">
+                <h3 className="font-semibold text-text-primary mb-4">보유 장비</h3>
+                <div className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    placeholder="장비명 입력 (예: 울쎄라)"
+                    value={newEquipment}
+                    onChange={(e) => setNewEquipment(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addEquipment()}
+                    className="flex-1 px-4 py-3 rounded-xl border border-border-light focus:border-brand-mint focus:outline-none"
+                  />
+                  <button
+                    onClick={addEquipment}
+                    className="px-4 py-3 bg-brand-mint text-white rounded-xl"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </div>
+                {facilityInfo.equipment.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {facilityInfo.equipment.map((eq, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1.5 bg-brand-mint/10 text-brand-mint rounded-full text-sm flex items-center gap-2"
+                      >
+                        {eq}
+                        <button onClick={() => removeEquipment(index)}>
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-text-tertiary mt-3">
+                  레이저, 초음파, 수술 장비 등 보유 장비를 입력하세요
+                </p>
+              </div>
+
+              {/* 인력 규모 */}
+              <div className="bg-white rounded-2xl p-5 border border-border-light">
+                <h3 className="font-semibold text-text-primary mb-4">인력 규모</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm text-text-secondary flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      의사
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={facilityInfo.doctors}
+                      onChange={(e) => setFacilityInfo(prev => ({ ...prev, doctors: e.target.value }))}
+                      className="w-20 px-3 py-2 rounded-lg border border-border-light text-center focus:border-brand-mint focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm text-text-secondary flex items-center gap-2">
+                      <Heart className="w-4 h-4" />
+                      간호사/간호조무사
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={facilityInfo.nurses}
+                      onChange={(e) => setFacilityInfo(prev => ({ ...prev, nurses: e.target.value }))}
+                      className="w-20 px-3 py-2 rounded-lg border border-border-light text-center focus:border-brand-mint focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm text-text-secondary flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      기타 직원
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={facilityInfo.staff}
+                      onChange={(e) => setFacilityInfo(prev => ({ ...prev, staff: e.target.value }))}
+                      className="w-20 px-3 py-2 rounded-lg border border-border-light text-center focus:border-brand-mint focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 인증 배지 미리보기 */}
+              {(facilityInfo.chairs || facilityInfo.beds || facilityInfo.equipment.length > 0) && (
+                <div className="bg-success/5 rounded-2xl p-4 border border-success/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 text-success" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-success">병원 인증 배지 획득!</div>
+                      <p className="text-sm text-text-secondary">구직자에게 신뢰도 높은 정보로 표시됩니다</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Step 5: 채용상품 빌더 */}
+          {currentStep === 5 && (
+            <motion.div
+              key="step5-products"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-4"
+            >
+              <div className="bg-gradient-to-br from-expert-navy to-expert-navy/80 rounded-2xl p-5 text-white">
+                <div className="flex items-center gap-3 mb-3">
+                  <Award className="w-8 h-8" />
+                  <div>
+                    <h2 className="text-lg font-bold">채용상품 빌더</h2>
+                    <p className="text-white/70 text-sm">구직자 성향에 맞는 혜택을 설정하세요</p>
+                  </div>
+                </div>
+                <p className="text-sm text-white/70">
+                  채용상품을 추가하면 관련 성향의 구직자에게 매칭 점수가 높아지고, 수락률이 2배 이상 증가합니다.
+                </p>
+              </div>
+
+              {/* 상품 선택 */}
+              <div className="space-y-3">
+                {hiringProductOptions.map((product) => (
+                  <div
+                    key={product.code}
+                    className={`bg-white rounded-2xl p-4 border-2 transition-all ${
+                      selectedProducts[product.code]
+                        ? 'border-brand-mint'
+                        : 'border-border-light'
+                    }`}
+                  >
+                    <div
+                      className="flex items-center gap-4 cursor-pointer"
+                      onClick={() => toggleProduct(product.code)}
+                    >
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                        style={{ backgroundColor: `${product.color}20` }}
+                      >
+                        {product.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-text-primary">{product.label}</span>
+                          <span
+                            className="text-xs px-2 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: product.color }}
+                          >
+                            {product.targetType}
+                          </span>
+                        </div>
+                        <p className="text-sm text-text-secondary">{product.description}</p>
+                      </div>
+                      <div
+                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                          selectedProducts[product.code]
+                            ? 'border-brand-mint bg-brand-mint'
+                            : 'border-border-light'
+                        }`}
+                      >
+                        {selectedProducts[product.code] && (
+                          <Check className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 상세 설정 */}
+                    {selectedProducts[product.code] && (
+                      <div className="mt-4 pt-4 border-t border-border-light">
+                        <label className="text-sm text-text-secondary mb-2 block">상품 조건 설정</label>
+                        <input
+                          type="text"
+                          value={productDetails[product.code] || product.defaultValue}
+                          onChange={(e) => setProductDetails(prev => ({
+                            ...prev,
+                            [product.code]: e.target.value
+                          }))}
+                          className="w-full px-4 py-3 rounded-xl border border-border-light focus:border-brand-mint focus:outline-none"
+                          placeholder={product.defaultValue}
+                        />
+                        <p className="text-xs text-text-tertiary mt-2">
+                          예: {product.code === 'HP-SHARE' && '매출의 1%, 월 최대 50만원'}
+                          {product.code === 'HP-BONUS' && '1년 200만원, 3년 500만원, 5년 1000만원'}
+                          {product.code === 'HP-VACATION' && '연차 15일 + 리프레시 휴가 5일'}
+                          {product.code === 'HP-ALLOWANCE' && '야근 150%, 주말 200%, 공휴일 250%'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* 선택 요약 */}
+              {Object.values(selectedProducts).some(v => v) && (
+                <div className="bg-brand-mint/5 rounded-2xl p-4 border border-brand-mint/20">
+                  <h3 className="font-semibold text-text-primary mb-3">선택한 채용상품</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {hiringProductOptions
+                      .filter(p => selectedProducts[p.code])
+                      .map(product => (
+                        <span
+                          key={product.code}
+                          className="px-3 py-1.5 rounded-full text-white text-sm font-medium"
+                          style={{ backgroundColor: product.color }}
+                        >
+                          {product.icon} {product.label}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 에스크로 안내 */}
+              <div className="bg-warning/5 rounded-2xl p-4 border border-warning/20">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-text-primary mb-1">보증금 안내</div>
+                    <p className="text-sm text-text-secondary">
+                      채용상품은 구직자에게 약속하는 조건입니다. 채용 확정 시 해당 조건을 이행해야 하며,
+                      추후 에스크로 시스템을 통해 보증금이 예치됩니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step 6: 브랜딩 */}
+          {currentStep === 6 && (
+            <motion.div
+              key="step6"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -619,10 +991,10 @@ export default function ProfileSetupPage() {
             </motion.div>
           )}
 
-          {/* Step 5: 완료 */}
-          {currentStep === 5 && (
+          {/* Step 7: 완료 */}
+          {currentStep === 7 && (
             <motion.div
-              key="step5"
+              key="step7"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -701,7 +1073,7 @@ export default function ProfileSetupPage() {
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border-light px-4 py-4">
         <div className="flex items-center gap-3">
-          {currentStep > 1 && currentStep < 5 && (
+          {currentStep > 1 && currentStep < 7 && (
             <button
               onClick={prevStep}
               className="flex-1 py-3.5 border border-border-light rounded-xl font-medium text-text-primary"
@@ -709,7 +1081,7 @@ export default function ProfileSetupPage() {
               이전
             </button>
           )}
-          {currentStep < 5 ? (
+          {currentStep < 7 ? (
             <button
               onClick={nextStep}
               disabled={isLoading}

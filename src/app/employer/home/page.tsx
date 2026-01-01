@@ -472,6 +472,134 @@ export default function EmployerHomePage() {
         </div>
       </section>
 
+      {/* 보상 경쟁력 지표 */}
+      <section className="mb-6">
+        <h2 className="text-section-title mb-3 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-expert-navy" />
+          보상 경쟁력
+        </h2>
+        <div className="bg-white rounded-2xl border border-border-light p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-sm text-text-secondary">업무강도 대비 급여 경쟁력</div>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-3xl font-bold text-brand-mint">상위 25%</span>
+                <span className="text-sm text-success flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4" />
+                  +5%
+                </span>
+              </div>
+            </div>
+            <div className="w-16 h-16 relative">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  fill="none"
+                  stroke="#E5E7EB"
+                  strokeWidth="6"
+                />
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="28"
+                  fill="none"
+                  stroke="#00C48C"
+                  strokeWidth="6"
+                  strokeDasharray={`${75 * 1.76} 176`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-sm font-bold text-brand-mint">75</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 상세 지표 */}
+          <div className="grid grid-cols-3 gap-3 py-3 border-t border-border-light">
+            <div className="text-center">
+              <div className="text-lg font-bold text-text-primary">Middle</div>
+              <div className="text-xs text-text-tertiary">업무강도</div>
+            </div>
+            <div className="text-center border-x border-border-light">
+              <div className="text-lg font-bold text-text-primary">420만</div>
+              <div className="text-xs text-text-tertiary">평균 급여</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-success">+30만</div>
+              <div className="text-xs text-text-tertiary">시장 대비</div>
+            </div>
+          </div>
+
+          {/* 넛지 */}
+          <div className="bg-brand-mint/5 rounded-xl p-3 mt-3 border border-brand-mint/10">
+            <div className="flex items-start gap-2">
+              <Sparkles className="w-4 h-4 text-brand-mint mt-0.5" />
+              <div className="text-sm text-text-primary">
+                <strong>채용상품 추가</strong>로 수락률을 더 높여보세요!
+                <Link href="/employer/profile/setup" className="text-brand-mint ml-1">
+                  설정하기 →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 채용상품 효과 */}
+      <section className="mb-6">
+        <h2 className="text-section-title mb-3 flex items-center gap-2">
+          <Zap className="w-5 h-5 text-expert-navy" />
+          채용상품 효과
+        </h2>
+        <div className="bg-white rounded-2xl border border-border-light p-4">
+          <div className="space-y-4">
+            {/* 상품별 수락률 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-text-primary">💰 매출 셰어</span>
+                <span className="text-sm font-bold text-brand-mint">수락률 78%</span>
+              </div>
+              <div className="h-2 bg-bg-secondary rounded-full overflow-hidden">
+                <div className="h-full bg-[#FF2D55] rounded-full" style={{ width: '78%' }} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-text-primary">🎁 근속 보너스</span>
+                <span className="text-sm font-bold text-brand-mint">수락률 65%</span>
+              </div>
+              <div className="h-2 bg-bg-secondary rounded-full overflow-hidden">
+                <div className="h-full bg-[#AF52DE] rounded-full" style={{ width: '65%' }} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-text-primary">💵 수당 보장</span>
+                <span className="text-sm font-bold text-brand-mint">수락률 58%</span>
+              </div>
+              <div className="h-2 bg-bg-secondary rounded-full overflow-hidden">
+                <div className="h-full bg-[#FF9500] rounded-full" style={{ width: '58%' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* 통계 요약 */}
+          <div className="bg-success/5 rounded-xl p-3 mt-4 border border-success/10">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-success" />
+              <div className="text-sm text-text-primary">
+                채용상품 적용 시 <strong className="text-success">평균 수락률 2.3배</strong> 증가
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 진행 중인 채용 - 확장 가능 */}
       <section className="mb-6">
         <div className="flex items-center justify-between mb-3">
@@ -700,7 +828,7 @@ export default function EmployerHomePage() {
               style={{ width: `${mockEmployerProfile.profileCompleteness}%` }}
             />
           </div>
-          <Link href="/employer/profile">
+          <Link href="/employer/profile?showCompletion=true">
             <div className="text-sm text-expert-navy flex items-center">
               <span>프로필 100% 완성하고 더 많은 후보자 만나기</span>
               <ArrowRight className="w-4 h-4 ml-1" />
