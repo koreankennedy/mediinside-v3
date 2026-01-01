@@ -29,6 +29,7 @@ import {
   Send,
   Share2,
   ExternalLink,
+  Video,
 } from 'lucide-react';
 import Link from 'next/link';
 import { mockRecruitmentActivity } from '@/lib/mock/data';
@@ -40,8 +41,8 @@ const mockOffers = [
   { id: 3, hospital: '신사동베스트피부과', salary: '380~420만', matchScore: 88, department: '피부과' },
 ];
 
-// 관심 병원 목록
-const interestedHospitals = [
+// 인터뷰 요청 병원 목록
+const interviewRequestedHospitals = [
   {
     id: 1,
     name: '청담리더스피부과',
@@ -99,6 +100,44 @@ export default function SeekerHomePage() {
   const [potentialCount, setPotentialCount] = useState(0);
   const [showPotential, setShowPotential] = useState(false);
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
+
+  // 재방문 상태를 sessionStorage에서 복원
+  useEffect(() => {
+    const savedIsFirstVisit = sessionStorage.getItem('seeker_isFirstVisit');
+    const savedShowPotential = sessionStorage.getItem('seeker_showPotential');
+    const savedRegion = sessionStorage.getItem('seeker_selectedRegion');
+    const savedLicense = sessionStorage.getItem('seeker_selectedLicense');
+
+    if (savedIsFirstVisit !== null) {
+      setIsFirstVisit(savedIsFirstVisit === 'true');
+    }
+    if (savedShowPotential === 'true') {
+      setShowPotential(true);
+      // 재방문 시 potentialCount도 복원
+      const region = savedRegion || '서울';
+      const target = region === '서울' ? 58 : region === '경기' ? 42 : 25;
+      setPotentialCount(target);
+    }
+    if (savedRegion) setSelectedRegion(savedRegion);
+    if (savedLicense) setSelectedLicense(savedLicense);
+  }, []);
+
+  // 상태 변경 시 sessionStorage에 저장
+  useEffect(() => {
+    sessionStorage.setItem('seeker_isFirstVisit', String(isFirstVisit));
+  }, [isFirstVisit]);
+
+  useEffect(() => {
+    sessionStorage.setItem('seeker_showPotential', String(showPotential));
+  }, [showPotential]);
+
+  useEffect(() => {
+    if (selectedRegion) sessionStorage.setItem('seeker_selectedRegion', selectedRegion);
+  }, [selectedRegion]);
+
+  useEffect(() => {
+    if (selectedLicense) sessionStorage.setItem('seeker_selectedLicense', selectedLicense);
+  }, [selectedLicense]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -358,7 +397,7 @@ function FirstVisitMode({
         </motion.section>
       )}
 
-      {/* S1-H3: 노동 강도 맵 (간소화 버전) */}
+      {/* S1-H3: 업무 강도 맵 (간소화 버전) */}
       {showPotential && (
         <motion.section
           initial={{ opacity: 0, y: 20 }}
@@ -367,7 +406,7 @@ function FirstVisitMode({
         >
           <h2 className="text-section-title mb-3 flex items-center gap-2">
             <MapPin className="w-5 h-5 text-brand-mint" />
-            노동 강도 맵
+            업무 강도 맵
           </h2>
           <div className="bg-white rounded-2xl p-4 border border-border-light">
             <div className="grid grid-cols-3 gap-3 mb-4">
@@ -385,7 +424,7 @@ function FirstVisitMode({
               </div>
             </div>
             <div className="nudge-box-highlight">
-              일은 편하고 급여는 높은 <strong>&apos;꿀매물&apos;</strong>만 골라 드릴까요?
+              나의 업무 성향에 맞는 <strong>병원</strong>을 찾아보세요!
             </div>
           </div>
         </motion.section>
@@ -582,55 +621,65 @@ function DashboardMode({ currentActivityIndex }: { currentActivityIndex: number 
         )}
       </section>
 
-      {/* 관심 병원 */}
+      {/* 인터뷰 요청 병원 - 수평 스크롤 */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-section-title flex items-center gap-2">
-            <Heart className="w-5 h-5 text-error" />
-            관심 병원
+            <Video className="w-5 h-5 text-brand-mint" />
+            인터뷰 요청 병원
           </h2>
-          <button
-            onClick={() => setShowAllInterested(!showAllInterested)}
-            className="text-sm text-brand-mint flex items-center"
-          >
-            {showAllInterested ? '접기' : '전체보기'} <ChevronRight className="w-4 h-4" />
-          </button>
+          <Link href="/seeker/matching-center" className="text-sm text-brand-mint flex items-center">
+            전체보기 <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
-        <div className="space-y-2">
-          {(showAllInterested ? interestedHospitals : interestedHospitals.slice(0, 2)).map((hospital, index) => (
-            <motion.div
-              key={hospital.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="bg-white rounded-xl p-4 border border-border-light"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    hospital.isRecruiting ? 'bg-success/10' : 'bg-bg-secondary'
-                  }`}>
-                    <Building2 className={`w-5 h-5 ${hospital.isRecruiting ? 'text-success' : 'text-text-tertiary'}`} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-text-primary">{hospital.name}</span>
-                      {hospital.isRecruiting && (
-                        <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded">채용중</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-text-secondary">
-                      {hospital.lastActivity} · {hospital.lastActivityTime}
-                    </div>
-                  </div>
+        <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+          <div className="flex gap-3" style={{ width: 'max-content' }}>
+            {interviewRequestedHospitals.map((hospital, i) => (
+              <motion.div
+                key={hospital.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="w-[280px] flex-shrink-0 bg-white rounded-2xl p-4 border-2 border-brand-mint/30 hover:border-brand-mint hover:shadow-card transition-all"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs bg-brand-mint text-white px-2 py-0.5 rounded-full">인터뷰 요청</span>
+                  {hospital.isRecruiting && (
+                    <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full">채용중</span>
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-brand-mint">{hospital.matchScore}%</div>
-                  <div className="text-xs text-text-tertiary">매칭</div>
+                <Link href="/seeker/ai-interview/practice">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="font-semibold text-text-primary">{hospital.name}</div>
+                      <div className="text-sm text-text-secondary">{hospital.department}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-brand-mint">{hospital.matchScore}%</div>
+                      <div className="text-xs text-text-tertiary">매칭</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-text-secondary mb-3">
+                    <Clock className="w-4 h-4" />
+                    <span>{hospital.lastActivity} · {hospital.lastActivityTime}</span>
+                  </div>
+                </Link>
+                <div className="flex items-center gap-2 pt-3 border-t border-border-light">
+                  <Link href="/seeker/ai-interview/practice" className="flex-1">
+                    <button className="w-full py-2 bg-brand-mint text-white rounded-lg text-sm font-medium flex items-center justify-center gap-1">
+                      <Video className="w-3.5 h-3.5" />
+                      모의면접
+                    </button>
+                  </Link>
+                  <Link href="/seeker/matching-center">
+                    <button className="p-2 bg-bg-secondary text-text-secondary rounded-lg hover:bg-bg-tertiary transition-colors">
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </Link>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -707,56 +756,7 @@ function DashboardMode({ currentActivityIndex }: { currentActivityIndex: number 
         </div>
       </section>
 
-      {/* 나를 위한 시장 리포트 - CTA 활성화 */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-section-title">나를 위한 시장 리포트</h2>
-          <Link href="/seeker/market-report" className="text-sm text-brand-mint flex items-center">
-            상세보기 <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <Link href="/seeker/market-report">
-          <div className="bg-white rounded-2xl p-4 border border-border-light hover:border-brand-mint hover:shadow-card transition-all">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-brand-mint/20 to-expert-navy/20 rounded-xl flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-expert-navy" />
-              </div>
-              <div className="flex-1">
-                <div className="font-medium text-text-primary">하이엔드 성과자</div>
-                <div className="text-sm text-text-secondary">회원님의 유형</div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-text-tertiary" />
-            </div>
-            <div className="bg-bg-secondary rounded-xl p-3">
-              <p className="text-sm text-text-primary">
-                회원님 같은 <strong>&apos;하이엔드 성과자&apos;</strong>는 <strong>피부과, 성형외과</strong>에서
-                만족도가 가장 높았어요.
-              </p>
-              <div className="flex items-center gap-2 mt-2 text-xs text-brand-mint">
-                <TrendingUp className="w-3 h-3" />
-                지금 강남 지역 채용이 활발해요!
-              </div>
-            </div>
-          </div>
-        </Link>
-      </section>
-
-      {/* 오늘의 채용 시장 */}
-      <section>
-        <h2 className="text-section-title mb-3">오늘의 채용 시장</h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl p-3 border border-border-light">
-            <div className="text-xs text-text-secondary mb-1">새 채용공고</div>
-            <div className="text-xl font-bold text-expert-navy">{activity.today.newJobPostings}건</div>
-          </div>
-          <div className="bg-white rounded-xl p-3 border border-border-light">
-            <div className="text-xs text-text-secondary mb-1">오늘 매칭</div>
-            <div className="text-xl font-bold text-expert-navy">{activity.today.matchesCreated}건</div>
-          </div>
-        </div>
-      </section>
-
-      {/* 프로필 완성도 - CTA 활성화 */}
+      {/* 프로필 완성도 - 추천 병원 다음에 배치 */}
       <section>
         <div className="bg-white rounded-2xl p-4 border border-border-light">
           <div className="flex items-center justify-between mb-3">
@@ -795,22 +795,61 @@ function DashboardMode({ currentActivityIndex }: { currentActivityIndex: number 
         </div>
       </section>
 
-      {/* 빠른 액션 버튼들 */}
-      <section className="grid grid-cols-2 gap-3">
-        <Link href="/seeker/fit-test">
-          <button className="w-full p-4 bg-white rounded-xl border border-border-light hover:border-brand-mint transition-all text-left">
-            <Sparkles className="w-5 h-5 text-brand-mint mb-2" />
-            <div className="text-sm font-medium text-text-primary">정밀 진단</div>
-            <div className="text-xs text-text-secondary">커리어 유형 재검사</div>
-          </button>
+      {/* 커리어 인사이트 그룹 - 한 묶음으로 UI 그룹화 */}
+      <section className="bg-gradient-to-br from-expert-navy/5 to-brand-mint/5 rounded-2xl p-4 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <BarChart3 className="w-5 h-5 text-expert-navy" />
+          <h2 className="text-section-title">커리어 인사이트</h2>
+        </div>
+
+        {/* 오늘의 채용 시장 */}
+        <div className="bg-white rounded-xl p-4 border border-border-light">
+          <h3 className="text-sm font-medium text-text-primary mb-3">오늘의 채용 시장</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-bg-secondary rounded-lg p-3">
+              <div className="text-xs text-text-secondary mb-1">새 채용공고</div>
+              <div className="text-xl font-bold text-expert-navy">{activity.today.newJobPostings}건</div>
+            </div>
+            <div className="bg-bg-secondary rounded-lg p-3">
+              <div className="text-xs text-text-secondary mb-1">오늘 매칭</div>
+              <div className="text-xl font-bold text-expert-navy">{activity.today.matchesCreated}건</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 나를 위한 시장 리포트 */}
+        <Link href="/seeker/market-report">
+          <div className="bg-white rounded-xl p-4 border border-border-light hover:border-brand-mint hover:shadow-card transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-brand-mint/20 to-expert-navy/20 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-expert-navy" />
+              </div>
+              <div className="flex-1">
+                <div className="font-medium text-text-primary">나를 위한 시장 리포트</div>
+                <div className="text-xs text-text-secondary">하이엔드 성과자 맞춤 분석</div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-text-tertiary" />
+            </div>
+          </div>
         </Link>
-        <Link href="/seeker/concierge">
-          <button className="w-full p-4 bg-white rounded-xl border border-border-light hover:border-brand-mint transition-all text-left">
-            <MessageCircle className="w-5 h-5 text-expert-navy mb-2" />
-            <div className="text-sm font-medium text-text-primary">AI 컨시어지</div>
-            <div className="text-xs text-text-secondary">병원 궁금증 해결</div>
-          </button>
-        </Link>
+
+        {/* 정밀 진단 + AI 컨시어지 */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/seeker/fit-test">
+            <div className="bg-white rounded-xl p-4 border border-border-light hover:border-brand-mint transition-all text-center">
+              <Sparkles className="w-6 h-6 text-brand-mint mx-auto mb-2" />
+              <div className="text-sm font-medium text-text-primary">정밀 진단</div>
+              <div className="text-xs text-text-secondary">커리어 유형 재검사</div>
+            </div>
+          </Link>
+          <Link href="/seeker/concierge">
+            <div className="bg-white rounded-xl p-4 border border-border-light hover:border-brand-mint transition-all text-center">
+              <MessageCircle className="w-6 h-6 text-expert-navy mx-auto mb-2" />
+              <div className="text-sm font-medium text-text-primary">AI 컨시어지</div>
+              <div className="text-xs text-text-secondary">병원 궁금증 해결</div>
+            </div>
+          </Link>
+        </div>
       </section>
     </motion.div>
   );

@@ -27,14 +27,13 @@ const resumeSections = [
   { id: 'basic', label: '기본 정보', completed: true, score: 100 },
   { id: 'career', label: '경력 사항', completed: true, score: 95 },
   { id: 'skills', label: '보유 술기', completed: true, score: 100 },
-  { id: 'education', label: '학력/자격', completed: true, score: 90 },
-  { id: 'cover', label: '자기소개서', completed: false, score: 80 },
+  { id: 'education', label: '학력/자격', completed: true, score: 100 },
 ];
 
 const aiSuggestions = [
-  '자기소개서에 구체적인 성과 수치를 추가하면 더 좋아요',
   '경력 기술에서 담당 업무를 더 상세히 작성해보세요',
   '보유 술기 항목에 숙련도를 추가하면 병원에서 참고하기 좋아요',
+  '최근 이수한 교육/연수 내역을 추가하면 더 좋아요',
 ];
 
 // 이력서 미리보기 데이터
@@ -53,16 +52,63 @@ const resumePreviewData = {
   certifications: ['치과위생사 면허', '심폐소생술(CPR) 자격증'],
 };
 
+// 섹션별 상세 데이터
+const sectionDetails: Record<string, { title: string; items: { label: string; value: string; editable?: boolean }[] }> = {
+  basic: {
+    title: '기본 정보',
+    items: [
+      { label: '이름', value: '김지원' },
+      { label: '연락처', value: '010-1234-5678' },
+      { label: '이메일', value: 'jiwon@email.com' },
+      { label: '생년월일', value: '1995.03.15' },
+    ],
+  },
+  career: {
+    title: '경력 사항',
+    items: [
+      { label: '현 직장', value: '강남스마일치과 (2022.03 ~ 현재)' },
+      { label: '이전 직장', value: '서초밝은치과 (2021.01 ~ 2022.02)' },
+      { label: '총 경력', value: '3년 2개월' },
+      { label: '주요 업무', value: '스케일링, 레진 충전 보조, 임플란트 보조', editable: true },
+    ],
+  },
+  skills: {
+    title: '보유 술기',
+    items: [
+      { label: '스케일링', value: '상급' },
+      { label: '레진 충전 보조', value: '상급' },
+      { label: '임플란트 보조', value: '중급' },
+      { label: 'X-ray 촬영', value: '상급' },
+    ],
+  },
+  education: {
+    title: '학력/자격',
+    items: [
+      { label: '최종학력', value: '서울보건대학교 치위생과 (2020 졸업)' },
+      { label: '자격증', value: '치과위생사 면허, CPR 자격증' },
+    ],
+  },
+};
+
 export default function ResumePage() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showUploadSuccess, setShowUploadSuccess] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [showSectionModal, setShowSectionModal] = useState(false);
 
   const totalScore = Math.round(
     resumeSections.reduce((sum, s) => sum + s.score, 0) / resumeSections.length
   );
   const allCompleted = resumeSections.every((s) => s.completed);
+
+  const openSectionDetail = (sectionId: string) => {
+    setSelectedSection(sectionId);
+    setShowSectionModal(true);
+  };
+
+  const incompleteSection = resumeSections.find(s => !s.completed);
 
   const handleFileUpload = () => {
     // 파일 업로드 시뮬레이션
@@ -95,7 +141,10 @@ export default function ResumePage() {
 
       <div className="px-4 py-6 space-y-6">
         {/* 완성도 */}
-        <div className="bg-gradient-to-r from-info to-info/80 rounded-2xl p-5 text-white">
+        <div
+          onClick={() => incompleteSection && openSectionDetail(incompleteSection.id)}
+          className={`bg-gradient-to-r from-info to-info/80 rounded-2xl p-5 text-white ${incompleteSection ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
+        >
           <div className="flex items-center justify-between mb-3">
             <div>
               <div className="text-sm text-white/70 mb-1">이력서 완성도</div>
@@ -114,6 +163,12 @@ export default function ResumePage() {
           <div className="progress-bar bg-white/20">
             <div className="progress-fill bg-white" style={{ width: `${totalScore}%` }} />
           </div>
+          {incompleteSection && (
+            <div className="mt-3 flex items-center gap-2 bg-white/20 rounded-lg px-3 py-2">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">미완성: {incompleteSection.label} - 탭하여 작성하기</span>
+            </div>
+          )}
         </div>
 
         {/* 섹션별 현황 */}
@@ -146,7 +201,14 @@ export default function ResumePage() {
                       <div className="text-xs text-text-tertiary">완성도 {section.score}%</div>
                     </div>
                   </div>
-                  <button className="px-3 py-1.5 bg-bg-secondary rounded-lg text-sm text-text-secondary">
+                  <button
+                    onClick={() => openSectionDetail(section.id)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      section.completed
+                        ? 'bg-brand-mint/10 text-brand-mint hover:bg-brand-mint/20'
+                        : 'bg-warning text-white hover:bg-warning/90'
+                    }`}
+                  >
                     {section.completed ? '확인' : '작성'}
                   </button>
                 </div>
@@ -339,6 +401,63 @@ export default function ResumePage() {
                     제출하기
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 섹션 상세 모달 */}
+      <AnimatePresence>
+        {showSectionModal && selectedSection && sectionDetails[selectedSection] && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            onClick={() => setShowSectionModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl w-full max-w-sm max-h-[70vh] overflow-y-auto"
+            >
+              <div className="sticky top-0 bg-white px-4 py-4 border-b border-border-light rounded-t-2xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-text-primary">
+                    {sectionDetails[selectedSection].title}
+                  </h3>
+                  <button onClick={() => setShowSectionModal(false)} className="p-1">
+                    <X className="w-5 h-5 text-text-tertiary" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-4 py-6 space-y-4">
+                {sectionDetails[selectedSection].items.map((item, index) => (
+                  <div key={index} className="bg-bg-secondary rounded-xl p-4">
+                    <div className="text-xs text-text-tertiary mb-1">{item.label}</div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-text-primary">{item.value}</span>
+                      {item.editable && (
+                        <button className="text-sm text-brand-mint font-medium px-3 py-1 bg-brand-mint/10 rounded-lg">
+                          수정
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="sticky bottom-0 bg-white border-t border-border-light px-4 py-4 rounded-b-2xl">
+                <button
+                  onClick={() => setShowSectionModal(false)}
+                  className="w-full py-3 bg-brand-mint text-white rounded-xl font-semibold"
+                >
+                  확인
+                </button>
               </div>
             </motion.div>
           </motion.div>

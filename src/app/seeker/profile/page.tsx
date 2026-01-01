@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   User,
   Briefcase,
@@ -30,6 +31,12 @@ import {
   Building2,
   Clock,
   AlertCircle,
+  Share2,
+  Users,
+  Crown,
+  UserCheck,
+  Send,
+  Info,
 } from 'lucide-react';
 
 // 추천 술기 목록 (피부과/성형외과 기반)
@@ -154,15 +161,53 @@ const sections = [
   { id: 'experience', label: '경력검증', icon: Briefcase },
   { id: 'skills', label: '술기 업데이트', icon: Award },
   { id: 'reviews', label: '내 리뷰', icon: MessageCircle },
+  { id: 'workExperience', label: '재직경험 공유', icon: Share2 },
   { id: 'fitType', label: '커리어 진단', icon: Target },
   { id: 'preferences', label: '희망 조건', icon: Settings },
 ];
 
-export default function ProfilePage() {
+// 재직경험 공유 - 작성한 리뷰 목록
+const myWrittenReviews = [
+  {
+    id: 1,
+    hospitalName: '강남뷰티의원',
+    reviewType: 'director' as const,
+    rating: 4.5,
+    content: '환자 케어에 관심이 많으시고, 직원 복지도 신경 써주셔서 좋았습니다. 다만 바쁜 시즌에는 야근이 잦았어요.',
+    date: '2024.01.10',
+    isAnonymous: true,
+  },
+  {
+    id: 2,
+    hospitalName: '강남뷰티의원',
+    reviewType: 'supervisor' as const,
+    rating: 4.2,
+    content: '업무 분배를 공정하게 해주시고, 신입 교육도 체계적으로 진행해주셨어요.',
+    date: '2024.01.08',
+    isAnonymous: true,
+  },
+];
+
+// 리뷰 작성 대상 병원 (경력에서 가져옴)
+const reviewableHospitals = [
+  { id: 1, name: '청담리더스피부과', period: '2023.03 - 현재', isCurrent: true },
+  { id: 2, name: '강남뷰티의원', period: '2020.03 - 2023.02', isCurrent: false },
+];
+
+function ProfileContent() {
+  const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState('basic');
   const [isPublic, setIsPublic] = useState(mockProfile.isPublic);
   const [profileVisibility, setProfileVisibility] = useState<'all' | 'interested' | 'hidden'>(mockProfile.profileVisibility);
   const [jobStatus, setJobStatus] = useState<'active' | 'passive' | 'notLooking'>(mockProfile.jobStatus);
+
+  // URL 쿼리 파라미터로 섹션 자동 이동
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section) {
+      setActiveSection(section);
+    }
+  }, [searchParams]);
 
   // 과거/재직 병원 숨김 설정
   const [hideFromPastEmployers, setHideFromPastEmployers] = useState(true);
@@ -179,9 +224,36 @@ export default function ProfilePage() {
   const [reviewVisibility, setReviewVisibility] = useState<Record<number, boolean>>(
     mockMyReviews.reduce((acc, review) => ({ ...acc, [review.id]: review.isVisible }), {})
   );
+  const [showMaskingModal, setShowMaskingModal] = useState(false);
+  const [selectedReviewForMasking, setSelectedReviewForMasking] = useState<typeof mockMyReviews[0] | null>(null);
+  const [maskingReason, setMaskingReason] = useState('');
+
+  // 재직경험 공유 상태
+  const [showWriteReviewModal, setShowWriteReviewModal] = useState(false);
+  const [selectedHospitalForReview, setSelectedHospitalForReview] = useState<typeof reviewableHospitals[0] | null>(null);
+  const [reviewTargetType, setReviewTargetType] = useState<'director' | 'supervisor' | 'colleague'>('director');
+  const [newReviewRating, setNewReviewRating] = useState(0);
+  const [newReviewContent, setNewReviewContent] = useState('');
+  const [isAnonymousReview, setIsAnonymousReview] = useState(true);
+  // 동료 리뷰 타입: 전체 평가 vs 개인별 평가
+  const [colleagueReviewType, setColleagueReviewType] = useState<'overall' | 'individual'>('overall');
+  const [colleagueName, setColleagueName] = useState('');
 
   const toggleReviewVisibility = (id: number) => {
     setReviewVisibility((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const openMaskingModal = (review: typeof mockMyReviews[0]) => {
+    setSelectedReviewForMasking(review);
+    setMaskingReason('');
+    setShowMaskingModal(true);
+  };
+
+  const submitMaskingRequest = () => {
+    if (selectedReviewForMasking) {
+      alert(`마스킹 요청이 접수되었습니다.\n\n리뷰: "${selectedReviewForMasking.content.slice(0, 30)}..."\n사유: ${maskingReason || '사유 미입력'}\n\n검토 후 3일 내 처리됩니다.`);
+      setShowMaskingModal(false);
+    }
   };
 
   const visibleReviewsCount = Object.values(reviewVisibility).filter(Boolean).length;
@@ -468,10 +540,12 @@ export default function ProfilePage() {
             <div className="bg-white rounded-2xl p-5 border border-border-light">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-section-title">경력검증</h2>
-                <button className="flex items-center gap-1 text-sm text-brand-mint font-medium">
-                  <Plus className="w-4 h-4" />
-                  추가
-                </button>
+                <Link href="/seeker/ai-interview/verification">
+                  <button className="flex items-center gap-1 text-sm text-brand-mint font-medium bg-brand-mint/10 px-3 py-1.5 rounded-lg hover:bg-brand-mint/20 transition-colors">
+                    <Plus className="w-4 h-4" />
+                    추가
+                  </button>
+                </Link>
               </div>
 
               <div className="space-y-4">
@@ -499,9 +573,11 @@ export default function ProfilePage() {
                               검증완료
                             </span>
                           ) : (
-                            <button className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full hover:bg-warning/20 transition-colors">
-                              검증요청
-                            </button>
+                            <Link href="/seeker/ai-interview/verification">
+                              <button className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full hover:bg-warning/20 transition-colors font-medium">
+                                검증요청
+                              </button>
+                            </Link>
                           )}
                         </div>
                         <div className="text-sm text-text-secondary">{exp.position}</div>
@@ -848,9 +924,9 @@ export default function ProfilePage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          alert(`"${review.content.slice(0, 20)}..." 리뷰에 대한 마스킹(수정) 요청이 접수되었습니다.\n\n검토 후 3일 내 처리됩니다.`);
+                          openMaskingModal(review);
                         }}
-                        className="flex items-center gap-1 text-xs text-text-tertiary hover:text-warning transition-colors"
+                        className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-warning/10 text-warning hover:bg-warning/20 transition-colors font-medium"
                       >
                         <AlertCircle className="w-3 h-3" />
                         마스킹 요청
@@ -868,6 +944,178 @@ export default function ProfilePage() {
                 <li>• 좋은 리뷰를 공개하면 오퍼 확률이 <strong>3배</strong> 올라가요</li>
                 <li>• 원장/수간호사 리뷰가 가장 영향력이 높아요</li>
                 <li>• 비공개 리뷰도 평균 평점에는 영향을 주지 않아요</li>
+              </ul>
+            </div>
+          </motion.div>
+        )}
+
+        {/* 재직경험 공유 */}
+        {activeSection === 'workExperience' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            {/* 안내 헤더 */}
+            <div className="bg-gradient-to-br from-success/10 to-brand-mint/5 rounded-2xl p-5 border border-success/20">
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Share2 className="w-6 h-6 text-success" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-text-primary mb-1">재직경험 공유하기</h2>
+                  <p className="text-sm text-text-secondary">
+                    이전 직장의 병원장, 실장, 동료에 대한 리뷰를 남겨주세요.
+                    다른 구직자들에게 큰 도움이 됩니다!
+                  </p>
+                  <div className="flex items-center gap-3 mt-3">
+                    <div className="flex items-center gap-1 text-xs text-success">
+                      <Check className="w-3 h-3" />
+                      <span>익명 보장</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-success">
+                      <Check className="w-3 h-3" />
+                      <span>거절 횟수 초기화</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 리뷰 작성 가능한 병원 */}
+            <div className="bg-white rounded-2xl p-5 border border-border-light">
+              <h3 className="font-semibold text-text-primary mb-4 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-brand-mint" />
+                리뷰 작성 가능한 병원
+              </h3>
+              <div className="space-y-3">
+                {reviewableHospitals.map((hospital) => (
+                  <div
+                    key={hospital.id}
+                    className="flex items-center justify-between p-4 bg-bg-secondary rounded-xl"
+                  >
+                    <div>
+                      <div className="font-medium text-text-primary flex items-center gap-2">
+                        {hospital.name}
+                        {hospital.isCurrent && (
+                          <span className="text-xs bg-brand-mint/10 text-brand-mint px-2 py-0.5 rounded-full">
+                            현재 재직
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-text-tertiary mt-0.5">{hospital.period}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedHospitalForReview(hospital);
+                        setShowWriteReviewModal(true);
+                        setNewReviewRating(0);
+                        setNewReviewContent('');
+                      }}
+                      className="px-4 py-2 bg-brand-mint text-white rounded-xl text-sm font-medium hover:bg-brand-mint-dark transition-colors"
+                    >
+                      리뷰 작성
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 리뷰 유형별 작성 가이드 */}
+            <div className="bg-white rounded-2xl p-5 border border-border-light">
+              <h3 className="font-semibold text-text-primary mb-4">리뷰 유형 안내</h3>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-3 bg-expert-navy/5 rounded-xl">
+                  <div className="w-10 h-10 bg-expert-navy/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Crown className="w-5 h-5 text-expert-navy" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-expert-navy">병원장 리뷰</div>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      원장님의 경영 스타일, 직원 케어, 의료 철학 등
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-brand-mint/5 rounded-xl">
+                  <div className="w-10 h-10 bg-brand-mint/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <UserCheck className="w-5 h-5 text-brand-mint" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-brand-mint">실장/팀장 리뷰</div>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      팀 분위기, 업무 분배, 교육 체계, 소통 방식 등
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 bg-info/5 rounded-xl">
+                  <div className="w-10 h-10 bg-info/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Users className="w-5 h-5 text-info" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-info">동료 리뷰</div>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      팀워크, 협업 분위기, 근무 환경, 워라밸 등
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 내가 작성한 리뷰 */}
+            {myWrittenReviews.length > 0 && (
+              <div className="bg-white rounded-2xl p-5 border border-border-light">
+                <h3 className="font-semibold text-text-primary mb-4 flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-text-tertiary" />
+                  내가 작성한 리뷰 ({myWrittenReviews.length})
+                </h3>
+                <div className="space-y-3">
+                  {myWrittenReviews.map((review) => {
+                    const typeInfo = {
+                      director: { label: '병원장', color: 'bg-expert-navy/10 text-expert-navy', icon: Crown },
+                      supervisor: { label: '실장/팀장', color: 'bg-brand-mint/10 text-brand-mint', icon: UserCheck },
+                      colleague: { label: '동료', color: 'bg-info/10 text-info', icon: Users },
+                    }[review.reviewType];
+                    const TypeIcon = typeInfo.icon;
+
+                    return (
+                      <div key={review.id} className="p-4 bg-bg-secondary rounded-xl">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <div className="font-medium text-text-primary">{review.hospitalName}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${typeInfo.color} flex items-center gap-1`}>
+                                <TypeIcon className="w-3 h-3" />
+                                {typeInfo.label}
+                              </span>
+                              {review.isAnonymous && (
+                                <span className="text-xs text-text-tertiary">익명</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-warning fill-warning" />
+                            <span className="font-medium text-text-primary">{review.rating}</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-text-secondary">{review.content}</p>
+                        <div className="text-xs text-text-tertiary mt-2">{review.date}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 리뷰 작성 혜택 */}
+            <div className="bg-success/5 border border-success/20 rounded-2xl p-4">
+              <h3 className="text-sm font-medium text-success mb-2 flex items-center gap-1">
+                <Sparkles className="w-4 h-4" />
+                리뷰 작성 혜택
+              </h3>
+              <ul className="text-xs text-text-secondary space-y-1">
+                <li>• 리뷰 1개 작성 시 <strong className="text-success">거절 횟수 초기화</strong></li>
+                <li>• 3개 이상 작성 시 <strong className="text-success">프로필 우선 노출</strong></li>
+                <li>• 양질의 리뷰 작성 시 <strong className="text-success">포인트 지급</strong></li>
               </ul>
             </div>
           </motion.div>
@@ -1123,6 +1371,325 @@ export default function ProfilePage() {
           </motion.div>
         )}
       </div>
+
+      {/* 마스킹 요청 모달 */}
+      <AnimatePresence>
+        {showMaskingModal && selectedReviewForMasking && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50"
+            onClick={() => setShowMaskingModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl w-full max-w-sm p-5"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-text-primary">리뷰 마스킹 요청</h3>
+                <button onClick={() => setShowMaskingModal(false)} className="p-1">
+                  <X className="w-5 h-5 text-text-tertiary" />
+                </button>
+              </div>
+
+              <div className="bg-bg-secondary rounded-xl p-3 mb-4">
+                <div className="text-xs text-text-tertiary mb-1">{selectedReviewForMasking.author}님의 리뷰</div>
+                <p className="text-sm text-text-secondary line-clamp-3">{selectedReviewForMasking.content}</p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-text-primary mb-2">마스킹 요청 사유</label>
+                <select
+                  value={maskingReason}
+                  onChange={(e) => setMaskingReason(e.target.value)}
+                  className="w-full p-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-brand-mint"
+                >
+                  <option value="">사유를 선택해주세요</option>
+                  <option value="사실과 다른 내용">사실과 다른 내용이 포함됨</option>
+                  <option value="개인정보 노출">개인정보가 노출됨</option>
+                  <option value="악의적 비방">악의적 비방 또는 욕설</option>
+                  <option value="퇴사 시 갈등">퇴사 시 갈등으로 인한 부당한 평가</option>
+                  <option value="기타">기타</option>
+                </select>
+              </div>
+
+              <div className="text-xs text-text-tertiary mb-4 bg-warning/5 p-3 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-warning inline mr-1" />
+                마스킹 요청은 검토 후 <strong>3일 내</strong> 처리됩니다. 정당한 사유가 있는 경우에만 승인됩니다.
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowMaskingModal(false)}
+                  className="flex-1 py-3 border border-border-light rounded-xl text-text-secondary font-medium"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={submitMaskingRequest}
+                  disabled={!maskingReason}
+                  className="flex-1 py-3 bg-warning text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  요청하기
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 리뷰 작성 모달 */}
+      <AnimatePresence>
+        {showWriteReviewModal && selectedHospitalForReview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50"
+            onClick={() => setShowWriteReviewModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl w-full max-w-sm max-h-[85vh] overflow-y-auto"
+            >
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-text-primary">재직경험 공유</h3>
+                  <button onClick={() => setShowWriteReviewModal(false)} className="p-1">
+                    <X className="w-5 h-5 text-text-tertiary" />
+                  </button>
+                </div>
+
+                {/* 병원 정보 */}
+                <div className="bg-bg-secondary rounded-xl p-3 mb-4">
+                  <div className="font-medium text-text-primary">{selectedHospitalForReview.name}</div>
+                  <div className="text-xs text-text-tertiary">{selectedHospitalForReview.period}</div>
+                </div>
+
+                {/* 리뷰 대상 선택 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-text-primary mb-2">리뷰 대상</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'director' as const, label: '병원장', icon: Crown, color: 'expert-navy' },
+                      { id: 'supervisor' as const, label: '실장/팀장', icon: UserCheck, color: 'brand-mint' },
+                      { id: 'colleague' as const, label: '동료', icon: Users, color: 'info' },
+                    ].map((type) => {
+                      const TypeIcon = type.icon;
+                      return (
+                        <button
+                          key={type.id}
+                          onClick={() => setReviewTargetType(type.id)}
+                          className={`p-3 rounded-xl border text-center transition-all ${
+                            reviewTargetType === type.id
+                              ? `border-${type.color} bg-${type.color}/10`
+                              : 'border-border-light hover:border-brand-mint/50'
+                          }`}
+                        >
+                          <TypeIcon className={`w-5 h-5 mx-auto mb-1 ${
+                            reviewTargetType === type.id ? `text-${type.color}` : 'text-text-tertiary'
+                          }`} />
+                          <div className={`text-xs font-medium ${
+                            reviewTargetType === type.id ? `text-${type.color}` : 'text-text-secondary'
+                          }`}>
+                            {type.label}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 동료 리뷰 타입 선택 - 동료 선택 시에만 표시 */}
+                {reviewTargetType === 'colleague' && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-text-primary mb-2">리뷰 유형</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => {
+                          setColleagueReviewType('overall');
+                          setColleagueName('');
+                        }}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          colleagueReviewType === 'overall'
+                            ? 'border-info bg-info/10'
+                            : 'border-border-light hover:border-info/50'
+                        }`}
+                      >
+                        <Users className={`w-5 h-5 mx-auto mb-1 ${
+                          colleagueReviewType === 'overall' ? 'text-info' : 'text-text-tertiary'
+                        }`} />
+                        <div className={`text-xs font-medium ${
+                          colleagueReviewType === 'overall' ? 'text-info' : 'text-text-secondary'
+                        }`}>
+                          전체 동료 평가
+                        </div>
+                        <div className="text-[10px] text-text-tertiary mt-0.5">공개 노출</div>
+                      </button>
+                      <button
+                        onClick={() => setColleagueReviewType('individual')}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          colleagueReviewType === 'individual'
+                            ? 'border-warning bg-warning/10'
+                            : 'border-border-light hover:border-warning/50'
+                        }`}
+                      >
+                        <User className={`w-5 h-5 mx-auto mb-1 ${
+                          colleagueReviewType === 'individual' ? 'text-warning' : 'text-text-tertiary'
+                        }`} />
+                        <div className={`text-xs font-medium ${
+                          colleagueReviewType === 'individual' ? 'text-warning' : 'text-text-secondary'
+                        }`}>
+                          개인별 평가
+                        </div>
+                        <div className="text-[10px] text-text-tertiary mt-0.5">구인처만 열람</div>
+                      </button>
+                    </div>
+
+                    {/* 개인별 평가 시 이름 입력 */}
+                    {colleagueReviewType === 'individual' && (
+                      <div className="mt-3">
+                        <input
+                          type="text"
+                          value={colleagueName}
+                          onChange={(e) => setColleagueName(e.target.value)}
+                          placeholder="동료 이름 (필수)"
+                          className="w-full p-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-warning"
+                        />
+                        <p className="text-xs text-text-tertiary mt-1">
+                          * 개인별 평가는 구인처(병원)에서만 열람 가능합니다
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 별점 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-text-primary mb-2">평점</label>
+                  <div className="flex items-center gap-2 justify-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setNewReviewRating(star)}
+                        className="p-1"
+                      >
+                        <Star
+                          className={`w-8 h-8 transition-colors ${
+                            star <= newReviewRating
+                              ? 'text-warning fill-warning'
+                              : 'text-border-light hover:text-warning/50'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  {newReviewRating > 0 && (
+                    <div className="text-center text-sm text-text-secondary mt-1">
+                      {newReviewRating === 5 ? '매우 좋음' :
+                       newReviewRating === 4 ? '좋음' :
+                       newReviewRating === 3 ? '보통' :
+                       newReviewRating === 2 ? '별로' : '매우 별로'}
+                    </div>
+                  )}
+                </div>
+
+                {/* 리뷰 내용 */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-text-primary mb-2">리뷰 내용</label>
+                  <textarea
+                    value={newReviewContent}
+                    onChange={(e) => setNewReviewContent(e.target.value)}
+                    placeholder={
+                      reviewTargetType === 'director'
+                        ? '원장님의 경영 스타일, 직원 케어, 의료 철학 등에 대해 작성해주세요.'
+                        : reviewTargetType === 'supervisor'
+                        ? '팀 분위기, 업무 분배, 교육 체계, 소통 방식 등에 대해 작성해주세요.'
+                        : '팀워크, 협업 분위기, 근무 환경, 워라밸 등에 대해 작성해주세요.'
+                    }
+                    className="w-full p-3 border border-border-light rounded-xl text-sm resize-none h-32 focus:outline-none focus:border-brand-mint"
+                  />
+                  <div className="text-xs text-text-tertiary text-right mt-1">
+                    {newReviewContent.length}/500
+                  </div>
+                </div>
+
+                {/* 익명 설정 */}
+                <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl mb-4">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-success" />
+                    <span className="text-sm text-text-primary">익명으로 작성</span>
+                  </div>
+                  <button
+                    onClick={() => setIsAnonymousReview(!isAnonymousReview)}
+                    className={`w-10 h-6 rounded-full transition-colors ${
+                      isAnonymousReview ? 'bg-success' : 'bg-bg-tertiary'
+                    }`}
+                  >
+                    <motion.div
+                      className="w-4 h-4 bg-white rounded-full shadow-sm"
+                      animate={{ x: isAnonymousReview ? 20 : 3 }}
+                    />
+                  </button>
+                </div>
+
+                {/* 안내 */}
+                <div className="text-xs text-text-tertiary bg-info/5 p-3 rounded-xl mb-4">
+                  <Info className="w-4 h-4 text-info inline mr-1" />
+                  작성된 리뷰는 검토 후 공개됩니다. 비방, 욕설, 허위 사실은 삭제될 수 있습니다.
+                </div>
+
+                {/* 버튼 */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowWriteReviewModal(false)}
+                    className="flex-1 py-3 border border-border-light rounded-xl text-text-secondary font-medium"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (newReviewRating === 0) {
+                        alert('평점을 선택해주세요.');
+                        return;
+                      }
+                      if (newReviewContent.length < 20) {
+                        alert('리뷰 내용을 20자 이상 작성해주세요.');
+                        return;
+                      }
+                      alert(`리뷰가 제출되었습니다!\n\n병원: ${selectedHospitalForReview.name}\n대상: ${
+                        reviewTargetType === 'director' ? '병원장' :
+                        reviewTargetType === 'supervisor' ? '실장/팀장' : '동료'
+                      }\n평점: ${newReviewRating}점\n\n검토 후 24시간 내 공개됩니다.`);
+                      setShowWriteReviewModal(false);
+                    }}
+                    disabled={newReviewRating === 0 || newReviewContent.length < 20}
+                    className="flex-1 py-3 bg-brand-mint text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+                  >
+                    <Send className="w-4 h-4" />
+                    제출하기
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin w-8 h-8 border-2 border-brand-mint border-t-transparent rounded-full" /></div>}>
+      <ProfileContent />
+    </Suspense>
   );
 }

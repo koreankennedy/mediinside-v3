@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -38,6 +38,7 @@ import {
   Stethoscope,
   Database,
   Copy,
+  RefreshCw,
 } from 'lucide-react';
 
 const DAILY_REJECT_LIMIT = 10;
@@ -633,9 +634,9 @@ const currentConditions = {
 
 const tabs = [
   { id: 'all', label: '전체', count: 10 },
-  { id: 'active', label: 'Active', count: 1 },
-  { id: 'interested', label: '관심', count: 3 },
   { id: 'progress', label: '진행 중', count: 1 },
+  { id: 'active', label: '원장님 오퍼', count: 1 },
+  { id: 'interested', label: '인터뷰 요청', count: 3 },
 ];
 
 const tierInfo = {
@@ -657,7 +658,7 @@ export default function MatchingCenterPage() {
   const [showConditions, setShowConditions] = useState(false);
   const [showConditionEdit, setShowConditionEdit] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<typeof mockOffers[0] | null>(null);
-  const [likedOffers, setLikedOffers] = useState<number[]>([]);
+  const [likedOffers, setLikedOffers] = useState<number[]>([3, 7, 10]); // status: 'interested'인 오퍼들
   const [rejectedOffers, setRejectedOffers] = useState<number[]>([]);
 
   // 필터 상태
@@ -674,9 +675,10 @@ export default function MatchingCenterPage() {
   const [savedConditions, setSavedConditions] = useState(currentConditions);
   const [showInterviewRequest, setShowInterviewRequest] = useState(false);
   const [interviewRequestHospital, setInterviewRequestHospital] = useState<typeof mockOffers[0] | null>(null);
-  const [preferredContactTime, setPreferredContactTime] = useState<string>('');
-  const [interviewType, setInterviewType] = useState<string>('video');
-  const [requestMessage, setRequestMessage] = useState<string>('');
+  const [interviewRound, setInterviewRound] = useState<'1st' | '2nd'>('1st'); // 면접 단계
+  const [interviewType, setInterviewType] = useState<'chat' | 'video'>('video'); // 1차: 채팅/화상
+  const [preferredDate, setPreferredDate] = useState<string>(''); // 가능 일자
+  const [preferredTime, setPreferredTime] = useState<string>(''); // 가능 시간
 
   // 사용자 성향 유형 (Fit Test 결과에서 가져옴 - 시뮬레이션)
   const [userFitType] = useState<FitType>('practical_expert');
@@ -693,13 +695,53 @@ export default function MatchingCenterPage() {
   };
 
   // 거절 횟수 제한 관련 상태
-  const [dailyRejectCount, setDailyRejectCount] = useState(3); // 시뮬레이션: 이미 3회 거절
+  const [dailyRejectCount, setDailyRejectCount] = useState(0); // 처음 시작 시 10회 모두 사용 가능
   const [isRejectLimited, setIsRejectLimited] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<typeof mockOffers[0] | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
   const remainingRejects = DAILY_REJECT_LIMIT - dailyRejectCount;
+
+  // 매칭리스트 평가 완료 팝업
+  const [showEvaluationCompleteModal, setShowEvaluationCompleteModal] = useState(false);
+
+  // 매칭리스트 소진 팝업 (추가 매칭 받기)
+  const [showMoreMatchesModal, setShowMoreMatchesModal] = useState(false);
+  const DAILY_MATCH_LIMIT = 10; // 하루 매칭 제한
+
+  // 세션 내 평가 횟수 추적 (초기 liked 제외)
+  const [sessionEvaluationCount, setSessionEvaluationCount] = useState(0);
+
+  // 다음 매칭까지 카운트다운 타이머 (24시간 기준)
+  const [countdown, setCountdown] = useState({ hours: 24, minutes: 0, seconds: 0 });
+  const [countdownStartTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    // 24시간(86400초)에서 경과 시간을 빼서 남은 시간 계산
+    const calculateTimeRemaining = () => {
+      const totalSeconds = 24 * 60 * 60; // 24시간 = 86400초
+      const elapsed = Math.floor((Date.now() - countdownStartTime) / 1000);
+      const remaining = Math.max(0, totalSeconds - elapsed);
+
+      const hours = Math.floor(remaining / 3600);
+      const minutes = Math.floor((remaining % 3600) / 60);
+      const seconds = remaining % 60;
+
+      return { hours, minutes, seconds };
+    };
+
+    // 초기값 설정
+    setCountdown(calculateTimeRemaining());
+
+    // 1초마다 업데이트
+    const timer = setInterval(() => {
+      setCountdown(calculateTimeRemaining());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdownStartTime]);
 
   // 데이터 출처 상세 팝업
   const [showDataSourcePopup, setShowDataSourcePopup] = useState(false);
@@ -717,13 +759,33 @@ export default function MatchingCenterPage() {
     }
   };
 
+  // 평가 완료 체크 (10개 평가 완료 시 모의면접 유도)
+  const EVALUATION_COMPLETE_THRESHOLD = 10;
+  const checkEvaluationComplete = (newSessionCount: number) => {
+    // 세션 내 10개 평가 완료 시 모의면접 유도 팝업 표시
+    if (newSessionCount >= EVALUATION_COMPLETE_THRESHOLD) {
+      // 약간의 딜레이 후 모달 표시
+      setTimeout(() => {
+        setShowEvaluationCompleteModal(true);
+      }, 500);
+    }
+  };
+
   const handleSubmitInterviewRequest = () => {
     if (!interviewRequestHospital) return;
-    alert(`${interviewRequestHospital.hospital}에 인터뷰 요청을 보냈습니다!\n\n면접 유형: ${interviewType === 'video' ? '화상 면접' : interviewType === 'phone' ? '전화 면접' : '대면 면접'}\n선호 시간: ${preferredContactTime || '상관없음'}`);
+    const roundText = interviewRound === '1st' ? '1차 AI 인터뷰' : '2차 대면 면접';
+    const typeText = interviewRound === '1st' ? (interviewType === 'video' ? '화상 면접' : '채팅 면접') : '대면 면접';
+    alert(`${interviewRequestHospital.hospital}에 ${roundText} 요청을 보냈습니다!\n\n면접 유형: ${typeText}\n희망 일자: ${preferredDate || '상관없음'}\n희망 시간: ${preferredTime || '상관없음'}`);
     setShowInterviewRequest(false);
-    setPreferredContactTime('');
+    setInterviewRound('1st');
     setInterviewType('video');
-    setRequestMessage('');
+    setPreferredDate('');
+    setPreferredTime('');
+
+    // 세션 평가 횟수 증가 및 완료 체크
+    const newCount = sessionEvaluationCount + 1;
+    setSessionEvaluationCount(newCount);
+    checkEvaluationComplete(newCount);
   };
 
   // 거절 모달 열기
@@ -737,6 +799,7 @@ export default function MatchingCenterPage() {
     }
     setRejectTarget(offer);
     setRejectReason('');
+    setSelectedRejectReasons([]);
     setShowRejectModal(true);
   };
 
@@ -750,21 +813,34 @@ export default function MatchingCenterPage() {
       setShowRejectModal(false);
       return;
     }
-    setRejectedOffers((prev) => [...prev, rejectTarget.id]);
+    const newRejectedOffers = [...rejectedOffers, rejectTarget.id];
+    setRejectedOffers(newRejectedOffers);
     const newCount = dailyRejectCount + 1;
     setDailyRejectCount(newCount);
     setShowRejectModal(false);
 
+    // 세션 평가 횟수 증가 및 완료 체크
+    const newSessionCount = sessionEvaluationCount + 1;
+    setSessionEvaluationCount(newSessionCount);
+
     if (newCount >= DAILY_REJECT_LIMIT) {
       setIsRejectLimited(true);
-      setTimeout(() => setShowResetModal(true), 300);
+      // 모의면접 + 리셋 선택 모달 표시
+      setTimeout(() => setShowRejectCompleteModal(true), 300);
+    } else {
+      // 평가 완료 체크
+      checkEvaluationComplete(newSessionCount);
     }
   };
+
+  // 거절 10회 완료 시 선택 모달 (모의면접 or 리셋)
+  const [showRejectCompleteModal, setShowRejectCompleteModal] = useState(false);
 
   // CTA 모달 상태
   const [showProfileCTA, setShowProfileCTA] = useState(false);
   const [showReferralCTA, setShowReferralCTA] = useState(false);
   const [showEmployeeCTA, setShowEmployeeCTA] = useState(false);
+  const [showWorkExperienceCTA, setShowWorkExperienceCTA] = useState(false);
   const [referralPhone, setReferralPhone] = useState('');
   const [referralName, setReferralName] = useState('');
 
@@ -776,6 +852,8 @@ export default function MatchingCenterPage() {
       setShowReferralCTA(true);
     } else if (option === 'employee') {
       setShowEmployeeCTA(true);
+    } else if (option === 'workExperience') {
+      setShowWorkExperienceCTA(true);
     }
   };
 
@@ -786,6 +864,7 @@ export default function MatchingCenterPage() {
     setShowProfileCTA(false);
     setShowReferralCTA(false);
     setShowEmployeeCTA(false);
+    setShowWorkExperienceCTA(false);
     setReferralPhone('');
     setReferralName('');
   };
@@ -803,13 +882,26 @@ export default function MatchingCenterPage() {
       return true;
     })
     .sort((a, b) => {
+      // 1차 정렬: 진행 중(negotiating) 최우선
+      const aIsProgress = a.status === 'negotiating';
+      const bIsProgress = b.status === 'negotiating';
+      if (aIsProgress && !bIsProgress) return -1;
+      if (!aIsProgress && bIsProgress) return 1;
+
+      // 2차 정렬: 원장님 직접 선택(isActive)
+      if (a.isActive && !b.isActive) return -1;
+      if (!a.isActive && b.isActive) return 1;
+
+      // 3차 정렬: 선택된 정렬 기준 적용
       if (sortBy === '매칭점수순') return getEnhancedMatchScore(b).totalScore - getEnhancedMatchScore(a).totalScore;
       if (sortBy === '급여순') {
         const getSalary = (s: string) => parseInt(s.replace(/[^0-9]/g, '')) || 0;
         return getSalary(b.salary) - getSalary(a.salary);
       }
       if (sortBy === '최신순') return b.id - a.id;
-      return 0;
+
+      // 기본 정렬: 매칭점수순
+      return getEnhancedMatchScore(b).totalScore - getEnhancedMatchScore(a).totalScore;
     });
 
   // 업무강도 필터 토글
@@ -848,20 +940,21 @@ export default function MatchingCenterPage() {
         </div>
       </div>
 
-      {/* 거절 횟수 표시 */}
+      {/* 거절 횟수 경고 (3회 이하 또는 제한 시에만 표시) */}
+      {(isRejectLimited || remainingRejects <= 3) && (
       <div className={`mb-4 p-3 rounded-xl flex items-center justify-between ${
-        isRejectLimited ? 'bg-error/10 border border-error/20' : remainingRejects <= 3 ? 'bg-warning/10 border border-warning/20' : 'bg-bg-secondary'
+        isRejectLimited ? 'bg-error/10 border border-error/20' : 'bg-warning/10 border border-warning/20'
       }`}>
         <div className="flex items-center gap-2">
           {isRejectLimited ? (
             <Lock className="w-4 h-4 text-error" />
           ) : (
-            <X className="w-4 h-4 text-text-tertiary" />
+            <AlertCircle className="w-4 h-4 text-warning" />
           )}
-          <span className={`text-sm ${isRejectLimited ? 'text-error font-medium' : 'text-text-secondary'}`}>
+          <span className={`text-sm font-medium ${isRejectLimited ? 'text-error' : 'text-warning'}`}>
             {isRejectLimited
               ? '오늘 거절 횟수를 모두 사용했어요'
-              : `오늘 남은 거절 횟수: ${remainingRejects}회`}
+              : `거절 횟수가 ${remainingRejects}회 남았어요!`}
           </span>
         </div>
         {isRejectLimited && (
@@ -874,6 +967,7 @@ export default function MatchingCenterPage() {
           </button>
         )}
       </div>
+      )}
 
       {/* 현재 조건 요약 */}
       <AnimatePresence>
@@ -1064,12 +1158,23 @@ export default function MatchingCenterPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
               activeTab === tab.id
-                ? 'bg-brand-mint text-white'
-                : 'bg-white text-text-secondary border border-border-light'
+                ? tab.id === 'progress'
+                  ? 'bg-gradient-to-r from-info to-brand-mint text-white shadow-lg shadow-info/30'
+                  : 'bg-brand-mint text-white'
+                : tab.id === 'progress'
+                  ? 'bg-info/10 text-info border-2 border-info font-semibold animate-pulse'
+                  : 'bg-white text-text-secondary border border-border-light'
             }`}
           >
+            {tab.id === 'progress' && <span className="mr-1">🔥</span>}
             {tab.label}
-            <span className={`ml-1 ${activeTab === tab.id ? 'text-white/80' : 'text-text-tertiary'}`}>
+            <span className={`ml-1 ${
+              activeTab === tab.id
+                ? 'text-white/80'
+                : tab.id === 'progress'
+                  ? 'text-info font-bold'
+                  : 'text-text-tertiary'
+            }`}>
               {tab.count}
             </span>
           </button>
@@ -1150,6 +1255,77 @@ export default function MatchingCenterPage() {
 
       {/* Offers List */}
       <div className="space-y-4">
+        {/* 빈 화면 상태 - 모든 매칭 거절 시 */}
+        {filteredOffers.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl p-8 border border-border-light text-center"
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-brand-mint/20 to-info/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Clock className="w-10 h-10 text-brand-mint" />
+            </div>
+            <h3 className="text-xl font-bold text-text-primary mb-2">오늘의 매칭을 모두 확인했어요!</h3>
+            <p className="text-sm text-text-secondary mb-6">
+              새로운 매칭은 내일 오전 9시에 업데이트됩니다
+            </p>
+
+            {/* 남은 시간 카운트다운 */}
+            <div className="bg-bg-secondary rounded-xl p-4 mb-6">
+              <div className="text-xs text-text-tertiary mb-2">다음 매칭까지</div>
+              <div className="flex items-center justify-center gap-3">
+                <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                  <div className="text-2xl font-bold text-brand-mint">{String(countdown.hours).padStart(2, '0')}</div>
+                  <div className="text-xs text-text-tertiary">시간</div>
+                </div>
+                <span className="text-xl text-text-tertiary">:</span>
+                <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                  <div className="text-2xl font-bold text-brand-mint">{String(countdown.minutes).padStart(2, '0')}</div>
+                  <div className="text-xs text-text-tertiary">분</div>
+                </div>
+                <span className="text-xl text-text-tertiary">:</span>
+                <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
+                  <div className="text-2xl font-bold text-brand-mint">{String(countdown.seconds).padStart(2, '0')}</div>
+                  <div className="text-xs text-text-tertiary">초</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 기다리는 동안 할 수 있는 것들 */}
+            <div className="text-left mb-4">
+              <p className="text-sm font-medium text-text-primary mb-3">기다리는 동안 이런 활동은 어떠세요?</p>
+              <div className="space-y-2">
+                <Link href="/seeker/ai-interview/practice">
+                  <button className="w-full p-4 bg-gradient-to-r from-brand-mint to-info text-white rounded-xl flex items-center gap-3 hover:opacity-90 transition-opacity">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                      <Video className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold">AI 모의면접 연습하기</div>
+                      <div className="text-xs text-white/80">실전 감각을 키워보세요</div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 ml-auto" />
+                  </button>
+                </Link>
+
+                <button
+                  onClick={() => setShowResetModal(true)}
+                  className="w-full p-4 bg-white border-2 border-brand-mint text-brand-mint rounded-xl flex items-center gap-3 hover:bg-brand-mint/5 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-semibold">지금 바로 매칭 더 받기</div>
+                    <div className="text-xs text-text-secondary">활동하고 추가 매칭을 받으세요</div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 ml-auto text-brand-mint" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {filteredOffers.map((offer, index) => (
           <motion.div
             key={offer.id}
@@ -1158,11 +1334,25 @@ export default function MatchingCenterPage() {
             transition={{ delay: index * 0.1 }}
             onClick={() => setSelectedOffer(offer)}
             className={`bg-white rounded-2xl p-4 border-2 cursor-pointer transition-all hover:shadow-card ${
-              offer.isActive ? 'border-match-gold' : 'border-border-light'
+              offer.status === 'negotiating'
+                ? 'border-info ring-2 ring-info/20 shadow-lg shadow-info/10'
+                : offer.isActive
+                  ? 'border-match-gold'
+                  : 'border-border-light'
             }`}
           >
+            {/* Progress Badge - 진행 중 */}
+            {offer.status === 'negotiating' && (
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-info to-brand-mint text-white shadow-sm">
+                  <Clock className="w-3 h-3 mr-1" />
+                  진행 중
+                </span>
+                <span className="text-xs text-info font-medium">면접 일정 조율 중</span>
+              </div>
+            )}
             {/* Active Badge */}
-            {offer.isActive && (
+            {offer.isActive && !offer.status?.includes('negotiating') && (
               <div className="flex items-center gap-2 mb-3">
                 <span className="badge-active">
                   <Award className="w-3 h-3 mr-1" />
@@ -1255,12 +1445,12 @@ export default function MatchingCenterPage() {
                 onClick={(e) => handleLike(offer.id, e)}
                 className={`flex-1 flex items-center justify-center gap-1 py-2 text-sm rounded-lg font-medium transition-colors ${
                   likedOffers.includes(offer.id)
-                    ? 'bg-error/10 text-error'
-                    : 'bg-error/10 text-error hover:bg-error/20'
+                    ? 'bg-brand-mint text-white'
+                    : 'bg-brand-mint/10 text-brand-mint hover:bg-brand-mint/20'
                 }`}
               >
-                <Heart className={`w-4 h-4 ${likedOffers.includes(offer.id) ? 'fill-error' : ''}`} />
-                {likedOffers.includes(offer.id) ? '관심 등록됨' : '관심'}
+                <Video className={`w-4 h-4`} />
+                {likedOffers.includes(offer.id) ? '요청 완료' : '인터뷰 요청'}
               </button>
               <Link href={`/seeker/concierge?hospital=${offer.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
                 <button className="w-full flex items-center justify-center gap-1 py-2 text-sm bg-brand-mint/10 text-brand-mint rounded-lg font-medium hover:bg-brand-mint/20 transition-colors">
@@ -1379,9 +1569,11 @@ export default function MatchingCenterPage() {
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-1.5">
                             <Gift className="w-4 h-4 text-success" />
-                            <span className="text-sm font-medium text-text-primary">채용상품 일치도</span>
+                            <span className="text-sm font-medium text-text-primary">나의 성향과 일치하는 채용상품</span>
                           </div>
-                          <span className="text-sm font-bold text-success">+{score.fitBoost}점</span>
+                          <span className="text-xs px-2 py-1 bg-success/10 text-success rounded-full font-medium">
+                            {matchedProducts.length}개 일치
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {matchedProducts.map((product, idx) => (
@@ -1395,7 +1587,7 @@ export default function MatchingCenterPage() {
                           ))}
                         </div>
                         <p className="text-xs text-text-tertiary mt-2">
-                          회원님의 성향과 맞는 채용상품이 있어요
+                          회원님의 {userFitType === 'practical_expert' ? '실용 전문가' : userFitType === 'high_end_achiever' ? '하이엔드 성과형' : userFitType === 'self_actualizer' ? '자아실현 추구형' : '신뢰 중심 전문가'} 성향과 맞는 채용상품이에요
                         </p>
                       </div>
                     );
@@ -1624,7 +1816,7 @@ export default function MatchingCenterPage() {
                     </h3>
                     <div className="bg-bg-secondary rounded-xl p-3 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-text-secondary">공식 정보 (병원 등록)</span>
+                        <span className="text-xs text-text-secondary">공공API (심평원/공공데이터)</span>
                         <div className="flex items-center gap-2">
                           <div className="w-24 h-2 bg-bg-tertiary rounded-full overflow-hidden">
                             <div className="h-full bg-expert-navy rounded-full" style={{ width: `${selectedOffer.superProfile.infoSources.official}%` }} />
@@ -1678,20 +1870,6 @@ export default function MatchingCenterPage() {
 
                 {/* Action Buttons */}
                 <div className="space-y-3 mt-6">
-                  <button
-                    onClick={() => {
-                      setLikedOffers((prev) =>
-                        prev.includes(selectedOffer.id)
-                          ? prev
-                          : [...prev, selectedOffer.id]
-                      );
-                      alert('관심 병원으로 등록되었습니다. 곧 연락드릴게요!');
-                    }}
-                    className="btn-primary w-full"
-                  >
-                    <Phone className="w-5 h-5 mr-2" />
-                    이 병원과 연결 요청하기
-                  </button>
                   <Link href={`/seeker/concierge?hospital=${selectedOffer.id}`}>
                     <button className="btn-outline w-full">
                       <MessageCircle className="w-5 h-5 mr-2" />
@@ -1710,12 +1888,12 @@ export default function MatchingCenterPage() {
                       }}
                       className={`flex-1 py-2.5 rounded-xl border font-medium transition-all ${
                         likedOffers.includes(selectedOffer.id)
-                          ? 'border-brand-mint bg-brand-mint/10 text-brand-mint'
-                          : 'border-border-light text-text-secondary hover:border-brand-mint hover:text-brand-mint'
+                          ? 'border-brand-mint bg-brand-mint text-white'
+                          : 'border-brand-mint text-brand-mint hover:bg-brand-mint/10'
                       }`}
                     >
-                      <Heart className={`w-4 h-4 inline mr-1 ${likedOffers.includes(selectedOffer.id) ? 'fill-brand-mint' : ''}`} />
-                      {likedOffers.includes(selectedOffer.id) ? '관심 등록됨' : '관심 등록'}
+                      <Video className={`w-4 h-4 inline mr-1`} />
+                      {likedOffers.includes(selectedOffer.id) ? '요청 완료' : '인터뷰 요청'}
                     </button>
                     <button
                       onClick={(e) => openRejectModal(selectedOffer, e)}
@@ -1725,6 +1903,20 @@ export default function MatchingCenterPage() {
                       <X className="w-4 h-4 inline mr-1" />
                       거절하기
                     </button>
+                  </div>
+                  {/* 거절 잔여 횟수 표시 */}
+                  <div className={`mt-2 text-center py-2 rounded-lg ${
+                    isRejectLimited
+                      ? 'bg-error/10 text-error'
+                      : remainingRejects <= 3
+                        ? 'bg-warning/10 text-warning'
+                        : 'bg-bg-secondary text-text-secondary'
+                  }`}>
+                    <span className="text-xs font-medium">
+                      {isRejectLimited
+                        ? '오늘 거절 횟수를 모두 사용했어요'
+                        : `오늘 남은 거절 횟수: ${remainingRejects}회`}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1754,13 +1946,45 @@ export default function MatchingCenterPage() {
                   </div>
                   <h3 className="text-lg font-bold">{rejectTarget.hospital}</h3>
                   <p className="text-sm text-text-secondary">이 병원의 제안을 거절하시겠어요?</p>
+                  <p className="text-xs text-text-tertiary mt-1">남은 거절 횟수: {remainingRejects}회</p>
                 </div>
-                <textarea
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  placeholder="거절 사유를 입력해주세요 (선택)"
-                  className="w-full p-3 border border-border-light rounded-xl text-sm resize-none h-20 mb-4"
-                />
+
+                {/* 거절 사유 버튼 선택 */}
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-text-primary mb-2">거절 사유 선택</p>
+                  <div className="flex flex-wrap gap-2">
+                    {['급여 조건', '근무 환경', '출퇴근 거리', '업무 강도', '기타'].map((reason) => (
+                      <button
+                        key={reason}
+                        onClick={() => {
+                          if (selectedRejectReasons.includes(reason)) {
+                            setSelectedRejectReasons(prev => prev.filter(r => r !== reason));
+                          } else {
+                            setSelectedRejectReasons(prev => [...prev, reason]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                          selectedRejectReasons.includes(reason)
+                            ? 'bg-error text-white'
+                            : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+                        }`}
+                      >
+                        {reason}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 직접 입력 (선택) */}
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-text-primary mb-2">추가 의견 (선택)</p>
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="병원에 전달할 메시지를 입력해주세요"
+                    className="w-full p-3 border border-border-light rounded-xl text-sm resize-none h-16"
+                  />
+                </div>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowRejectModal(false)}
@@ -1775,6 +1999,78 @@ export default function MatchingCenterPage() {
                     거절하기
                   </button>
                 </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 거절 10회 완료 - 모의면접/리셋 선택 모달 */}
+        <AnimatePresence>
+          {showRejectCompleteModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-sm bg-white rounded-2xl p-6"
+              >
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-brand-mint/20 to-info/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-8 h-8 text-brand-mint" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">오늘의 매칭 평가 완료!</h3>
+                  <p className="text-sm text-text-secondary">
+                    10개의 매칭을 모두 검토하셨어요.<br />
+                    다음 중 하나를 선택해주세요!
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-4">
+                  <Link href="/seeker/ai-interview/practice">
+                    <button
+                      onClick={() => setShowRejectCompleteModal(false)}
+                      className="w-full p-4 bg-gradient-to-r from-brand-mint to-info text-white rounded-xl flex items-center gap-3 hover:opacity-90 transition-opacity"
+                    >
+                      <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                        <Video className="w-6 h-6" />
+                      </div>
+                      <div className="text-left flex-1">
+                        <div className="font-semibold">AI 모의면접 보러가기</div>
+                        <div className="text-xs text-white/80">실전 감각을 키워보세요</div>
+                      </div>
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      setShowRejectCompleteModal(false);
+                      setShowResetModal(true);
+                    }}
+                    className="w-full p-4 bg-white border-2 border-brand-mint text-brand-mint rounded-xl flex items-center gap-3 hover:bg-brand-mint/5 transition-colors"
+                  >
+                    <div className="w-12 h-12 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                      <Gift className="w-6 h-6" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <div className="font-semibold">매칭 더 받기</div>
+                      <div className="text-xs text-text-secondary">활동하고 추가 매칭을 받으세요</div>
+                    </div>
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setShowRejectCompleteModal(false)}
+                  className="w-full py-3 text-text-secondary text-sm"
+                >
+                  다음에 할게요
+                </button>
               </motion.div>
             </motion.div>
           )}
@@ -1842,11 +2138,26 @@ export default function MatchingCenterPage() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
-                        <Share2 className="w-5 h-5 text-success" />
+                        <Building2 className="w-5 h-5 text-success" />
                       </div>
                       <div>
-                        <div className="font-semibold">재직 경험 공유</div>
-                        <div className="text-xs text-text-secondary">다녔던 병원의 정보를 공유해주세요</div>
+                        <div className="font-semibold">원장님 초대하기</div>
+                        <div className="text-xs text-text-secondary">원장님을 초대하고 혜택을 받으세요</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleResetLimit('workExperience')}
+                    className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-warning/10 rounded-full flex items-center justify-center">
+                        <Star className="w-5 h-5 text-warning" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">재직경험 공유하기</div>
+                        <div className="text-xs text-text-secondary">재직했던 병원에 대한 리뷰를 남겨주세요</div>
                       </div>
                     </div>
                   </button>
@@ -1994,7 +2305,7 @@ export default function MatchingCenterPage() {
           )}
         </AnimatePresence>
 
-        {/* 재직 경험 공유 CTA 모달 */}
+        {/* 원장님 초대 CTA 모달 */}
         <AnimatePresence>
           {showEmployeeCTA && (
             <motion.div
@@ -2009,21 +2320,139 @@ export default function MatchingCenterPage() {
                 exit={{ scale: 0.9, opacity: 0 }}
                 className="w-full max-w-sm bg-white rounded-2xl p-6"
               >
-                <h3 className="text-lg font-bold mb-4 text-center">재직 경험 공유</h3>
-                <p className="text-sm text-text-secondary text-center mb-6">
-                  다녔던 병원의 경험을 공유해주시면<br />다른 분들께 큰 도움이 됩니다!
-                </p>
-                <div className="space-y-3">
-                  <Link href="/seeker/concierge?action=share_experience">
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Building2 className="w-7 h-7 text-success" />
+                  </div>
+                  <h3 className="text-lg font-bold">원장님 초대하기</h3>
+                  <p className="text-sm text-text-secondary mt-1">
+                    원장님을 초대하시면 특별 혜택을 드려요!
+                  </p>
+                </div>
+
+                {/* 초대 링크 복사 */}
+                <div className="bg-bg-secondary rounded-xl p-4 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-text-primary">원장님 초대 링크</span>
                     <button
-                      onClick={completeReset}
-                      className="btn-primary w-full"
+                      onClick={() => {
+                        navigator.clipboard.writeText('https://mediinside.com/employer/invite/USER123');
+                        completeReset();
+                      }}
+                      className="text-xs text-brand-mint font-medium flex items-center gap-1"
                     >
-                      AI 컨시어지와 대화하기
+                      <Copy className="w-3 h-3" />
+                      복사하기
                     </button>
-                  </Link>
+                  </div>
+                  <div className="text-xs text-text-tertiary truncate">
+                    https://mediinside.com/employer/invite/USER123
+                  </div>
+                </div>
+
+                {/* 또는 직접 입력 */}
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border-light" />
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white px-2 text-text-tertiary">또는 직접 입력</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-4">
+                  <input
+                    type="text"
+                    value={referralName}
+                    onChange={(e) => setReferralName(e.target.value)}
+                    placeholder="병원명"
+                    className="w-full p-3 border border-border-light rounded-xl text-sm"
+                  />
+                  <input
+                    type="tel"
+                    value={referralPhone}
+                    onChange={(e) => setReferralPhone(e.target.value)}
+                    placeholder="원장님 연락처"
+                    className="w-full p-3 border border-border-light rounded-xl text-sm"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <button
+                    onClick={completeReset}
+                    disabled={!referralName || !referralPhone}
+                    className="btn-primary w-full disabled:opacity-50"
+                  >
+                    초대장 보내기
+                  </button>
                   <button
                     onClick={() => setShowEmployeeCTA(false)}
+                    className="w-full py-3 text-text-secondary text-sm"
+                  >
+                    취소
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 재직경험 공유 CTA 모달 */}
+        <AnimatePresence>
+          {showWorkExperienceCTA && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-sm bg-white rounded-2xl p-6"
+              >
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Star className="w-7 h-7 text-warning" />
+                  </div>
+                  <h3 className="text-lg font-bold">재직경험 공유하기</h3>
+                  <p className="text-sm text-text-secondary mt-1">
+                    과거 재직했던 병원에 대한 리뷰를 남겨주세요!<br />
+                    다른 구직자들에게 도움이 됩니다.
+                  </p>
+                </div>
+
+                <div className="bg-bg-secondary rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Building2 className="w-5 h-5 text-brand-mint" />
+                    <span className="text-sm font-medium">리뷰 작성 시 혜택</span>
+                  </div>
+                  <ul className="space-y-2 text-sm text-text-secondary">
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-success" />
+                      거절 횟수 10회 초기화
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-success" />
+                      프로필 신뢰도 배지 획득
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="w-4 h-4 text-success" />
+                      매칭 우선순위 상승
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-3">
+                  <Link
+                    href="/seeker/profile?section=workExperience"
+                    onClick={completeReset}
+                    className="btn-primary w-full block text-center"
+                  >
+                    리뷰 작성하러 가기
+                  </Link>
+                  <button
+                    onClick={() => setShowWorkExperienceCTA(false)}
                     className="w-full py-3 text-text-secondary text-sm"
                   >
                     취소
@@ -2130,6 +2559,331 @@ export default function MatchingCenterPage() {
                   className="w-full mt-4 py-3 bg-brand-mint text-white rounded-xl font-medium"
                 >
                   확인
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 인터뷰 요청 모달 */}
+        <AnimatePresence>
+          {showInterviewRequest && interviewRequestHospital && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+              onClick={() => setShowInterviewRequest(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-sm bg-white rounded-2xl overflow-hidden"
+              >
+                {/* 모달 헤더 */}
+                <div className="px-4 py-4 border-b border-border-light bg-brand-mint/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                      <Video className="w-5 h-5 text-brand-mint" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-text-primary">인터뷰 요청</h3>
+                      <p className="text-sm text-text-secondary">{interviewRequestHospital.hospital}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 모달 콘텐츠 */}
+                <div className="px-4 py-5 space-y-5 max-h-[60vh] overflow-y-auto">
+                  {/* 면접 단계 선택 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-3 block">
+                      면접 단계 선택
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setInterviewRound('1st')}
+                        className={`p-3 rounded-xl border-2 transition-all ${
+                          interviewRound === '1st'
+                            ? 'border-brand-mint bg-brand-mint/5'
+                            : 'border-border-light'
+                        }`}
+                      >
+                        <div className={`text-sm font-semibold ${interviewRound === '1st' ? 'text-brand-mint' : 'text-text-primary'}`}>
+                          1차 AI 인터뷰
+                        </div>
+                        <div className="text-xs text-text-tertiary">채팅 또는 화상</div>
+                      </button>
+                      <button
+                        onClick={() => setInterviewRound('2nd')}
+                        className={`p-3 rounded-xl border-2 transition-all ${
+                          interviewRound === '2nd'
+                            ? 'border-brand-mint bg-brand-mint/5'
+                            : 'border-border-light'
+                        }`}
+                      >
+                        <div className={`text-sm font-semibold ${interviewRound === '2nd' ? 'text-brand-mint' : 'text-text-primary'}`}>
+                          2차 대면 면접
+                        </div>
+                        <div className="text-xs text-text-tertiary">병원 방문</div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 1차: 면접 유형 선택 */}
+                  {interviewRound === '1st' && (
+                    <div>
+                      <label className="text-sm font-medium text-text-primary mb-3 block">
+                        선호 면접 유형
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => setInterviewType('chat')}
+                          className={`p-3 rounded-xl border-2 flex items-center gap-2 transition-all ${
+                            interviewType === 'chat'
+                              ? 'border-info bg-info/5'
+                              : 'border-border-light'
+                          }`}
+                        >
+                          <MessageCircle className={`w-5 h-5 ${interviewType === 'chat' ? 'text-info' : 'text-text-tertiary'}`} />
+                          <span className={`text-sm font-medium ${interviewType === 'chat' ? 'text-info' : 'text-text-primary'}`}>
+                            채팅 면접
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => setInterviewType('video')}
+                          className={`p-3 rounded-xl border-2 flex items-center gap-2 transition-all ${
+                            interviewType === 'video'
+                              ? 'border-brand-mint bg-brand-mint/5'
+                              : 'border-border-light'
+                          }`}
+                        >
+                          <Video className={`w-5 h-5 ${interviewType === 'video' ? 'text-brand-mint' : 'text-text-tertiary'}`} />
+                          <span className={`text-sm font-medium ${interviewType === 'video' ? 'text-brand-mint' : 'text-text-primary'}`}>
+                            화상 면접
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 가능 일자 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-2 block">
+                      {interviewRound === '1st' ? 'AI 인터뷰 가능 일자' : '대면 면접 가능 일자'}
+                    </label>
+                    <input
+                      type="date"
+                      value={preferredDate}
+                      onChange={(e) => setPreferredDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-4 py-3 border border-border-light rounded-xl text-sm"
+                    />
+                  </div>
+
+                  {/* 가능 시간 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-2 block">
+                      선호 시간대
+                    </label>
+                    <select
+                      value={preferredTime}
+                      onChange={(e) => setPreferredTime(e.target.value)}
+                      className="w-full px-4 py-3 border border-border-light rounded-xl text-sm"
+                    >
+                      <option value="">선택해주세요</option>
+                      <option value="오전 (09:00~12:00)">오전 (09:00~12:00)</option>
+                      <option value="오후 (13:00~18:00)">오후 (13:00~18:00)</option>
+                      <option value="저녁 (18:00 이후)">저녁 (18:00 이후)</option>
+                      <option value="상관없음">상관없음</option>
+                    </select>
+                  </div>
+
+                  {/* 안내 메시지 */}
+                  <div className="bg-info/10 rounded-xl p-3">
+                    <p className="text-xs text-info leading-relaxed">
+                      {interviewRound === '1st'
+                        ? '1차 AI 인터뷰 요청 후 병원에서 확정되면 알림을 드립니다. 모의면접으로 미리 연습해보세요!'
+                        : '2차 대면 면접은 병원과 일정 조율 후 확정됩니다.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 하단 버튼 */}
+                <div className="px-4 py-4 border-t border-border-light space-y-2">
+                  <button
+                    onClick={handleSubmitInterviewRequest}
+                    className="w-full py-3 bg-brand-mint text-white rounded-xl font-semibold"
+                  >
+                    인터뷰 요청하기
+                  </button>
+                  <button
+                    onClick={() => setShowInterviewRequest(false)}
+                    className="w-full py-2 text-text-secondary text-sm"
+                  >
+                    취소
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 평가 완료 모달 - AI 모의면접 유도 */}
+        <AnimatePresence>
+          {showEvaluationCompleteModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-sm bg-white rounded-2xl p-6"
+              >
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-brand-mint/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-8 h-8 text-brand-mint" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">오늘의 매칭 평가 완료!</h3>
+                  <p className="text-sm text-text-secondary">
+                    모든 매칭을 검토하셨어요.<br />
+                    AI 모의면접으로 실전 감각을 키워보세요!
+                  </p>
+                </div>
+
+                <div className="bg-brand-mint/5 rounded-xl p-4 mb-4 border border-brand-mint/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-brand-mint rounded-full flex items-center justify-center">
+                      <Video className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-text-primary">AI 모의면접</div>
+                      <div className="text-xs text-text-secondary">실제 면접처럼 연습해보세요</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Link href="/seeker/ai-interview/practice">
+                    <button
+                      onClick={() => setShowEvaluationCompleteModal(false)}
+                      className="w-full py-3 bg-brand-mint text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      AI 모의면접 시작하기
+                    </button>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setShowEvaluationCompleteModal(false);
+                      setShowResetModal(true);
+                    }}
+                    className="w-full py-3 border border-brand-mint text-brand-mint rounded-xl font-medium"
+                  >
+                    매칭 더 받기
+                  </button>
+                  <button
+                    onClick={() => setShowEvaluationCompleteModal(false)}
+                    className="w-full py-3 text-text-secondary text-sm"
+                  >
+                    다음에 할게요
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 매칭 더 받기 모달 */}
+        <AnimatePresence>
+          {showMoreMatchesModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-sm bg-white rounded-2xl p-6"
+              >
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <RefreshCw className="w-8 h-8 text-info" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">더 많은 매칭을 원하시나요?</h3>
+                  <p className="text-sm text-text-secondary">
+                    아래 활동을 하면 추가 매칭을 받을 수 있어요!
+                  </p>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  <Link href="/seeker/profile/edit">
+                    <button
+                      onClick={() => setShowMoreMatchesModal(false)}
+                      className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-brand-mint" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">프로필 완성도 높이기</div>
+                          <div className="text-xs text-text-secondary">이력서를 보완하면 +5개 매칭</div>
+                        </div>
+                      </div>
+                    </button>
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      setShowMoreMatchesModal(false);
+                      setShowReferralCTA(true);
+                    }}
+                    className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-info/10 rounded-full flex items-center justify-center">
+                        <UserPlus className="w-5 h-5 text-info" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">지인 추천하기</div>
+                        <div className="text-xs text-text-secondary">친구 초대 시 +3개 매칭</div>
+                      </div>
+                    </div>
+                  </button>
+
+                  <Link href="/seeker/concierge?action=recommend_director">
+                    <button
+                      onClick={() => setShowMoreMatchesModal(false)}
+                      className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
+                          <Award className="w-5 h-5 text-success" />
+                        </div>
+                        <div>
+                          <div className="font-semibold">원장님 추천 받기</div>
+                          <div className="text-xs text-text-secondary">AI 컨시어지가 도와드려요</div>
+                        </div>
+                      </div>
+                    </button>
+                  </Link>
+                </div>
+
+                <button
+                  onClick={() => setShowMoreMatchesModal(false)}
+                  className="w-full py-3 text-text-secondary text-sm"
+                >
+                  다음에 할게요
                 </button>
               </motion.div>
             </motion.div>

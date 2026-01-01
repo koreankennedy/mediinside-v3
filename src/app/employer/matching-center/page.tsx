@@ -1874,8 +1874,86 @@ function MatchingCenterContent() {
 
 export default function EmployerMatchingCenterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩 중...</div>}>
+    <Suspense fallback={<MatchingCenterSkeleton />}>
       <MatchingCenterContent />
     </Suspense>
+  );
+}
+
+function MatchingCenterSkeleton() {
+  return (
+    <div className="px-4 py-6">
+      {/* Header */}
+      <div className="mb-4">
+        <h1 className="text-dashboard-title">매칭 센터</h1>
+        <p className="text-sm text-text-secondary mt-1">후보자와의 채용 진행 현황을 관리하세요</p>
+      </div>
+
+      {/* Tabs Skeleton */}
+      <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
+        {['전체', '신규', '제안완료', '관심표시', '협상중', '면접예정'].map((label, i) => (
+          <div
+            key={i}
+            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium ${
+              i === 0 ? 'bg-expert-navy text-white' : 'bg-white text-text-secondary border border-border-light'
+            }`}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+
+      {/* Stats Card */}
+      <div className="bg-expert-navy/5 rounded-2xl p-4 mb-4 border border-expert-navy/10">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-text-secondary">이번 주 채용 활동</div>
+            <div className="h-6 w-48 bg-gray-200 rounded mt-2 animate-pulse" />
+          </div>
+          <div className="w-12 h-12 bg-expert-navy/10 rounded-full flex items-center justify-center">
+            <TrendingUp className="w-6 h-6 text-expert-navy/50" />
+          </div>
+        </div>
+      </div>
+
+      {/* Candidate Cards Skeleton */}
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="bg-white rounded-2xl p-4 border border-border-light"
+            style={{ opacity: 1 - i * 0.2 }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-6 w-16 bg-brand-mint/20 rounded animate-pulse" />
+              <div className="h-4 w-12 bg-gray-100 rounded animate-pulse" />
+            </div>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-expert-navy/10 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-expert-navy/30" />
+                </div>
+                <div>
+                  <div className="h-5 w-20 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-24 bg-gray-100 rounded mt-1 animate-pulse" />
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="h-7 w-12 bg-brand-mint/20 rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="flex gap-2 mb-3">
+              {[1, 2, 3].map((j) => (
+                <div key={j} className="h-6 w-16 bg-gray-100 rounded animate-pulse" />
+              ))}
+            </div>
+            <div className="flex gap-2 pt-3 border-t border-border-light">
+              <div className="flex-1 h-10 bg-expert-navy/10 rounded-lg animate-pulse" />
+              <div className="flex-1 h-10 bg-gray-100 rounded-lg animate-pulse" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
