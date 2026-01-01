@@ -17,7 +17,7 @@
 - **리뷰 마스킹 요청**: 동료 리뷰 수정 요청 기능
 - **조건 간단 수정**: 정밀진단 없이 희망조건 바로 수정
 
-**배포 URL:** https://mvp-v3-self.vercel.app (별도 프로젝트)
+**배포 URL:** https://mediinside-v3.vercel.app (별도 프로젝트)
 
 ---
 
@@ -126,7 +126,7 @@ src/
 
 | 버전 | 배포 URL | 상태 | 비고 |
 |:---:|:---|:---:|:---|
-| v3.0 | https://mvp-v3-self.vercel.app | **현재** | 법무 검토 중 |
+| v3.0 | https://mediinside-v3.vercel.app | **현재** | 법무 검토 중 |
 | v2.0 | https://mediinside.vercel.app | 안정 | 롤백 가능 |
 
 ## 라이선스
