@@ -132,5 +132,3 @@ src/
 ## 라이선스
 
 Private - All rights reserved
-<!-- v3.0 -->
-<!-- connected -->
