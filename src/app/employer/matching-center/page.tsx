@@ -182,6 +182,21 @@ function MatchingCenterContent() {
     { id: 2, title: '신규공고 2', isExpanded: false },
   ]);
 
+  // 필터 및 조건설정 모달 상태
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showConditionModal, setShowConditionModal] = useState(false);
+
+  // 필터 값
+  const [filterExperience, setFilterExperience] = useState<string[]>([]);
+  const [filterMatchScore, setFilterMatchScore] = useState<number>(0);
+  const [filterLicenseType, setFilterLicenseType] = useState<string[]>([]);
+
+  // 조건설정 값
+  const [conditionSalaryMin, setConditionSalaryMin] = useState<number>(0);
+  const [conditionSalaryMax, setConditionSalaryMax] = useState<number>(10000);
+  const [conditionWorkType, setConditionWorkType] = useState<string[]>([]);
+  const [conditionLocation, setConditionLocation] = useState<string[]>([]);
+
   // 저장 처리
   const handleSaveJob = (jobIndex: number) => {
     setSavedJobIndex(jobIndex);
@@ -618,32 +633,6 @@ function MatchingCenterContent() {
               </div>
             </div>
 
-            {/* 보상형태 */}
-            <div className="bg-white rounded-2xl border border-border-light p-4">
-              <h2 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
-                <Coins className="w-5 h-5 text-warning" />
-                보상형태
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {compensationOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => toggleCompensation(option.id)}
-                    className={`p-3 rounded-xl text-left transition-all ${
-                      compensation.includes(option.id)
-                        ? 'bg-expert-navy/10 border-2 border-expert-navy'
-                        : 'bg-bg-secondary border-2 border-transparent'
-                    }`}
-                  >
-                    <div className={`text-sm font-medium ${compensation.includes(option.id) ? 'text-expert-navy' : 'text-text-primary'}`}>
-                      {option.label}
-                    </div>
-                    <div className="text-xs text-text-tertiary mt-0.5">{option.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* 채용상품 4종 */}
             <div className="bg-white rounded-2xl border border-border-light p-4">
               <h2 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
@@ -861,13 +850,37 @@ function MatchingCenterContent() {
 
             {/* 필터 & 정렬 버튼 */}
             <div className="flex gap-2 mb-4">
-              <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-border-light rounded-lg text-sm text-text-secondary">
+              <button
+                onClick={() => setShowFilterModal(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-sm transition-colors ${
+                  (filterExperience.length > 0 || filterMatchScore > 0 || filterLicenseType.length > 0)
+                    ? 'bg-expert-navy text-white border-expert-navy'
+                    : 'bg-white border-border-light text-text-secondary hover:bg-bg-secondary'
+                }`}
+              >
                 <ListFilter className="w-4 h-4" />
                 필터
+                {(filterExperience.length > 0 || filterMatchScore > 0 || filterLicenseType.length > 0) && (
+                  <span className="w-5 h-5 bg-white text-expert-navy text-xs font-bold rounded-full flex items-center justify-center">
+                    {filterExperience.length + (filterMatchScore > 0 ? 1 : 0) + filterLicenseType.length}
+                  </span>
+                )}
               </button>
-              <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-border-light rounded-lg text-sm text-text-secondary">
+              <button
+                onClick={() => setShowConditionModal(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-sm transition-colors ${
+                  (conditionSalaryMin > 0 || conditionWorkType.length > 0 || conditionLocation.length > 0)
+                    ? 'bg-brand-mint text-white border-brand-mint'
+                    : 'bg-white border-border-light text-text-secondary hover:bg-bg-secondary'
+                }`}
+              >
                 <SlidersHorizontal className="w-4 h-4" />
                 조건설정
+                {(conditionSalaryMin > 0 || conditionWorkType.length > 0 || conditionLocation.length > 0) && (
+                  <span className="w-5 h-5 bg-white text-brand-mint text-xs font-bold rounded-full flex items-center justify-center">
+                    {(conditionSalaryMin > 0 ? 1 : 0) + conditionWorkType.length + conditionLocation.length}
+                  </span>
+                )}
               </button>
               <div className="relative ml-auto">
                 <button
@@ -1214,10 +1227,10 @@ function MatchingCenterContent() {
                               setOfferCandidate(candidate);
                               setShowOfferModal(true);
                             }}
-                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-warning text-white rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-match-gold text-white rounded-lg min-h-[40px]"
                           >
                             <DollarSign className="w-3 h-3" />
-                            오퍼
+                            오퍼하기
                           </button>
                           <button
                             onClick={(e) => {
@@ -1517,7 +1530,7 @@ function MatchingCenterContent() {
                 </motion.div>
                 <span className="text-2xl font-bold text-white">AI 매칭 분석</span>
               </div>
-              <p className="text-sm text-white/70">75명의 후보자 중 최적의 15명을 선별합니다</p>
+              <p className="text-sm text-white/70">최적의 후보자를 분석하고 있습니다</p>
             </motion.div>
 
             {/* 가로 캐러셀 프로필 카드 영역 */}
@@ -1620,33 +1633,6 @@ function MatchingCenterContent() {
               })}
             </div>
 
-            {/* 분석 통계 */}
-            <div className="flex gap-6 mb-6">
-              <div className="text-center">
-                <motion.div
-                  className="text-3xl font-bold text-brand-mint"
-                  animate={{ opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  75
-                </motion.div>
-                <div className="text-xs text-white/60">전체 분석</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-white">→</div>
-              </div>
-              <div className="text-center">
-                <motion.div
-                  className="text-3xl font-bold text-success"
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  15
-                </motion.div>
-                <div className="text-xs text-white/60">최종 매칭</div>
-              </div>
-            </div>
-
             {/* 프로그레스 바 - 민트색 */}
             <div className="w-72 mb-6">
               <div className="h-2 bg-white/20 rounded-full overflow-hidden">
@@ -1659,7 +1645,7 @@ function MatchingCenterContent() {
                 />
               </div>
               <div className="flex justify-between mt-2 text-sm text-white/70">
-                <span>{Math.round(aiMatchingProgress * 0.75)}명 분석 완료</span>
+                <span>분석 진행 중...</span>
                 <span>{aiMatchingProgress}%</span>
               </div>
             </div>
@@ -1743,6 +1729,239 @@ function MatchingCenterContent() {
               >
                 채용상품 설정이 성공적으로 저장되었습니다
               </motion.p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 필터 모달 */}
+      <AnimatePresence>
+        {showFilterModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center"
+            onClick={() => setShowFilterModal(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[80vh] overflow-hidden"
+            >
+              <div className="px-4 py-4 border-b border-border-light flex items-center justify-between">
+                <h3 className="text-lg font-bold text-text-primary">필터</h3>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-bg-secondary"
+                >
+                  <X className="w-5 h-5 text-text-secondary" />
+                </button>
+              </div>
+              <div className="p-4 space-y-6 overflow-y-auto max-h-[60vh]">
+                {/* 경력 필터 */}
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-3">경력</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {['1년 미만', '1-2년', '3-5년', '5-7년', '7년 이상'].map((exp) => (
+                      <button
+                        key={exp}
+                        onClick={() => setFilterExperience(prev =>
+                          prev.includes(exp) ? prev.filter(e => e !== exp) : [...prev, exp]
+                        )}
+                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                          filterExperience.includes(exp)
+                            ? 'bg-expert-navy text-white'
+                            : 'bg-bg-secondary text-text-primary hover:bg-bg-tertiary'
+                        }`}
+                      >
+                        {exp}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 매칭률 필터 */}
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-3">
+                    최소 매칭률: <span className="text-brand-mint">{filterMatchScore}%</span> 이상
+                  </h4>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={filterMatchScore}
+                    onChange={(e) => setFilterMatchScore(Number(e.target.value))}
+                    className="w-full h-2 bg-bg-secondary rounded-lg appearance-none cursor-pointer accent-brand-mint"
+                  />
+                  <div className="flex justify-between text-xs text-text-tertiary mt-1">
+                    <span>0%</span>
+                    <span>50%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+
+                {/* 자격증 필터 */}
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-3">자격증</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {['간호사', '간호조무사', '의료기사'].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setFilterLicenseType(prev =>
+                          prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                        )}
+                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                          filterLicenseType.includes(type)
+                            ? 'bg-expert-navy text-white'
+                            : 'bg-bg-secondary text-text-primary hover:bg-bg-tertiary'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="px-4 py-4 border-t border-border-light flex gap-3">
+                <button
+                  onClick={() => {
+                    setFilterExperience([]);
+                    setFilterMatchScore(0);
+                    setFilterLicenseType([]);
+                  }}
+                  className="flex-1 py-3 border border-border-light rounded-xl text-text-secondary font-medium"
+                >
+                  초기화
+                </button>
+                <button
+                  onClick={() => setShowFilterModal(false)}
+                  className="flex-[2] py-3 bg-expert-navy text-white rounded-xl font-medium"
+                >
+                  적용하기
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 조건설정 모달 */}
+      <AnimatePresence>
+        {showConditionModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center"
+            onClick={() => setShowConditionModal(false)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl max-h-[80vh] overflow-hidden"
+            >
+              <div className="px-4 py-4 border-b border-border-light flex items-center justify-between">
+                <h3 className="text-lg font-bold text-text-primary">조건설정</h3>
+                <button
+                  onClick={() => setShowConditionModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-bg-secondary"
+                >
+                  <X className="w-5 h-5 text-text-secondary" />
+                </button>
+              </div>
+              <div className="p-4 space-y-6 overflow-y-auto max-h-[60vh]">
+                {/* 희망 연봉 */}
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-3">
+                    희망 연봉 범위: <span className="text-brand-mint">{conditionSalaryMin}만원</span> 이상
+                  </h4>
+                  <input
+                    type="range"
+                    min={0}
+                    max={10000}
+                    step={100}
+                    value={conditionSalaryMin}
+                    onChange={(e) => setConditionSalaryMin(Number(e.target.value))}
+                    className="w-full h-2 bg-bg-secondary rounded-lg appearance-none cursor-pointer accent-brand-mint"
+                  />
+                  <div className="flex justify-between text-xs text-text-tertiary mt-1">
+                    <span>무관</span>
+                    <span>5,000만</span>
+                    <span>10,000만</span>
+                  </div>
+                </div>
+
+                {/* 근무 형태 */}
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-3">근무 형태</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {['정규직', '계약직', '파트타임', '알바'].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setConditionWorkType(prev =>
+                          prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+                        )}
+                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                          conditionWorkType.includes(type)
+                            ? 'bg-brand-mint text-white'
+                            : 'bg-bg-secondary text-text-primary hover:bg-bg-tertiary'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 선호 지역 */}
+                <div>
+                  <h4 className="text-sm font-semibold text-text-primary mb-3">선호 지역</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {['강남구', '서초구', '송파구', '용산구', '마포구', '성동구', '강동구', '영등포구', '구로구'].map((loc) => (
+                      <button
+                        key={loc}
+                        onClick={() => setConditionLocation(prev =>
+                          prev.includes(loc) ? prev.filter(l => l !== loc) : [...prev, loc]
+                        )}
+                        className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                          conditionLocation.includes(loc)
+                            ? 'bg-brand-mint text-white'
+                            : 'bg-bg-secondary text-text-primary hover:bg-bg-tertiary'
+                        }`}
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="px-4 py-4 border-t border-border-light flex gap-3">
+                <button
+                  onClick={() => {
+                    setConditionSalaryMin(0);
+                    setConditionSalaryMax(10000);
+                    setConditionWorkType([]);
+                    setConditionLocation([]);
+                  }}
+                  className="flex-1 py-3 border border-border-light rounded-xl text-text-secondary font-medium"
+                >
+                  초기화
+                </button>
+                <button
+                  onClick={() => setShowConditionModal(false)}
+                  className="flex-[2] py-3 bg-brand-mint text-white rounded-xl font-medium"
+                >
+                  적용하기
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

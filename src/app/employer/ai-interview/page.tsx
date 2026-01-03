@@ -399,17 +399,18 @@ export default function AIInterviewPage() {
                       {/* CTA 버튼 */}
                       <div className="flex gap-2 pt-3 border-t border-border-light">
                         <Link href={`/employer/ai-interview/report/${result.id}`} className="flex-1">
-                          <button className="w-full flex items-center justify-center gap-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium">
-                            <FileText className="w-4 h-4" />
-                            AI인터뷰 리포트 보기
+                          <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-info text-white rounded-lg font-medium min-h-[40px]">
+                            <FileText className="w-3 h-3" />
+                            리포트
                           </button>
                         </Link>
-                        <button className="flex items-center justify-center gap-1 px-3 py-2.5 text-sm bg-success/10 text-success rounded-lg font-medium">
-                          <Calendar className="w-4 h-4" />
-                          면접 잡기
+                        <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg font-medium min-h-[40px]">
+                          <Calendar className="w-3 h-3" />
+                          면접
                         </button>
-                        <button className="flex items-center justify-center px-3 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg hover:bg-error/10 hover:text-error transition-colors">
-                          <X className="w-4 h-4" />
+                        <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg font-medium min-h-[40px]">
+                          <X className="w-3 h-3" />
+                          거절
                         </button>
                       </div>
                     </>

@@ -1029,11 +1029,11 @@ export const mockEmployerConciergeQA = {
 
 export const mockAIInterviewResults = [
   // 완료된 인터뷰 22건
-  { id: 'int-completed-1', name: '이지은', experience: '6년', status: 'completed', aiScore: 95, matchRate: 95, interviewDuration: 43, recommendation: 'highly_recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 4, completedAt: '2024-12-29' },
-  { id: 'int-completed-2', name: '송혜교', experience: '9년', status: 'completed', aiScore: 95, matchRate: 99, interviewDuration: 42, recommendation: 'highly_recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 2, completedAt: '2024-12-28' },
-  { id: 'int-completed-3', name: '한가인', experience: '2년', status: 'completed', aiScore: 94, matchRate: 92, interviewDuration: 47, recommendation: 'recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-27' },
-  { id: 'int-completed-4', name: '김태희', experience: '5년', status: 'completed', aiScore: 94, matchRate: 94, interviewDuration: 44, recommendation: 'recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-26' },
-  { id: 'int-completed-5', name: '박신혜', experience: '8년', status: 'completed', aiScore: 94, matchRate: 94, interviewDuration: 39, recommendation: 'recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-25' },
+  { id: 'int-completed-1', name: '김민서', experience: '6년', status: 'completed', aiScore: 95, matchRate: 95, interviewDuration: 43, recommendation: 'highly_recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 4, completedAt: '2024-12-29' },
+  { id: 'int-completed-2', name: '이지현', experience: '9년', status: 'completed', aiScore: 95, matchRate: 99, interviewDuration: 42, recommendation: 'highly_recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 2, completedAt: '2024-12-28' },
+  { id: 'int-completed-3', name: '박수빈', experience: '2년', status: 'completed', aiScore: 94, matchRate: 92, interviewDuration: 47, recommendation: 'recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-27' },
+  { id: 'int-completed-4', name: '정유진', experience: '5년', status: 'completed', aiScore: 94, matchRate: 94, interviewDuration: 44, recommendation: 'recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-26' },
+  { id: 'int-completed-5', name: '최서연', experience: '8년', status: 'completed', aiScore: 94, matchRate: 94, interviewDuration: 39, recommendation: 'recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-25' },
   { id: 'int-completed-6', name: '최예진', experience: '4년', status: 'completed', aiScore: 93, matchRate: 91, interviewDuration: 48, recommendation: 'recommended', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-24' },
   { id: 'int-completed-7', name: '정소영', experience: '9년', status: 'completed', aiScore: 93, matchRate: 97, interviewDuration: 43, recommendation: 'normal', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-23' },
   { id: 'int-completed-8', name: '강미선', experience: '8년', status: 'completed', aiScore: 93, matchRate: 88, interviewDuration: 37, recommendation: 'normal', strengths: ['리더십', '문제해결능력', '팀워크'], concerns: ['야근 부담'], viewCount: 3, completedAt: '2024-12-22' },
@@ -1057,7 +1057,7 @@ export const mockAIInterviewResults = [
   { id: 'int-progress-3', name: '이현우', experience: '5년', status: 'in_progress', scheduledAt: '2024-12-25' },
   // 예정 3건
   { id: 'int-scheduled-1', name: '최준호', experience: '2년', status: 'scheduled', scheduledAt: '2025-01-01' },
-  { id: 'int-scheduled-2', name: '강동원', experience: '3년', status: 'scheduled', scheduledAt: '2025-01-02' },
+  { id: 'int-scheduled-2', name: '김동현', experience: '3년', status: 'scheduled', scheduledAt: '2025-01-02' },
   { id: 'int-scheduled-3', name: '윤서준', experience: '4년', status: 'scheduled', scheduledAt: '2025-01-03' },
 ];
 

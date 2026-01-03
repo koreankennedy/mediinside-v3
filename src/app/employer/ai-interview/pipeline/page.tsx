@@ -249,7 +249,7 @@ export default function PipelinePage() {
 
         {/* AI 면접 상태 - 핵심 강조 */}
         {applicant.aiScore ? (
-          <div className="flex items-center justify-between py-2 px-3 bg-expert-navy/5 rounded-lg">
+          <div className="flex items-center justify-between py-2 px-3 bg-expert-navy/5 rounded-lg mb-3">
             <div className="flex items-center gap-2">
               <Video className="w-4 h-4 text-expert-navy" />
               <span className="text-sm text-text-primary">AI면접 완료</span>
@@ -257,7 +257,7 @@ export default function PipelinePage() {
             <span className="text-sm font-bold text-expert-navy">{applicant.aiScore}점</span>
           </div>
         ) : (
-          <div className="flex items-center justify-between py-2 px-3 bg-bg-secondary rounded-lg">
+          <div className="flex items-center justify-between py-2 px-3 bg-bg-secondary rounded-lg mb-3">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-text-tertiary" />
               <span className="text-sm text-text-tertiary">AI면접 대기</span>
@@ -265,6 +265,97 @@ export default function PipelinePage() {
             <span className="text-xs text-expert-navy font-medium">요청 →</span>
           </div>
         )}
+
+        {/* 프로세스별 CTA 버튼 */}
+        <div className="flex gap-2">
+          {applicant.stage === 'new' && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  alert(`${applicant.name}님에게 AI인터뷰를 요청합니다.`);
+                }}
+                className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-brand-mint text-white rounded-lg font-medium"
+              >
+                <Video className="w-3 h-3" />
+                AI인터뷰
+              </button>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-error/10 text-error rounded-lg font-medium"
+              >
+                <XCircle className="w-3 h-3" />
+                거절
+              </button>
+            </>
+          )}
+          {applicant.stage === 'screening' && (
+            <>
+              <Link href={`/employer/ai-interview/report/${applicant.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <button className="w-full flex items-center justify-center gap-1 py-2 text-xs bg-info text-white rounded-lg font-medium">
+                  <FileText className="w-3 h-3" />
+                  리포트
+                </button>
+              </Link>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-success text-white rounded-lg font-medium"
+              >
+                <Calendar className="w-3 h-3" />
+                면접
+              </button>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-error/10 text-error rounded-lg font-medium"
+              >
+                <XCircle className="w-3 h-3" />
+                거절
+              </button>
+            </>
+          )}
+          {applicant.stage === 'interview' && (
+            <>
+              <Link href={`/employer/ai-interview/copilot?id=${applicant.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
+                <button className="w-full flex items-center justify-center gap-1 py-2 text-xs bg-expert-navy text-white rounded-lg font-medium">
+                  <Sparkles className="w-3 h-3" />
+                  코파일럿
+                </button>
+              </Link>
+              <div className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-success/10 text-success rounded-lg font-medium">
+                <Calendar className="w-3 h-3" />
+                {applicant.interviewDate || '일정'}
+              </div>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-error/10 text-error rounded-lg font-medium"
+              >
+                <XCircle className="w-3 h-3" />
+                거절
+              </button>
+            </>
+          )}
+          {applicant.stage === 'offer' && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  alert(`${applicant.name}님에게 오퍼를 발송합니다.`);
+                }}
+                className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-match-gold text-white rounded-lg font-medium"
+              >
+                <Coins className="w-3 h-3" />
+                오퍼하기
+              </button>
+              <button
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1 py-2 text-xs bg-error/10 text-error rounded-lg font-medium"
+              >
+                <XCircle className="w-3 h-3" />
+                거절
+              </button>
+            </>
+          )}
+        </div>
       </motion.div>
     );
   };

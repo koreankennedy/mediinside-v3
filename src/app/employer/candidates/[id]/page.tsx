@@ -42,7 +42,7 @@ import Link from 'next/link';
 
 // 후보자 상세 데이터 맵 (URL ID에 따라 다른 데이터 표시)
 const candidateDataMap: Record<string, { name: string; age: number; licenseType: string; experience: string; matchScore: number; location: string }> = {
-  // 프로필 열람 후보자
+  // 프로필 열람 후보자 (45명)
   'pv-1': { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' },
   'pv-2': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '서초구 거주' },
   'pv-3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
@@ -53,7 +53,42 @@ const candidateDataMap: Record<string, { name: string; age: number; licenseType:
   'pv-8': { name: '서지은', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 87, location: '강동구 거주' },
   'pv-9': { name: '홍수민', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 85, location: '영등포구 거주' },
   'pv-10': { name: '장미라', age: 27, licenseType: '간호조무사', experience: '3년차', matchScore: 84, location: '구로구 거주' },
-  // 인터뷰 제안 후보자
+  'pv-11': { name: '오세린', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 91, location: '강남구 거주' },
+  'pv-12': { name: '신예진', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 86, location: '서초구 거주' },
+  'pv-13': { name: '류현아', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 83, location: '송파구 거주' },
+  'pv-14': { name: '문지현', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '강남구 거주' },
+  'pv-15': { name: '배소희', age: 28, licenseType: '간호사', experience: '3년차', matchScore: 90, location: '용산구 거주' },
+  'pv-16': { name: '손유진', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 87, location: '마포구 거주' },
+  'pv-17': { name: '안수빈', age: 24, licenseType: '간호조무사', experience: '1년차', matchScore: 82, location: '성동구 거주' },
+  'pv-18': { name: '유지아', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '강동구 거주' },
+  'pv-19': { name: '임다희', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 85, location: '영등포구 거주' },
+  'pv-20': { name: '장서윤', age: 31, licenseType: '간호사', experience: '6년차', matchScore: 91, location: '구로구 거주' },
+  'pv-21': { name: '전미나', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 80, location: '강남구 거주' },
+  'pv-22': { name: '정수아', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '서초구 거주' },
+  'pv-23': { name: '조은서', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 86, location: '송파구 거주' },
+  'pv-24': { name: '차민지', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 84, location: '강남구 거주' },
+  'pv-25': { name: '최예은', age: 24, licenseType: '간호조무사', experience: '1년차', matchScore: 81, location: '용산구 거주' },
+  'pv-26': { name: '한소연', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 90, location: '마포구 거주' },
+  'pv-27': { name: '황지수', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 87, location: '성동구 거주' },
+  'pv-28': { name: '고유나', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 85, location: '강동구 거주' },
+  'pv-29': { name: '권민서', age: 24, licenseType: '간호조무사', experience: '1년차', matchScore: 79, location: '영등포구 거주' },
+  'pv-30': { name: '김나연', age: 31, licenseType: '간호사', experience: '6년차', matchScore: 92, location: '구로구 거주' },
+  'pv-31': { name: '김다은', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '강남구 거주' },
+  'pv-32': { name: '김보람', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 86, location: '서초구 거주' },
+  'pv-33': { name: '김서현', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 83, location: '송파구 거주' },
+  'pv-34': { name: '김아름', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 89, location: '강남구 거주' },
+  'pv-35': { name: '김연수', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 84, location: '용산구 거주' },
+  'pv-36': { name: '김은비', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 87, location: '마포구 거주' },
+  'pv-37': { name: '김주희', age: 24, licenseType: '간호조무사', experience: '1년차', matchScore: 80, location: '성동구 거주' },
+  'pv-38': { name: '김지현', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 91, location: '강동구 거주' },
+  'pv-39': { name: '김하늘', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 85, location: '영등포구 거주' },
+  'pv-40': { name: '김현정', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '구로구 거주' },
+  'pv-41': { name: '김희선', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 82, location: '강남구 거주' },
+  'pv-42': { name: '나민주', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 86, location: '서초구 거주' },
+  'pv-43': { name: '남지원', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 89, location: '송파구 거주' },
+  'pv-44': { name: '노현아', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 84, location: '강남구 거주' },
+  'pv-45': { name: '도유진', age: 24, licenseType: '간호조무사', experience: '1년차', matchScore: 81, location: '용산구 거주' },
+  // 인터뷰 제안 후보자 (12명)
   'ip-1': { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' },
   'ip-2': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '서초구 거주' },
   'ip-3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
@@ -62,6 +97,32 @@ const candidateDataMap: Record<string, { name: string; age: number; licenseType:
   'ip-6': { name: '강민경', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 92, location: '마포구 거주' },
   'ip-7': { name: '윤서연', age: 28, licenseType: '간호사', experience: '3년차', matchScore: 89, location: '성동구 거주' },
   'ip-8': { name: '서지은', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 87, location: '강동구 거주' },
+  'ip-9': { name: '오세린', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 91, location: '영등포구 거주' },
+  'ip-10': { name: '신예진', age: 26, licenseType: '간호조무사', experience: '2년차', matchScore: 86, location: '구로구 거주' },
+  'ip-11': { name: '류현아', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 88, location: '강남구 거주' },
+  'ip-12': { name: '문지현', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 87, location: '서초구 거주' },
+  // AI 인터뷰 완료 후보자
+  'aic-1': { name: '정민지', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 89, location: '송파구 거주' },
+  'aic-2': { name: '강은비', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 85, location: '강동구 거주' },
+  'aic-3': { name: '임수정', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 92, location: '강남구 거주' },
+  'aic-4': { name: '한지원', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 78, location: '서초구 거주' },
+  'aic-5': { name: '박예진', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '용산구 거주' },
+  'aic-6': { name: '조민서', age: 24, licenseType: '간호조무사', experience: '1년차', matchScore: 82, location: '마포구 거주' },
+  'aic-7': { name: '김나영', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 91, location: '성동구 거주' },
+  'aic-8': { name: '이하나', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 86, location: '강동구 거주' },
+  // 대면면접 진행 후보자
+  'fic-1': { name: '최수민', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 90, location: '영등포구 거주' },
+  'fic-2': { name: '김서현', age: 31, licenseType: '간호사', experience: '6년차', matchScore: 93, location: '구로구 거주' },
+  'fic-3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '강남구 거주' },
+  // 오퍼 발송 후보자
+  'os-1': { name: '이수현', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 93, location: '강남구 거주' },
+  'os-2': { name: '박지민', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 88, location: '서초구 거주' },
+  'os-3': { name: '김하은', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 85, location: '송파구 거주' },
+  'os-4': { name: '정유진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 91, location: '용산구 거주' },
+  'os-5': { name: '최민서', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 87, location: '마포구 거주' },
+  // 합격자
+  'h-1': { name: '이서연', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 94, location: '강남구 거주' },
+  'h-2': { name: '김민지', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 92, location: '서초구 거주' },
   // 퍼널 후보자
   'neg-1': { name: '김서현', age: 31, licenseType: '간호사', experience: '7년차', matchScore: 95, location: '강남구 거주' },
   'face-1': { name: '최수민', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 90, location: '서초구 거주' },
@@ -74,6 +135,29 @@ const candidateDataMap: Record<string, { name: string; age: number; licenseType:
   '1': { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' },
   '2': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '서초구 거주' },
   '3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
+  // 공고수정 - 프로필 열람자 (viewer)
+  'viewer-1': { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' },
+  'viewer-2': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '서초구 거주' },
+  'viewer-3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
+  'viewer-4': { name: '정혜원', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 90, location: '강남구 거주' },
+  'viewer-5': { name: '최지영', age: 32, licenseType: '간호사', experience: '6년차', matchScore: 88, location: '용산구 거주' },
+  // 공고수정 - 지원자 (applicant)
+  'applicant-1': { name: '김민지', age: 28, licenseType: '간호사', experience: '3년차', matchScore: 94, location: '강남구 거주' },
+  'applicant-2': { name: '이서연', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 91, location: '서초구 거주' },
+  'applicant-3': { name: '박지현', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '송파구 거주' },
+  // 공고수정 - 매칭 후보 (matched)
+  'matched-1': { name: '김민지', age: 28, licenseType: '간호사', experience: '3년차', matchScore: 94, location: '강남구 거주' },
+  'matched-2': { name: '이서연', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 91, location: '서초구 거주' },
+  'matched-3': { name: '박지현', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '송파구 거주' },
+  'matched-4': { name: '정민지', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 86, location: '강남구 거주' },
+  // 지원자관리 칸반 (app)
+  'app-1': { name: '김민지', age: 27, licenseType: '치과위생사', experience: '3년차', matchScore: 92, location: '강남구 거주' },
+  'app-2': { name: '이서연', age: 29, licenseType: '치과위생사', experience: '5년차', matchScore: 88, location: '서초구 거주' },
+  'app-3': { name: '박지현', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 85, location: '송파구 거주' },
+  'app-4': { name: '최수아', age: 28, licenseType: '치과위생사', experience: '4년차', matchScore: 90, location: '강남구 거주' },
+  'app-5': { name: '정유진', age: 27, licenseType: '치과위생사', experience: '3년차', matchScore: 82, location: '용산구 거주' },
+  'app-6': { name: '한소희', age: 30, licenseType: '간호사', experience: '6년차', matchScore: 95, location: '마포구 거주' },
+  'app-7': { name: '강예린', age: 28, licenseType: '치과위생사', experience: '4년차', matchScore: 91, location: '성동구 거주' },
 };
 
 // 기본 후보자 데이터 (ID에 해당하는 데이터가 없을 때)
