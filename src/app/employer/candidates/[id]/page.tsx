@@ -189,6 +189,31 @@ const candidateDataMap: Record<string, { name: string; age: number; licenseType:
   'int-scheduled-1': { name: '최준호', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 82, location: '용산구 거주' },
   'int-scheduled-2': { name: '김동현', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 84, location: '마포구 거주' },
   'int-scheduled-3': { name: '윤서준', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 86, location: '성동구 거주' },
+  // 구인처 매칭센터 - 신규 후보자 (15명)
+  'new-candidate-1': { name: '임소정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 94, location: '강남구 거주' },
+  'new-candidate-2': { name: '노유진', age: 29, licenseType: '간호사', experience: '5년차', matchScore: 91, location: '서초구 거주' },
+  'new-candidate-3': { name: '조은비', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 88, location: '송파구 거주' },
+  'new-candidate-4': { name: '백서윤', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 86, location: '강남구 거주' },
+  'new-candidate-5': { name: '양지원', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 90, location: '용산구 거주' },
+  'new-candidate-6': { name: '송민지', age: 26, licenseType: '간호조무사', experience: '3년차', matchScore: 84, location: '마포구 거주' },
+  'new-candidate-7': { name: '강다연', age: 30, licenseType: '간호사', experience: '6년차', matchScore: 92, location: '성동구 거주' },
+  'new-candidate-8': { name: '문하은', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 87, location: '강동구 거주' },
+  'new-candidate-9': { name: '최예진', age: 28, licenseType: '간호조무사', experience: '4년차', matchScore: 85, location: '영등포구 거주' },
+  'new-candidate-10': { name: '이수빈', age: 29, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '구로구 거주' },
+  'new-candidate-11': { name: '정서아', age: 25, licenseType: '간호사', experience: '2년차', matchScore: 83, location: '강남구 거주' },
+  'new-candidate-12': { name: '한서현', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 88, location: '서초구 거주' },
+  'new-candidate-13': { name: '오민주', age: 26, licenseType: '간호조무사', experience: '3년차', matchScore: 82, location: '송파구 거주' },
+  'new-candidate-14': { name: '김나윤', age: 31, licenseType: '간호사', experience: '7년차', matchScore: 93, location: '강남구 거주' },
+  'new-candidate-15': { name: '박지민', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 86, location: '용산구 거주' },
+  // 구인처 매칭센터 - 채용절차 진행중 (8명)
+  'progress-candidate-1': { name: '김서현', age: 31, licenseType: '간호사', experience: '7년차', matchScore: 95, location: '강남구 거주' },
+  'progress-candidate-2': { name: '최수민', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 90, location: '서초구 거주' },
+  'progress-candidate-3': { name: '정민지', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 88, location: '송파구 거주' },
+  'progress-candidate-4': { name: '강은비', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 85, location: '강동구 거주' },
+  'progress-candidate-5': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '마포구 거주' },
+  'progress-candidate-6': { name: '박수진', age: 29, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '성동구 거주' },
+  'progress-candidate-7': { name: '임수정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 91, location: '강남구 거주' },
+  'progress-candidate-8': { name: '한지원', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 78, location: '서초구 거주' },
 };
 
 // 기본 후보자 데이터 (ID에 해당하는 데이터가 없을 때)
@@ -1515,7 +1540,8 @@ export default function CandidateDetailPage() {
       )}
 
       {/* Bottom Action Bar - 탭별 동적 CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border-light px-4 py-4 z-20">
+      {/* 하단 CTA - 네비게이션 바 위에 위치 */}
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 bg-white border-t border-border-light px-4 py-3 z-20">
         {activeTab === 'profile' && (
           <div className="flex gap-3">
             <button

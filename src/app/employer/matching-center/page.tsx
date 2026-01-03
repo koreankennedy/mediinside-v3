@@ -29,6 +29,9 @@ import {
   FileText,
   UserPlus,
   Share2,
+  Check,
+  Copy,
+  Building2,
   Settings,
   ListFilter,
   SlidersHorizontal,
@@ -150,6 +153,7 @@ function MatchingCenterContent() {
     remainingRejects,
     canReject,
     incrementRejectCount,
+    resetRejectCount,
     DAILY_REJECT_LIMIT
   } = useGlobalRejectCount();
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -158,6 +162,39 @@ function MatchingCenterContent() {
   const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
   const [rejectReason, setRejectReason] = useState('');
   const [showViralLoopModal, setShowViralLoopModal] = useState(false);
+
+  // 바이럴루프 CTA 상세 모달 상태
+  const [showProfileCTA, setShowProfileCTA] = useState(false);
+  const [showReferralCTA, setShowReferralCTA] = useState(false);
+  const [showEmployeeCTA, setShowEmployeeCTA] = useState(false);
+  const [showWorkExperienceCTA, setShowWorkExperienceCTA] = useState(false);
+  const [referralPhone, setReferralPhone] = useState('');
+  const [referralName, setReferralName] = useState('');
+
+  // 바이럴루프 CTA 핸들러
+  const handleResetLimit = (type: 'profile' | 'referral' | 'employee' | 'workExperience') => {
+    setShowViralLoopModal(false);
+    if (type === 'profile') {
+      setShowProfileCTA(true);
+    } else if (type === 'referral') {
+      setShowReferralCTA(true);
+    } else if (type === 'employee') {
+      setShowEmployeeCTA(true);
+    } else if (type === 'workExperience') {
+      setShowWorkExperienceCTA(true);
+    }
+  };
+
+  // CTA 완료 후 거절 횟수 초기화
+  const completeReset = () => {
+    resetRejectCount();
+    setShowProfileCTA(false);
+    setShowReferralCTA(false);
+    setShowEmployeeCTA(false);
+    setShowWorkExperienceCTA(false);
+    setReferralPhone('');
+    setReferralName('');
+  };
 
   // AI 매칭 모달 상태
   const [showAIMatchingModal, setShowAIMatchingModal] = useState(false);
@@ -1999,10 +2036,7 @@ function MatchingCenterContent() {
 
               <div className="space-y-3 mb-6">
                 <button
-                  onClick={() => {
-                    setShowViralLoopModal(false);
-                    alert('프로필 업데이트 페이지로 이동합니다.');
-                  }}
+                  onClick={() => handleResetLimit('profile')}
                   className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -2017,15 +2051,12 @@ function MatchingCenterContent() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    setShowViralLoopModal(false);
-                    alert('친구 초대 링크가 복사되었습니다.');
-                  }}
+                  onClick={() => handleResetLimit('employee')}
                   className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-info/10 rounded-full flex items-center justify-center">
-                      <UserPlus className="w-5 h-5 text-info" />
+                      <Building2 className="w-5 h-5 text-info" />
                     </div>
                     <div>
                       <div className="font-semibold">동료 원장님 초대하기</div>
@@ -2035,15 +2066,12 @@ function MatchingCenterContent() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    setShowViralLoopModal(false);
-                    alert('구직자 초대 링크가 복사되었습니다.');
-                  }}
+                  onClick={() => handleResetLimit('referral')}
                   className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
-                      <Users className="w-5 h-5 text-success" />
+                      <UserPlus className="w-5 h-5 text-success" />
                     </div>
                     <div>
                       <div className="font-semibold">구직자 추천하기</div>
@@ -2053,19 +2081,16 @@ function MatchingCenterContent() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    setShowViralLoopModal(false);
-                    alert('채용 공고가 공유되었습니다.');
-                  }}
+                  onClick={() => handleResetLimit('workExperience')}
                   className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-warning/10 rounded-full flex items-center justify-center">
-                      <Share2 className="w-5 h-5 text-warning" />
+                      <Star className="w-5 h-5 text-warning" />
                     </div>
                     <div>
-                      <div className="font-semibold">채용공고 공유하기</div>
-                      <div className="text-xs text-text-secondary">공고를 공유하고 더 많은 지원을 받으세요</div>
+                      <div className="font-semibold">재직경험 공유하기</div>
+                      <div className="text-xs text-text-secondary">재직했던 곳에 대한 리뷰를 남겨주세요</div>
                     </div>
                   </div>
                 </button>
@@ -2077,6 +2102,252 @@ function MatchingCenterContent() {
               >
                 다음에 할게요
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 병원 프로필 완성하기 CTA 모달 */}
+      <AnimatePresence>
+        {showProfileCTA && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <h3 className="text-lg font-bold mb-4 text-center">병원 프로필 완성하기</h3>
+              <p className="text-sm text-text-secondary text-center mb-6">
+                프로필을 완성하면<br />더 많은 구직자에게 노출돼요!
+              </p>
+              <div className="space-y-3">
+                <Link href="/employer/profile/setup">
+                  <button
+                    onClick={completeReset}
+                    className="btn-primary w-full"
+                  >
+                    프로필 완성하러 가기
+                  </button>
+                </Link>
+                <button
+                  onClick={() => setShowProfileCTA(false)}
+                  className="w-full py-3 text-text-secondary text-sm"
+                >
+                  취소
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 동료 원장님 초대하기 CTA 모달 */}
+      <AnimatePresence>
+        {showEmployeeCTA && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Building2 className="w-7 h-7 text-info" />
+                </div>
+                <h3 className="text-lg font-bold">동료 원장님 초대하기</h3>
+                <p className="text-sm text-text-secondary mt-1">
+                  동료 원장님을 초대하고 함께 혜택을 받으세요!
+                </p>
+              </div>
+
+              {/* 초대 링크 복사 */}
+              <div className="bg-bg-secondary rounded-xl p-4 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-text-primary">내 초대 링크</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText('https://mediinside.com/invite/EMPLOYER123');
+                      completeReset();
+                    }}
+                    className="text-xs text-brand-mint font-medium flex items-center gap-1"
+                  >
+                    <Copy className="w-3 h-3" />
+                    복사
+                  </button>
+                </div>
+                <div className="text-xs text-text-tertiary truncate">
+                  https://mediinside.com/invite/EMPLOYER123
+                </div>
+              </div>
+
+              {/* 혜택 안내 */}
+              <div className="bg-success/5 rounded-xl p-4 mb-4">
+                <p className="text-sm font-medium text-success mb-2">초대 성공 시 혜택</p>
+                <ul className="text-xs text-text-secondary space-y-1">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3 h-3 text-success" />
+                    거절 횟수 10회 초기화
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3 h-3 text-success" />
+                    프리미엄 기능 1주일 무료
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => setShowEmployeeCTA(false)}
+                className="w-full py-3 text-text-secondary text-sm"
+              >
+                취소
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 구직자 추천하기 CTA 모달 */}
+      <AnimatePresence>
+        {showReferralCTA && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <UserPlus className="w-7 h-7 text-success" />
+                </div>
+                <h3 className="text-lg font-bold">구직자 추천하기</h3>
+                <p className="text-sm text-text-secondary mt-1">
+                  구직자를 추천하고 혜택을 받으세요!
+                </p>
+              </div>
+
+              {/* 추천 링크 복사 */}
+              <div className="bg-bg-secondary rounded-xl p-4 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-text-primary">추천 링크</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText('https://mediinside.com/seeker/signup?ref=EMPLOYER123');
+                      completeReset();
+                    }}
+                    className="text-xs text-brand-mint font-medium flex items-center gap-1"
+                  >
+                    <Copy className="w-3 h-3" />
+                    복사
+                  </button>
+                </div>
+                <div className="text-xs text-text-tertiary truncate">
+                  https://mediinside.com/seeker/signup?ref=EMPLOYER123
+                </div>
+              </div>
+
+              {/* 혜택 안내 */}
+              <div className="bg-success/5 rounded-xl p-4 mb-4">
+                <p className="text-sm font-medium text-success mb-2">추천 성공 시 혜택</p>
+                <ul className="text-xs text-text-secondary space-y-1">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3 h-3 text-success" />
+                    거절 횟수 10회 초기화
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-3 h-3 text-success" />
+                    추천 구직자 매칭 우선 노출
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => setShowReferralCTA(false)}
+                className="w-full py-3 text-text-secondary text-sm"
+              >
+                취소
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 재직경험 공유하기 CTA 모달 */}
+      <AnimatePresence>
+        {showWorkExperienceCTA && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Star className="w-7 h-7 text-warning" />
+                </div>
+                <h3 className="text-lg font-bold">재직경험 공유하기</h3>
+                <p className="text-sm text-text-secondary mt-1">
+                  재직했던 곳에 대한 리뷰를 남겨주세요!
+                </p>
+              </div>
+
+              {/* 혜택 안내 */}
+              <div className="bg-warning/5 rounded-xl p-4 mb-4">
+                <p className="text-sm font-medium text-warning mb-2">리뷰 작성 시 혜택</p>
+                <ul className="text-xs text-text-secondary space-y-1">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-success" />
+                    거절 횟수 10회 초기화
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-success" />
+                    프로필 신뢰도 배지 획득
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-success" />
+                    매칭 우선순위 상승
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <Link
+                  href="/employer/profile?section=workExperience"
+                  onClick={completeReset}
+                  className="btn-primary w-full block text-center"
+                >
+                  리뷰 작성하러 가기
+                </Link>
+                <button
+                  onClick={() => setShowWorkExperienceCTA(false)}
+                  className="w-full py-3 text-text-secondary text-sm"
+                >
+                  취소
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
