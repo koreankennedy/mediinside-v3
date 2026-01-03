@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   FileText,
   Sparkles,
@@ -160,6 +161,7 @@ const statusFilters = [
 ];
 
 export default function AIInterviewPage() {
+  const router = useRouter();
   const [selectedStep, setSelectedStep] = useState<typeof workflowSteps[0] | null>(null);
   const [viewMode, setViewMode] = useState<'dashboard' | 'workflow'>('dashboard');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -306,7 +308,8 @@ export default function AIInterviewPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className="bg-white rounded-2xl p-4 border border-border-light"
+                  onClick={() => router.push(`/employer/candidates/${result.id}`)}
+                  className="bg-white rounded-2xl p-4 border border-border-light cursor-pointer hover:shadow-card transition-all"
                 >
                   {/* 상단: 상태 & 열람 횟수 */}
                   <div className="flex items-center justify-between mb-3">
@@ -398,17 +401,23 @@ export default function AIInterviewPage() {
 
                       {/* CTA 버튼 */}
                       <div className="flex gap-2 pt-3 border-t border-border-light">
-                        <Link href={`/employer/ai-interview/report/${result.id}`} className="flex-1">
+                        <Link href={`/employer/ai-interview/report/${result.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
                           <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-info text-white rounded-lg font-medium min-h-[40px]">
                             <FileText className="w-3 h-3" />
-                            리포트
+                            AI리포트
                           </button>
                         </Link>
-                        <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg font-medium min-h-[40px]">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); alert(`${result.name}님의 대면면접 일정을 잡습니다.`); }}
+                          className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg font-medium min-h-[40px]"
+                        >
                           <Calendar className="w-3 h-3" />
                           면접
                         </button>
-                        <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg font-medium min-h-[40px]">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); alert(`${result.name}님을 거절합니다.`); }}
+                          className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg font-medium min-h-[40px]"
+                        >
                           <X className="w-3 h-3" />
                           거절
                         </button>

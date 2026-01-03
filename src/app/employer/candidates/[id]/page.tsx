@@ -158,6 +158,37 @@ const candidateDataMap: Record<string, { name: string; age: number; licenseType:
   'app-5': { name: '정유진', age: 27, licenseType: '치과위생사', experience: '3년차', matchScore: 82, location: '용산구 거주' },
   'app-6': { name: '한소희', age: 30, licenseType: '간호사', experience: '6년차', matchScore: 95, location: '마포구 거주' },
   'app-7': { name: '강예린', age: 28, licenseType: '치과위생사', experience: '4년차', matchScore: 91, location: '성동구 거주' },
+  // AI 인터뷰 결과 - 완료 (22명)
+  'int-completed-1': { name: '김민서', age: 30, licenseType: '간호사', experience: '6년차', matchScore: 95, location: '강남구 거주' },
+  'int-completed-2': { name: '이지현', age: 33, licenseType: '간호사', experience: '9년차', matchScore: 99, location: '서초구 거주' },
+  'int-completed-3': { name: '박수빈', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 92, location: '송파구 거주' },
+  'int-completed-4': { name: '정유진', age: 29, licenseType: '간호사', experience: '5년차', matchScore: 94, location: '용산구 거주' },
+  'int-completed-5': { name: '최서연', age: 32, licenseType: '간호사', experience: '8년차', matchScore: 94, location: '마포구 거주' },
+  'int-completed-6': { name: '최예진', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 91, location: '성동구 거주' },
+  'int-completed-7': { name: '정소영', age: 33, licenseType: '간호사', experience: '9년차', matchScore: 97, location: '강동구 거주' },
+  'int-completed-8': { name: '강미선', age: 32, licenseType: '간호사', experience: '8년차', matchScore: 88, location: '영등포구 거주' },
+  'int-completed-9': { name: '이서연', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 86, location: '구로구 거주' },
+  'int-completed-10': { name: '김하늘', age: 34, licenseType: '간호사', experience: '10년차', matchScore: 87, location: '강남구 거주' },
+  'int-completed-11': { name: '박지호', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 84, location: '서초구 거주' },
+  'int-completed-12': { name: '유진', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 91, location: '송파구 거주' },
+  'int-completed-13': { name: '친희지', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 86, location: '강남구 거주' },
+  'int-completed-14': { name: '김수정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 88, location: '용산구 거주' },
+  'int-completed-15': { name: '이민정', age: 25, licenseType: '간호사', experience: '1년차', matchScore: 80, location: '마포구 거주' },
+  'int-completed-16': { name: '박영희', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 85, location: '성동구 거주' },
+  'int-completed-17': { name: '최지우', age: 32, licenseType: '간호사', experience: '8년차', matchScore: 83, location: '강동구 거주' },
+  'int-completed-18': { name: '황지연', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 79, location: '영등포구 거주' },
+  'int-completed-19': { name: '김나연', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 83, location: '구로구 거주' },
+  'int-completed-20': { name: '서예빈', age: 31, licenseType: '간호사', experience: '7년차', matchScore: 77, location: '강남구 거주' },
+  'int-completed-21': { name: '장미라', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 74, location: '서초구 거주' },
+  'int-completed-22': { name: '윤소희', age: 25, licenseType: '간호사', experience: '1년차', matchScore: 79, location: '송파구 거주' },
+  // AI 인터뷰 결과 - 진행중 (3명)
+  'int-progress-1': { name: '김지운', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 85, location: '강남구 거주' },
+  'int-progress-2': { name: '박성훈', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 87, location: '서초구 거주' },
+  'int-progress-3': { name: '이현우', age: 29, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
+  // AI 인터뷰 결과 - 예정 (3명)
+  'int-scheduled-1': { name: '최준호', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 82, location: '용산구 거주' },
+  'int-scheduled-2': { name: '김동현', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 84, location: '마포구 거주' },
+  'int-scheduled-3': { name: '윤서준', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 86, location: '성동구 거주' },
 };
 
 // 기본 후보자 데이터 (ID에 해당하는 데이터가 없을 때)

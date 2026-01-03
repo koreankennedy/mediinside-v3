@@ -1645,7 +1645,7 @@ function MatchingCenterContent() {
                 />
               </div>
               <div className="flex justify-between mt-2 text-sm text-white/70">
-                <span>분석 진행 중...</span>
+                <span>{Math.floor(aiMatchingProgress * 1.5)}명 분석 완료</span>
                 <span>{aiMatchingProgress}%</span>
               </div>
             </div>

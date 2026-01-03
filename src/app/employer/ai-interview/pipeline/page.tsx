@@ -294,7 +294,7 @@ export default function PipelinePage() {
               <Link href={`/employer/ai-interview/report/${applicant.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
                 <button className="w-full flex items-center justify-center gap-1 py-2 text-xs bg-info text-white rounded-lg font-medium">
                   <FileText className="w-3 h-3" />
-                  리포트
+                  AI리포트
                 </button>
               </Link>
               <button

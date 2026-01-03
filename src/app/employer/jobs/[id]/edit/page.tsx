@@ -324,7 +324,7 @@ export default function JobEditPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-secondary pb-40">
+    <div className="min-h-screen bg-bg-secondary pb-52">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white border-b border-border-light px-4 py-4">
         <div className="flex items-center justify-between">
@@ -885,7 +885,7 @@ export default function JobEditPage() {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border-light px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border-light px-4 pt-4 pb-[calc(2rem+env(safe-area-inset-bottom))] z-20">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
