@@ -302,6 +302,12 @@ export default function EmployerHomePage() {
     setShowAIInterviewModal(true);
   };
 
+  // 오퍼 조건 수정 상태
+  const [isEditingOffer, setIsEditingOffer] = useState(false);
+  const [editedSalary, setEditedSalary] = useState('4,000만원');
+  const [editedWorkType, setEditedWorkType] = useState('정규직 (풀타임)');
+  const [editedWorkHours, setEditedWorkHours] = useState('09:00 ~ 18:00');
+
   // 고정 CTA 버튼 스타일
   const ctaBtnPrimary = "flex-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg flex items-center justify-center gap-1 min-h-[40px]";
   const ctaBtnSecondary = "flex-1 py-2.5 text-xs bg-info/10 text-info rounded-lg flex items-center justify-center gap-1 min-h-[40px]";
@@ -1151,28 +1157,75 @@ export default function EmployerHomePage() {
                   </div>
                 </div>
 
-                {/* 오퍼 조건 */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
-                    <span className="text-sm text-text-secondary">제안 연봉</span>
-                    <span className="font-medium text-text-primary">{offerTarget.proposedSalary || '4,000만원'}</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
-                    <span className="text-sm text-text-secondary">근무 형태</span>
-                    <span className="font-medium text-text-primary">정규직 (풀타임)</span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
-                    <span className="text-sm text-text-secondary">근무 시간</span>
-                    <span className="font-medium text-text-primary">09:00 ~ 18:00</span>
-                  </div>
-                  <div className="p-3 bg-bg-secondary rounded-xl">
-                    <span className="text-sm text-text-secondary block mb-2">채용상품</span>
-                    <div className="flex gap-2 flex-wrap">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-[#FF2D55]">💰 매출 셰어 1%</span>
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-[#AF52DE]">🎁 근속 보너스</span>
+                {/* 오퍼 조건 - 수정 모드와 뷰 모드 */}
+                {!isEditingOffer ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <span className="text-sm text-text-secondary">제안 연봉</span>
+                      <span className="font-medium text-text-primary">{editedSalary}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <span className="text-sm text-text-secondary">근무 형태</span>
+                      <span className="font-medium text-text-primary">{editedWorkType}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
+                      <span className="text-sm text-text-secondary">근무 시간</span>
+                      <span className="font-medium text-text-primary">{editedWorkHours}</span>
+                    </div>
+                    <div className="p-3 bg-bg-secondary rounded-xl">
+                      <span className="text-sm text-text-secondary block mb-2">채용상품</span>
+                      <div className="flex gap-2 flex-wrap">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-[#FF2D55]">💰 매출 셰어 1%</span>
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold text-white bg-[#AF52DE]">🎁 근속 보너스</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-bg-secondary rounded-xl">
+                      <label className="text-sm text-text-secondary block mb-2">제안 연봉</label>
+                      <select
+                        value={editedSalary}
+                        onChange={(e) => setEditedSalary(e.target.value)}
+                        className="w-full px-3 py-2 bg-white rounded-lg border border-border-light text-sm"
+                      >
+                        <option value="3,600만원">3,600만원</option>
+                        <option value="3,800만원">3,800만원</option>
+                        <option value="4,000만원">4,000만원</option>
+                        <option value="4,200만원">4,200만원</option>
+                        <option value="4,400만원">4,400만원</option>
+                        <option value="4,600만원">4,600만원</option>
+                        <option value="4,800만원">4,800만원</option>
+                        <option value="5,000만원">5,000만원</option>
+                      </select>
+                    </div>
+                    <div className="p-3 bg-bg-secondary rounded-xl">
+                      <label className="text-sm text-text-secondary block mb-2">근무 형태</label>
+                      <select
+                        value={editedWorkType}
+                        onChange={(e) => setEditedWorkType(e.target.value)}
+                        className="w-full px-3 py-2 bg-white rounded-lg border border-border-light text-sm"
+                      >
+                        <option value="정규직 (풀타임)">정규직 (풀타임)</option>
+                        <option value="정규직 (파트타임)">정규직 (파트타임)</option>
+                        <option value="계약직">계약직</option>
+                      </select>
+                    </div>
+                    <div className="p-3 bg-bg-secondary rounded-xl">
+                      <label className="text-sm text-text-secondary block mb-2">근무 시간</label>
+                      <select
+                        value={editedWorkHours}
+                        onChange={(e) => setEditedWorkHours(e.target.value)}
+                        className="w-full px-3 py-2 bg-white rounded-lg border border-border-light text-sm"
+                      >
+                        <option value="09:00 ~ 18:00">09:00 ~ 18:00</option>
+                        <option value="10:00 ~ 19:00">10:00 ~ 19:00</option>
+                        <option value="11:00 ~ 20:00">11:00 ~ 20:00</option>
+                        <option value="09:00 ~ 17:00">09:00 ~ 17:00 (단축)</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 {/* 후보자 요청사항 (협상 중인 경우) */}
                 {offerTarget.lastMessage && (
@@ -1187,16 +1240,28 @@ export default function EmployerHomePage() {
 
                 {/* 버튼 */}
                 <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={() => setShowOfferModal(false)}
-                    className="flex-1 py-3 text-sm border border-border-light text-text-secondary rounded-xl"
-                  >
-                    조건 수정
-                  </button>
+                  {!isEditingOffer ? (
+                    <button
+                      onClick={() => setIsEditingOffer(true)}
+                      className="flex-1 py-3 text-sm border border-info text-info rounded-xl flex items-center justify-center gap-1"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      조건 수정
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditingOffer(false)}
+                      className="flex-1 py-3 text-sm bg-success/10 text-success rounded-xl flex items-center justify-center gap-1"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      수정 완료
+                    </button>
+                  )}
                   <button
                     onClick={() => {
-                      alert(`${offerTarget.name}님에게 오퍼를 발송했습니다!`);
+                      alert(`${offerTarget.name}님에게 오퍼를 발송했습니다!\n제안 연봉: ${editedSalary}`);
                       setShowOfferModal(false);
+                      setIsEditingOffer(false);
                     }}
                     className="flex-1 py-3 text-sm bg-expert-navy text-white rounded-xl flex items-center justify-center gap-1"
                   >
@@ -1559,7 +1624,7 @@ export default function EmployerHomePage() {
 
                 {/* AI인터뷰 수행 */}
                 {activityDetailType === 'aiInterview' && recruitmentActivityStats.aiInterviewCompleted.details.map((item, index) => (
-                  <Link key={item.id} href={`/employer/candidates/${item.id}?tab=ai-report`}>
+                  <Link key={item.id} href={`/employer/ai-interview/report/${item.id}`}>
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
