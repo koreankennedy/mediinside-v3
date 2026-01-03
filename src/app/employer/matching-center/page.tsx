@@ -970,17 +970,36 @@ function MatchingCenterContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => router.push(`/employer/candidates/${candidate.id}`)}
-                    className="bg-white rounded-2xl p-4 border border-border-light cursor-pointer hover:shadow-card transition-all"
+                    className={`bg-white rounded-2xl p-4 border-2 cursor-pointer hover:shadow-card transition-all ${
+                      status.label === '협상중'
+                        ? 'border-warning ring-2 ring-warning/20 shadow-lg shadow-warning/10'
+                        : status.label === '신규'
+                          ? 'border-brand-mint'
+                          : 'border-border-light'
+                    }`}
                   >
-                    {/* 상태 배지 */}
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
+                    {/* 상태 배지 - 그라데이션 스타일 */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                        status.label === '협상중'
+                          ? 'bg-gradient-to-r from-warning to-orange-400 text-white shadow-sm'
+                          : status.label === '신규'
+                            ? 'bg-gradient-to-r from-brand-mint to-info text-white shadow-sm'
+                            : `${status.bgColor} ${status.color}`
+                      }`}>
+                        {status.label === '협상중' && <Clock className="w-3 h-3 mr-1" />}
+                        {status.label === '신규' && <Sparkles className="w-3 h-3 mr-1" />}
                         {status.label}
                       </span>
                       {'viewCount' in candidate && (candidate as {viewCount?: number}).viewCount && (candidate as {viewCount?: number}).viewCount! >= 3 && (
-                        <span className="flex items-center gap-1 text-xs text-error">
-                          <Eye className="w-3 h-3" />
-                          {(candidate as {viewCount?: number}).viewCount}회 열람
+                        <span className="flex items-center gap-1 text-xs font-medium text-error bg-error/10 px-2 py-1 rounded-full">
+                          🔥 {(candidate as {viewCount?: number}).viewCount}회 열람
+                        </span>
+                      )}
+                      {'isVerified' in candidate && (candidate as {isVerified?: boolean}).isVerified && (
+                        <span className="flex items-center gap-1 text-xs font-medium text-success bg-success/10 px-2 py-1 rounded-full">
+                          <CheckCircle className="w-3 h-3" />
+                          경력 인증
                         </span>
                       )}
                     </div>
@@ -996,23 +1015,19 @@ function MatchingCenterContent() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-text-primary">{candidate.name}</span>
-                          {'isVerified' in candidate && (candidate as {isVerified?: boolean}).isVerified && (
-                            <CheckCircle className="w-4 h-4 text-success" />
-                          )}
-                        </div>
+                        <h3 className="font-semibold text-text-primary text-lg">{candidate.name}</h3>
                         <div className="text-sm text-text-secondary">
                           {'specialty' in candidate ? (candidate as {specialty?: string}).specialty : candidate.licenseType} · {candidate.experience}
                         </div>
                         {'currentHospital' in candidate && (
-                          <div className="text-xs text-text-tertiary mt-0.5">
+                          <div className="flex items-center gap-1 text-xs text-text-tertiary mt-0.5">
+                            <MapPin className="w-3 h-3" />
                             {(candidate as {currentHospital?: string}).currentHospital}
                           </div>
                         )}
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <div className="text-xl font-bold text-brand-mint">{candidate.matchScore}%</div>
+                        <div className="text-2xl font-bold text-brand-mint">{candidate.matchScore}%</div>
                         <div className="text-xs text-text-tertiary">매칭</div>
                       </div>
                     </div>
@@ -1021,7 +1036,7 @@ function MatchingCenterContent() {
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {/* 희망 업무강도 */}
                       {candidate.preferredIntensity && (
-                        <span className={`text-xs px-2 py-1 rounded-full ${intensityInfo[candidate.preferredIntensity]?.bgColor} ${intensityInfo[candidate.preferredIntensity]?.color}`}>
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${intensityInfo[candidate.preferredIntensity]?.bgColor} ${intensityInfo[candidate.preferredIntensity]?.color}`}>
                           희망 {intensityInfo[candidate.preferredIntensity]?.label}
                         </span>
                       )}
@@ -1032,7 +1047,7 @@ function MatchingCenterContent() {
                         return (
                           <span
                             key={productType}
-                            className="text-xs px-2 py-1 rounded-full text-white"
+                            className="text-xs px-2.5 py-1 rounded-full text-white font-semibold"
                             style={{ backgroundColor: product.color }}
                           >
                             {product.icon} {product.label}
@@ -1043,7 +1058,7 @@ function MatchingCenterContent() {
 
                     {/* AI 인사이트 */}
                     {'aiInsight' in candidate && (candidate as {aiInsight?: string}).aiInsight && (
-                      <div className="bg-brand-mint/10 rounded-xl p-3 mb-3">
+                      <div className="bg-brand-mint/10 rounded-xl p-3 mb-3 border border-brand-mint/20">
                         <div className="flex items-start gap-2">
                           <Sparkles className="w-4 h-4 text-brand-mint flex-shrink-0 mt-0.5" />
                           <p className="text-sm text-text-primary">{(candidate as {aiInsight?: string}).aiInsight}</p>
@@ -1058,9 +1073,9 @@ function MatchingCenterContent() {
                           e.stopPropagation();
                           handleAIInterviewRequest(candidate);
                         }}
-                        className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]"
+                        className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-brand-mint/10 text-brand-mint rounded-lg font-medium hover:bg-brand-mint/20 transition-colors"
                       >
-                        <Sparkles className="w-3 h-3" />
+                        <Sparkles className="w-4 h-4" />
                         AI인터뷰 요청
                       </button>
                       <button
@@ -1068,10 +1083,10 @@ function MatchingCenterContent() {
                           e.stopPropagation();
                           handleReject(candidate);
                         }}
-                        className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                        className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg font-medium hover:bg-error/10 hover:text-error transition-colors"
                       >
-                        <X className="w-3 h-3" />
-                        거절하기
+                        <X className="w-4 h-4" />
+                        거절
                       </button>
                     </div>
                   </motion.div>
@@ -1155,37 +1170,54 @@ function MatchingCenterContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => router.push(`/employer/candidates/${candidate.id}`)}
-                    className={`rounded-2xl p-4 border cursor-pointer hover:shadow-card transition-all ${
+                    className={`rounded-2xl p-4 border-2 cursor-pointer hover:shadow-card transition-all ${
                       isNegotiating
-                        ? 'bg-warning/5 border-warning/30 ring-2 ring-warning/20'
-                        : 'bg-white border-border-light'
+                        ? 'bg-white border-warning ring-2 ring-warning/20 shadow-lg shadow-warning/10'
+                        : candidate.status === 'interview_scheduled'
+                          ? 'bg-white border-success ring-2 ring-success/20'
+                          : candidate.status === 'ai_interview'
+                            ? 'bg-white border-info'
+                            : 'bg-white border-border-light'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
+                    {/* 상태 배지 - 그라데이션 스타일 */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                        isNegotiating
+                          ? 'bg-gradient-to-r from-warning to-orange-400 text-white shadow-sm'
+                          : candidate.status === 'interview_scheduled'
+                            ? 'bg-gradient-to-r from-success to-emerald-400 text-white shadow-sm'
+                            : candidate.status === 'ai_interview'
+                              ? 'bg-gradient-to-r from-info to-blue-400 text-white shadow-sm'
+                              : 'bg-gradient-to-r from-brand-mint to-info text-white shadow-sm'
+                      }`}>
+                        {isNegotiating && <Clock className="w-3 h-3 mr-1" />}
+                        {candidate.status === 'interview_scheduled' && <Calendar className="w-3 h-3 mr-1" />}
+                        {candidate.status === 'ai_interview' && <Sparkles className="w-3 h-3 mr-1" />}
+                        {candidate.status === 'new' && <Sparkles className="w-3 h-3 mr-1" />}
                         {status.label}
                       </span>
                       {candidate.statusDetail && (
-                        <span className="text-xs text-text-tertiary">{candidate.statusDetail}</span>
+                        <span className="text-xs font-medium text-text-secondary">{candidate.statusDetail}</span>
                       )}
                     </div>
 
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-12 h-12 bg-expert-navy/10 rounded-full flex items-center justify-center overflow-hidden">
+                      <div className="w-14 h-14 bg-expert-navy/10 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
                         {candidate.profileImage ? (
                           <img src={candidate.profileImage} alt={candidate.name} className="w-full h-full object-cover" />
                         ) : (
-                          <Users className="w-6 h-6 text-expert-navy" />
+                          <Users className="w-7 h-7 text-expert-navy" />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-text-primary">{candidate.name}</div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-text-primary text-lg">{candidate.name}</h3>
                         <div className="text-sm text-text-secondary">
                           {candidate.licenseType} · {candidate.experience}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-brand-mint">{candidate.matchScore}%</div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-2xl font-bold text-brand-mint">{candidate.matchScore}%</div>
                         <div className="text-xs text-text-tertiary">매칭</div>
                       </div>
                     </div>
@@ -1193,7 +1225,7 @@ function MatchingCenterContent() {
                     {/* 태그 */}
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {candidate.preferredIntensity && (
-                        <span className={`text-xs px-2 py-1 rounded-full ${intensityInfo[candidate.preferredIntensity]?.bgColor} ${intensityInfo[candidate.preferredIntensity]?.color}`}>
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${intensityInfo[candidate.preferredIntensity]?.bgColor} ${intensityInfo[candidate.preferredIntensity]?.color}`}>
                           희망 {intensityInfo[candidate.preferredIntensity]?.label}
                         </span>
                       )}
@@ -1203,7 +1235,7 @@ function MatchingCenterContent() {
                         return (
                           <span
                             key={productType}
-                            className="text-xs px-2 py-1 rounded-full text-white"
+                            className="text-xs px-2.5 py-1 rounded-full text-white font-semibold"
                             style={{ backgroundColor: product.color }}
                           >
                             {product.icon} {product.label}
@@ -1215,8 +1247,8 @@ function MatchingCenterContent() {
                     <div className="flex gap-2 pt-3 border-t border-border-light">
                       {candidate.status === 'new' && (
                         <>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]">
-                            <Sparkles className="w-3 h-3" />
+                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-brand-mint/10 text-brand-mint rounded-lg font-medium hover:bg-brand-mint/20 transition-colors">
+                            <Sparkles className="w-4 h-4" />
                             AI인터뷰 요청
                           </button>
                           <button
@@ -1224,9 +1256,9 @@ function MatchingCenterContent() {
                               e.stopPropagation();
                               handleReject(candidate);
                             }}
-                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg font-medium hover:bg-error/10 hover:text-error transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-4 h-4" />
                             거절
                           </button>
                         </>
@@ -1234,13 +1266,13 @@ function MatchingCenterContent() {
                       {candidate.status === 'ai_interview' && (
                         <>
                           <Link href={`/employer/ai-interview/report/${candidate.id}`} className="flex-1">
-                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-info text-white rounded-lg min-h-[40px]">
-                              <FileText className="w-3 h-3" />
+                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-sm bg-info/10 text-info rounded-lg font-medium hover:bg-info/20 transition-colors">
+                              <FileText className="w-4 h-4" />
                               리포트
                             </button>
                           </Link>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
-                            <Calendar className="w-3 h-3" />
+                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-success/10 text-success rounded-lg font-medium hover:bg-success/20 transition-colors">
+                            <Calendar className="w-4 h-4" />
                             면접
                           </button>
                           <button
@@ -1248,9 +1280,9 @@ function MatchingCenterContent() {
                               e.stopPropagation();
                               handleReject(candidate);
                             }}
-                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg font-medium hover:bg-error/10 hover:text-error transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-4 h-4" />
                             거절
                           </button>
                         </>
@@ -1258,8 +1290,8 @@ function MatchingCenterContent() {
                       {candidate.status === 'negotiating' && (
                         <>
                           <Link href={`/employer/ai-interview/report/${candidate.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
-                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-brand-mint text-white rounded-lg min-h-[40px]">
-                              <FileText className="w-3 h-3" />
+                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-sm bg-brand-mint text-white rounded-lg font-medium hover:bg-brand-mint/90 transition-colors">
+                              <FileText className="w-4 h-4" />
                               AI리포트
                             </button>
                           </Link>
@@ -1269,9 +1301,9 @@ function MatchingCenterContent() {
                               setOfferCandidate(candidate);
                               setShowOfferModal(true);
                             }}
-                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-match-gold text-white rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-match-gold text-white rounded-lg font-medium hover:bg-match-gold/90 transition-colors"
                           >
-                            <Send className="w-3 h-3" />
+                            <Send className="w-4 h-4" />
                             오퍼발송
                           </button>
                           <button
@@ -1279,9 +1311,9 @@ function MatchingCenterContent() {
                               e.stopPropagation();
                               handleReject(candidate);
                             }}
-                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg font-medium hover:bg-error/10 hover:text-error transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-4 h-4" />
                             거절
                           </button>
                         </>
@@ -1289,13 +1321,13 @@ function MatchingCenterContent() {
                       {candidate.status === 'interview_scheduled' && (
                         <>
                           <Link href={`/employer/ai-interview/copilot?id=${candidate.id}`} className="flex-1">
-                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]">
-                              <Sparkles className="w-3 h-3" />
+                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-sm bg-expert-navy/10 text-expert-navy rounded-lg font-medium hover:bg-expert-navy/20 transition-colors">
+                              <Sparkles className="w-4 h-4" />
                               코파일럿
                             </button>
                           </Link>
-                          <div className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs text-success bg-success/10 rounded-lg min-h-[40px]">
-                            <Calendar className="w-3 h-3" />
+                          <div className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm text-success bg-success/10 rounded-lg font-medium">
+                            <Calendar className="w-4 h-4" />
                             일정
                           </div>
                           <button
@@ -1303,9 +1335,9 @@ function MatchingCenterContent() {
                               e.stopPropagation();
                               handleReject(candidate);
                             }}
-                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg font-medium hover:bg-error/10 hover:text-error transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-4 h-4" />
                             거절
                           </button>
                         </>
