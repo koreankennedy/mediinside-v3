@@ -51,8 +51,7 @@ import {
   employerMatchingStatusTabs,
   mockJobPostings
 } from '@/lib/mock/data';
-
-const DAILY_REJECT_LIMIT = 10;
+import { useGlobalRejectCount } from '@/lib/hooks/useGlobalRejectCount';
 
 // 새로운 3탭 구조
 const mainTabs = [
@@ -144,14 +143,19 @@ function MatchingCenterContent() {
   const [vacationDays, setVacationDays] = useState(mockHiringProductSettings.hiringProducts.vacation.value);
   const [allowancePercent, setAllowancePercent] = useState(mockHiringProductSettings.hiringProducts.allowance.value);
 
-  // 거절 관련 상태
-  const [dailyRejectCount, setDailyRejectCount] = useState(0);
+  // 거절 관련 상태 - 글로벌 훅 사용
+  const {
+    dailyRejectCount,
+    remainingRejects,
+    canReject,
+    incrementRejectCount,
+    DAILY_REJECT_LIMIT
+  } = useGlobalRejectCount();
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectCandidate, setRejectCandidate] = useState<typeof mockNewMatchingCandidates[0] | null>(null);
   const [droppedCandidates, setDroppedCandidates] = useState<string[]>([]);
   const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
   const [rejectReason, setRejectReason] = useState('');
-  const remainingRejects = DAILY_REJECT_LIMIT - dailyRejectCount;
 
   // AI 매칭 모달 상태
   const [showAIMatchingModal, setShowAIMatchingModal] = useState(false);
@@ -216,10 +220,10 @@ function MatchingCenterContent() {
     return 0;
   });
 
-  // 거절 처리
+  // 거절 처리 - 글로벌 훅 사용
   const handleReject = (candidate: typeof mockNewMatchingCandidates[0]) => {
-    if (dailyRejectCount >= DAILY_REJECT_LIMIT) {
-      alert('오늘의 거절 한도에 도달했습니다.');
+    if (!canReject) {
+      alert('오늘의 거절 한도(10회)에 도달했습니다.');
       return;
     }
     setRejectCandidate(candidate);
@@ -229,7 +233,7 @@ function MatchingCenterContent() {
   const confirmReject = () => {
     if (rejectCandidate) {
       setDroppedCandidates(prev => [...prev, rejectCandidate.id]);
-      setDailyRejectCount(prev => prev + 1);
+      incrementRejectCount(); // 글로벌 카운트 증가
     }
     setShowRejectModal(false);
     setRejectCandidate(null);
@@ -302,7 +306,7 @@ function MatchingCenterContent() {
   const [productSubTab, setProductSubTab] = useState('existing');
 
   return (
-    <div className="px-4 py-6 pb-24">
+    <div className="px-4 py-6 pb-32">
       {/* Header */}
       <div className="mb-4">
         <h1 className="text-dashboard-title">매칭 센터</h1>
@@ -819,6 +823,9 @@ function MatchingCenterContent() {
               <UserPlus className="w-5 h-5" />
               신규공고 추가하기
             </button>
+
+            {/* 하단 여백 - CTA 버튼 짤림 방지 */}
+            <div className="h-8" />
               </motion.div>
             )}
           </motion.div>

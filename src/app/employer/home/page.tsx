@@ -42,8 +42,7 @@ import {
   mockJobPostings,
   mockEmployerProfile,
 } from '@/lib/mock/data';
-
-const DAILY_REJECT_LIMIT = 10;
+import { useGlobalRejectCount } from '@/lib/hooks/useGlobalRejectCount';
 
 // 채용 활동 현황 데이터 (6개 지표)
 // 45명 프로필 열람 데이터 생성
@@ -270,8 +269,9 @@ export default function EmployerHomePage() {
   // 거절 모달 상태
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<{ id: string; name: string } | null>(null);
-  const [dailyRejectCount, setDailyRejectCount] = useState(0);
-  const remainingRejects = DAILY_REJECT_LIMIT - dailyRejectCount;
+
+  // 글로벌 거절 카운트 훅 사용
+  const { dailyRejectCount, remainingRejects, canReject, incrementRejectCount, DAILY_REJECT_LIMIT } = useGlobalRejectCount();
 
   // 거절된 후보자 ID 목록 (리스트에서 제거용)
   const [rejectedCandidates, setRejectedCandidates] = useState<string[]>([]);
@@ -317,7 +317,7 @@ export default function EmployerHomePage() {
 
   // 거절하기 모달 열기
   const openRejectModal = (id: string, name: string) => {
-    if (dailyRejectCount >= DAILY_REJECT_LIMIT) {
+    if (!canReject) {
       alert('오늘의 거절 한도(10회)에 도달했습니다. 내일 다시 시도해주세요.');
       return;
     }
@@ -328,7 +328,7 @@ export default function EmployerHomePage() {
   // 거절 확정
   const confirmReject = () => {
     if (rejectTarget) {
-      setDailyRejectCount(prev => prev + 1);
+      incrementRejectCount();
       setRejectedCandidates(prev => [...prev, rejectTarget.id]);
     }
     setShowRejectModal(false);
