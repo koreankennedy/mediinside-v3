@@ -115,10 +115,16 @@ src/app/seeker/matching-center/
 
 ### 주요 상태
 ```typescript
-// 거절 관련
-const [dailyRejectCount, setDailyRejectCount] = useState(0);
-const [isRejectLimited, setIsRejectLimited] = useState(false);
-const [showRejectCompleteModal, setShowRejectCompleteModal] = useState(false);
+// 거절 관련 (v3.2: useGlobalRejectCount 훅 사용)
+const {
+  dailyRejectCount,
+  remainingRejects,
+  canReject,
+  incrementRejectCount,
+  resetRejectCount,
+  DAILY_REJECT_LIMIT,
+  isLoaded,
+} = useGlobalRejectCount();
 
 // 평가 카운트
 const [sessionEvaluationCount, setSessionEvaluationCount] = useState(0);
@@ -130,6 +136,11 @@ const [countdown, setCountdown] = useState({ hours: 24, minutes: 0, seconds: 0 }
 const [showResetModal, setShowResetModal] = useState(false);
 const [showEvaluationCompleteModal, setShowEvaluationCompleteModal] = useState(false);
 ```
+
+### v3.2 변경사항
+- **글로벌 상태 관리**: `useGlobalRejectCount` 훅으로 localStorage 기반 상태 동기화
+- **useSyncExternalStore**: 페이지 이동 시에도 거절 횟수 유지
+- **isLoaded 체크**: 하이드레이션 플래시 방지
 
 ---
 

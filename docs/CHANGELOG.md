@@ -4,6 +4,23 @@
 
 ---
 
+## [3.2.0] - 2026-01-04
+
+### 버그 수정
+- **거절횟수 글로벌 상태**: `useSyncExternalStore` 적용으로 페이지 이동 시에도 상태 유지
+- **커스텀 이벤트 동기화**: `rejectCountChange` 이벤트로 같은 탭 내 실시간 동기화
+
+### 개선
+- **병원 프로필 완성하기 CTA**: 바이럴루프 팝업에서 중간 모달 제거, 프로필 완성도 모달로 직접 이동
+- **재직경험 공유 서브탭**: 직원 리뷰 / 원장 재직경험 분리
+- **리뷰 비밀번호 보호**: 공용 채용 계정 환경에서 리뷰 보호
+
+### 기술적 변경
+- `useGlobalRejectCount` 훅: `useState` → `useSyncExternalStore`로 리팩토링
+- `handleResetLimit` 함수: `setShowProfileCTA(true)` → `router.push('/employer/profile?showCompletion=true')`
+
+---
+
 ## [3.1.0] - 2026-01-02
 
 ### 추가
