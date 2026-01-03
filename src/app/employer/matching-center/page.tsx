@@ -148,6 +148,8 @@ function MatchingCenterContent() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectCandidate, setRejectCandidate] = useState<typeof mockNewMatchingCandidates[0] | null>(null);
   const [droppedCandidates, setDroppedCandidates] = useState<string[]>([]);
+  const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
+  const [rejectReason, setRejectReason] = useState('');
   const remainingRejects = DAILY_REJECT_LIMIT - dailyRejectCount;
 
   // AI 매칭 모달 상태
@@ -157,6 +159,13 @@ function MatchingCenterContent() {
 
   // 전체매칭리스트 탭 필터
   const [allMatchingFilter, setAllMatchingFilter] = useState('all');
+
+  // 오퍼수정 모달 상태
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerCandidate, setOfferCandidate] = useState<typeof mockNewMatchingCandidates[0] | null>(null);
+  const [offerSalary, setOfferSalary] = useState(4200);
+  const [offerBonus, setOfferBonus] = useState('');
+  const [offerMessage, setOfferMessage] = useState('');
 
   // URL 파라미터 변경 시 탭 업데이트
   useEffect(() => {
@@ -1173,19 +1182,44 @@ function MatchingCenterContent() {
                           </Link>
                           <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
                             <Calendar className="w-3 h-3" />
-                            대면면접 잡기
+                            면접 잡기
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReject(candidate);
+                            }}
+                            className="flex items-center justify-center gap-1 px-3 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                          >
+                            <X className="w-3 h-3" />
                           </button>
                         </>
                       )}
                       {candidate.status === 'negotiating' && (
                         <>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-warning text-white rounded-lg min-h-[40px]">
-                            <DollarSign className="w-3 h-3" />
-                            협상 상세
-                          </button>
                           <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
                             <Calendar className="w-3 h-3" />
                             면접 잡기
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOfferCandidate(candidate);
+                              setShowOfferModal(true);
+                            }}
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-warning text-white rounded-lg min-h-[40px]"
+                          >
+                            <DollarSign className="w-3 h-3" />
+                            오퍼수정
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReject(candidate);
+                            }}
+                            className="flex items-center justify-center gap-1 px-3 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                          >
+                            <X className="w-3 h-3" />
                           </button>
                         </>
                       )}
@@ -1201,6 +1235,15 @@ function MatchingCenterContent() {
                             <Calendar className="w-3 h-3" />
                             {candidate.statusDetail?.includes('오후') ? candidate.statusDetail.split('(')[1]?.replace(')', '') : '일정 확인'}
                           </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReject(candidate);
+                            }}
+                            className="flex items-center justify-center gap-1 px-3 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
                         </>
                       )}
                     </div>
@@ -1215,51 +1258,203 @@ function MatchingCenterContent() {
       {/* 거절 확인 모달 */}
       <AnimatePresence>
         {showRejectModal && rejectCandidate && (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowRejectModal(false)}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowRejectModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed left-4 right-4 top-[20%] bottom-[20%] mx-auto bg-white rounded-2xl z-50 max-w-sm flex flex-col"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
             >
-              {/* 콘텐츠 */}
-              <div className="flex-1 overflow-y-auto p-6">
-                <h3 className="text-lg font-bold text-text-primary mb-2">후보자를 거절하시겠어요?</h3>
-                <p className="text-sm text-text-secondary mb-4">
-                  {rejectCandidate.name}님을 거절하면 매칭 리스트에서 제외됩니다.
-                </p>
-                <p className="text-xs text-warning">
-                  오늘 남은 거절 횟수: {remainingRejects}회
-                </p>
+              <div className="text-center mb-4">
+                <div className="w-14 h-14 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <X className="w-7 h-7 text-error" />
+                </div>
+                <h3 className="text-lg font-bold">{rejectCandidate.name}</h3>
+                <p className="text-sm text-text-secondary">이 후보자를 거절하시겠어요?</p>
+                <p className="text-xs text-text-tertiary mt-1">남은 거절 횟수: {remainingRejects}회</p>
               </div>
-              {/* 푸터 버튼 - 고정 */}
-              <div className="flex gap-3 p-6 pt-3 border-t border-border-light flex-shrink-0">
+
+              {/* 거절 사유 버튼 선택 */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">거절 사유 선택</p>
+                <div className="flex flex-wrap gap-2">
+                  {['경력 부족', '전문 분야 불일치', '급여 조건', '근무 시간', '기타'].map((reason) => (
+                    <button
+                      key={reason}
+                      onClick={() => {
+                        if (selectedRejectReasons.includes(reason)) {
+                          setSelectedRejectReasons(prev => prev.filter(r => r !== reason));
+                        } else {
+                          setSelectedRejectReasons(prev => [...prev, reason]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                        selectedRejectReasons.includes(reason)
+                          ? 'bg-error text-white'
+                          : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 직접 입력 (선택) */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">추가 의견 (선택)</p>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="거절 사유를 입력해주세요"
+                  className="w-full p-3 border border-border-light rounded-xl text-sm resize-none h-16"
+                />
+              </div>
+
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setShowRejectModal(false)}
-                  className="flex-1 py-3 bg-bg-secondary text-text-secondary rounded-xl font-medium"
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setSelectedRejectReasons([]);
+                    setRejectReason('');
+                  }}
+                  className="flex-1 py-3 rounded-xl border border-border-light text-text-secondary font-medium"
                 >
                   취소
                 </button>
                 <button
-                  onClick={confirmReject}
-                  className="flex-1 py-3 bg-error text-white rounded-xl font-medium"
+                  onClick={() => {
+                    confirmReject();
+                    setSelectedRejectReasons([]);
+                    setRejectReason('');
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-error text-white font-medium"
                 >
                   거절하기
                 </button>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* AI 매칭 - 전체 화면 (보라색 그라데이션 배경 + 가로 캐러셀) */}
+      {/* 오퍼수정 모달 */}
+      <AnimatePresence>
+        {showOfferModal && offerCandidate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowOfferModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <div className="text-center mb-4">
+                <div className="w-14 h-14 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <DollarSign className="w-7 h-7 text-warning" />
+                </div>
+                <h3 className="text-lg font-bold">{offerCandidate.name}님 오퍼 수정</h3>
+                <p className="text-sm text-text-secondary">제안 조건을 수정하세요</p>
+              </div>
+
+              {/* 연봉 수정 */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">연봉 (만원)</p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setOfferSalary(prev => Math.max(3000, prev - 100))}
+                    className="w-10 h-10 rounded-lg bg-bg-secondary text-text-secondary flex items-center justify-center hover:bg-bg-tertiary"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={offerSalary}
+                    onChange={(e) => setOfferSalary(Number(e.target.value))}
+                    className="flex-1 text-center py-2 border border-border-light rounded-lg font-bold text-lg"
+                  />
+                  <button
+                    onClick={() => setOfferSalary(prev => prev + 100)}
+                    className="w-10 h-10 rounded-lg bg-bg-secondary text-text-secondary flex items-center justify-center hover:bg-bg-tertiary"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* 추가 보상 */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">추가 보상</p>
+                <div className="flex flex-wrap gap-2">
+                  {['사이닝 보너스', '스톡옵션', '성과급', '휴가 추가'].map((bonus) => (
+                    <button
+                      key={bonus}
+                      onClick={() => setOfferBonus(offerBonus === bonus ? '' : bonus)}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                        offerBonus === bonus
+                          ? 'bg-warning text-white'
+                          : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+                      }`}
+                    >
+                      {bonus}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 메시지 */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">메시지 (선택)</p>
+                <textarea
+                  value={offerMessage}
+                  onChange={(e) => setOfferMessage(e.target.value)}
+                  placeholder="후보자에게 전달할 메시지를 입력해주세요"
+                  className="w-full p-3 border border-border-light rounded-xl text-sm resize-none h-16"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowOfferModal(false);
+                    setOfferBonus('');
+                    setOfferMessage('');
+                  }}
+                  className="flex-1 py-3 rounded-xl border border-border-light text-text-secondary font-medium"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    alert(`${offerCandidate.name}님에게 ${offerSalary}만원 오퍼를 수정했습니다.`);
+                    setShowOfferModal(false);
+                    setOfferBonus('');
+                    setOfferMessage('');
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-warning text-white font-medium"
+                >
+                  오퍼 수정
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* AI 매칭 - 전체 화면 (민트색 테마) */}
       <AnimatePresence>
         {showAIMatchingModal && (
           <motion.div
@@ -1268,23 +1463,23 @@ function MatchingCenterContent() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
             style={{
-              background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
+              background: 'linear-gradient(180deg, #0a2f2f 0%, #0d3d3d 50%, #0f4a4a 100%)'
             }}
           >
-            {/* 배경 파티클 효과 */}
+            {/* 배경 파티클 효과 - 민트색 */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {[...Array(20)].map((_, i) => (
+              {[...Array(25)].map((_, i) => (
                 <motion.div
                   key={i}
                   className="absolute w-2 h-2 rounded-full"
                   style={{
-                    background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)',
+                    background: `linear-gradient(135deg, #00D4AA ${Math.random() * 50}%, #00B894 100%)`,
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
                   }}
                   animate={{
-                    y: [0, -30, 0],
-                    opacity: [0.2, 0.6, 0.2],
+                    y: [0, -40, 0],
+                    opacity: [0.3, 0.8, 0.3],
                     scale: [1, 1.5, 1],
                   }}
                   transition={{
@@ -1300,187 +1495,174 @@ function MatchingCenterContent() {
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-8 text-center"
+              className="mb-6 text-center"
             >
               <div className="flex items-center justify-center gap-2 mb-2">
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)' }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #00D4AA 0%, #00B894 100%)' }}
                 >
-                  <Brain className="w-5 h-5 text-white" />
+                  <Brain className="w-6 h-6 text-white" />
                 </motion.div>
-                <span className="text-xl font-bold text-white">AI 매칭 분석</span>
+                <span className="text-2xl font-bold text-white">AI 매칭 분석</span>
               </div>
-              <p className="text-sm text-white/60">최적의 후보자를 찾고 있습니다</p>
+              <p className="text-sm text-white/70">75명의 후보자 중 최적의 15명을 선별합니다</p>
             </motion.div>
 
             {/* 가로 캐러셀 프로필 카드 영역 */}
-            <div className="w-full flex items-center justify-center gap-4 px-4 mb-10 overflow-hidden">
+            <div className="w-full flex items-center justify-center gap-3 px-4 mb-8 overflow-hidden">
               {/* 5개 카드 표시: 2개 왼쪽 블러 + 1개 중앙 + 2개 오른쪽 블러 */}
               {[-2, -1, 0, 1, 2].map((offset) => {
                 const cardIdx = (currentCardIndex + offset + aiMatchingCardData.length) % aiMatchingCardData.length;
                 const cardData = aiMatchingCardData[cardIdx];
                 const isCenter = offset === 0;
-                const blurAmount = isCenter ? 0 : Math.abs(offset) === 1 ? 4 : 8;
-                const scale = isCenter ? 1 : Math.abs(offset) === 1 ? 0.85 : 0.7;
+                const cardOpacity = isCenter ? 1 : Math.abs(offset) === 1 ? 0.5 : 0.35;
+                const scale = isCenter ? 1 : Math.abs(offset) === 1 ? 0.8 : 0.65;
+                const blurAmount = isCenter ? 0 : Math.abs(offset) === 1 ? 2 : 4;
 
                 return (
                   <motion.div
                     key={`card-${cardIdx}-${offset}`}
                     animate={{
                       scale: scale,
-                      rotateY: offset * 15,
+                      rotateY: offset * 12,
                     }}
                     transition={{ duration: 0.5, ease: 'easeOut' }}
                     style={{
                       zIndex: isCenter ? 10 : 5 - Math.abs(offset),
                       filter: `blur(${blurAmount}px)`,
+                      opacity: cardOpacity,
                       transformStyle: 'preserve-3d',
                     }}
-                    className={`flex-shrink-0 rounded-3xl p-5 ${
+                    className={`flex-shrink-0 rounded-2xl p-4 relative ${
                       isCenter
-                        ? 'w-[220px] shadow-2xl bg-white'
-                        : 'w-[180px] shadow-lg bg-white/80'
+                        ? 'w-[200px] shadow-2xl bg-white'
+                        : 'w-[160px] shadow-lg bg-white'
                     }`}
                   >
-                    {/* 매칭 점수 배지 - 중앙 카드만 */}
+                    {/* 매칭 점수 배지 - 중앙 카드만, 더 크고 눈에 띄게 */}
                     {isCenter && (
                       <motion.div
                         initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-3 -right-3 w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
-                        style={{ background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)' }}
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="absolute -top-4 -right-4 w-16 h-16 rounded-full flex items-center justify-center shadow-xl"
+                        style={{
+                          background: 'linear-gradient(135deg, #00D4AA 0%, #00B894 100%)',
+                          boxShadow: '0 0 20px rgba(0, 212, 170, 0.5)'
+                        }}
                       >
                         <div className="text-center">
-                          <div className="text-white text-sm font-bold">92%</div>
-                          <div className="text-white/70 text-[8px]">매칭</div>
+                          <div className="text-white text-lg font-bold">92%</div>
+                          <div className="text-white/80 text-[9px]">매칭률</div>
                         </div>
                       </motion.div>
                     )}
 
                     {/* 이니셜 원형 아바타 */}
-                    <motion.div
-                      className={`${isCenter ? 'w-18 h-18' : 'w-14 h-14'} rounded-full mx-auto mb-3 flex items-center justify-center relative`}
+                    <div
+                      className={`${isCenter ? 'w-16 h-16' : 'w-12 h-12'} rounded-full mx-auto mb-2 flex items-center justify-center`}
                       style={{
                         background: isCenter
-                          ? 'linear-gradient(135deg, #E8D5FF 0%, #D4B8FF 100%)'
-                          : '#E8E8E8'
+                          ? 'linear-gradient(135deg, #E0FFF7 0%, #B8F5E8 100%)'
+                          : '#F0F0F0'
                       }}
-                      animate={isCenter ? {
-                        boxShadow: ['0 0 0 0 rgba(155, 89, 182, 0.4)', '0 0 0 15px rgba(155, 89, 182, 0)', '0 0 0 0 rgba(155, 89, 182, 0.4)']
-                      } : {}}
-                      transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <span className={`${isCenter ? 'text-2xl' : 'text-xl'} font-bold`} style={{ color: isCenter ? '#9B59B6' : '#999' }}>
-                        {isCenter ? cardData.initial : '?'}
+                      <span className={`${isCenter ? 'text-xl' : 'text-lg'} font-bold`} style={{ color: isCenter ? '#00B894' : '#AAA' }}>
+                        {cardData.initial}
                       </span>
-                    </motion.div>
+                    </div>
 
-                    {/* 이름 - 중앙만 표시, 나머지 블러 마스킹 */}
-                    <h3 className={`${isCenter ? 'text-base' : 'text-sm'} font-bold text-center mb-1`}
-                      style={{ color: isCenter ? '#1a1a2e' : '#CCC' }}
-                    >
-                      {isCenter ? cardData.name : '• • •'}
-                    </h3>
+                    {/* 직업 + 경력 - 통합 표시 */}
+                    <div className="text-center mb-2">
+                      <p className={`${isCenter ? 'text-sm' : 'text-xs'} font-semibold`} style={{ color: isCenter ? '#00B894' : '#999' }}>
+                        {cardData.job}
+                      </p>
+                      <p className={`${isCenter ? 'text-xs' : 'text-[10px]'} text-text-tertiary`}>
+                        경력 {cardData.exp}
+                      </p>
+                    </div>
 
-                    {/* 직업 */}
-                    <p className={`${isCenter ? 'text-sm' : 'text-xs'} font-medium text-center mb-2`}
-                      style={{ color: isCenter ? '#F5A623' : '#CCC' }}
-                    >
-                      {isCenter ? cardData.job : '분석 중...'}
-                    </p>
-
-                    {/* 경력 - 중앙만 */}
+                    {/* 태그들 - 중앙 카드만, 민트색 */}
                     {isCenter && (
-                      <div className="flex items-center justify-center gap-1 text-xs text-text-secondary mb-3">
-                        <Briefcase className="w-3 h-3" />
-                        <span>경력 {cardData.exp}</span>
-                      </div>
-                    )}
-
-                    {/* 태그들 (보라색 테두리) - 중앙 카드만 */}
-                    {isCenter && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="flex flex-wrap justify-center gap-1 mb-3"
-                      >
-                        {cardData.tags.map((tag, i) => (
-                          <motion.span
+                      <div className="flex flex-wrap justify-center gap-1 mb-2">
+                        {cardData.tags.slice(0, 2).map((tag) => (
+                          <span
                             key={tag}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 0.3 + i * 0.1 }}
-                            className="px-2 py-0.5 text-xs rounded-full border"
-                            style={{ borderColor: '#9B59B6', color: '#9B59B6' }}
+                            className="px-2 py-0.5 text-[10px] rounded-full bg-brand-mint/10 text-brand-mint border border-brand-mint/30"
                           >
                             {tag}
-                          </motion.span>
+                          </span>
                         ))}
-                      </motion.div>
+                      </div>
                     )}
 
                     {/* 희망 급여 - 중앙만 */}
                     {isCenter && (
-                      <div className="text-center mb-2">
-                        <div className="inline-block">
-                          <div className="flex items-center gap-1 text-xs text-text-primary mb-0.5">
-                            <DollarSign className="w-3 h-3" />
-                            <span>희망 급여 <strong>{cardData.salary.toLocaleString()}</strong>만원</span>
-                          </div>
-                          <motion.div
-                            className="h-0.5 rounded-full"
-                            style={{ background: 'linear-gradient(90deg, #E8D5FF 0%, #9B59B6 100%)' }}
-                            initial={{ scaleX: 0 }}
-                            animate={{ scaleX: 1 }}
-                            transition={{ delay: 0.5, duration: 0.5 }}
-                          />
-                        </div>
+                      <div className="text-center">
+                        <span className="text-xs text-text-secondary">희망 </span>
+                        <span className="text-sm font-bold text-expert-navy">{cardData.salary.toLocaleString()}만</span>
                       </div>
-                    )}
-
-                    {/* 설명 텍스트 - 중앙 카드만 */}
-                    {isCenter && (
-                      <p className="text-xs text-text-tertiary text-center">
-                        {cardData.desc}
-                      </p>
                     )}
                   </motion.div>
                 );
               })}
             </div>
 
-            {/* 프로그레스 바 */}
-            <div className="w-64 mb-6">
-              <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+            {/* 분석 통계 */}
+            <div className="flex gap-6 mb-6">
+              <div className="text-center">
+                <motion.div
+                  className="text-3xl font-bold text-brand-mint"
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  75
+                </motion.div>
+                <div className="text-xs text-white/60">전체 분석</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">→</div>
+              </div>
+              <div className="text-center">
+                <motion.div
+                  className="text-3xl font-bold text-success"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  15
+                </motion.div>
+                <div className="text-xs text-white/60">최종 매칭</div>
+              </div>
+            </div>
+
+            {/* 프로그레스 바 - 민트색 */}
+            <div className="w-72 mb-6">
+              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full rounded-full"
-                  style={{ background: 'linear-gradient(90deg, #9B59B6 0%, #3498db 100%)' }}
+                  style={{ background: 'linear-gradient(90deg, #00D4AA 0%, #00B894 100%)' }}
                   initial={{ width: '0%' }}
                   animate={{ width: `${aiMatchingProgress}%` }}
                   transition={{ duration: 0.3 }}
                 />
               </div>
-              <div className="flex justify-between mt-2 text-xs text-white/60">
-                <span>분석 중...</span>
+              <div className="flex justify-between mt-2 text-sm text-white/70">
+                <span>{Math.round(aiMatchingProgress * 0.75)}명 분석 완료</span>
                 <span>{aiMatchingProgress}%</span>
               </div>
             </div>
 
             {/* 하단 텍스트 */}
             <motion.div
-              animate={{ opacity: [0.5, 1, 0.5] }}
+              animate={{ opacity: [0.6, 1, 0.6] }}
               transition={{ duration: 2, repeat: Infinity }}
               className="text-center"
             >
               <p className="text-base font-medium text-white">
-                AI가 최적의 매칭을 분석하고 있습니다
-              </p>
-              <p className="text-sm text-white/50 mt-1">
-                {currentCardIndex + 1} / {aiMatchingCardData.length} 후보자 분석 완료
+                {aiMatchingProgress < 100 ? 'AI가 최적의 후보자를 선별하고 있습니다' : '매칭 완료!'}
               </p>
             </motion.div>
 
@@ -1489,7 +1671,7 @@ function MatchingCenterContent() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-8"
+                className="mt-6"
               >
                 <motion.button
                   onClick={() => {
@@ -1497,11 +1679,14 @@ function MatchingCenterContent() {
                     setActiveTab('new-matching');
                   }}
                   className="px-8 py-4 text-white rounded-xl font-bold text-lg shadow-lg"
-                  style={{ background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)' }}
+                  style={{
+                    background: 'linear-gradient(135deg, #00D4AA 0%, #00B894 100%)',
+                    boxShadow: '0 0 30px rgba(0, 212, 170, 0.4)'
+                  }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  매칭 결과 보기
+                  15명 매칭 결과 보기
                 </motion.button>
               </motion.div>
             )}
