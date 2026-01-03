@@ -269,6 +269,8 @@ export default function EmployerHomePage() {
   // 거절 모달 상태
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<{ id: string; name: string } | null>(null);
+  const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
+  const [rejectReason, setRejectReason] = useState('');
 
   // 글로벌 거절 카운트 훅 사용
   const { dailyRejectCount, remainingRejects, canReject, incrementRejectCount, DAILY_REJECT_LIMIT } = useGlobalRejectCount();
@@ -1382,73 +1384,93 @@ export default function EmployerHomePage() {
         )}
       </AnimatePresence>
 
-      {/* 거절하기 모달 */}
+      {/* 거절하기 모달 - 매칭센터와 동일한 디자인 */}
       <AnimatePresence>
         {showRejectModal && rejectTarget && (
-          <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowRejectModal(false)}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowRejectModal(false)}
-              className="fixed inset-0 bg-black/50 z-[100]"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed left-4 right-4 top-[15%] bottom-[15%] mx-auto bg-white rounded-2xl z-[100] max-w-sm flex flex-col"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
             >
-              {/* 헤더 - 고정 */}
-              <div className="flex items-center justify-between p-5 pb-3 border-b border-border-light flex-shrink-0">
-                <h3 className="text-lg font-bold text-text-primary">후보자 거절</h3>
-                <button onClick={() => setShowRejectModal(false)}>
-                  <X className="w-5 h-5 text-text-tertiary" />
-                </button>
+              <div className="text-center mb-4">
+                <div className="w-14 h-14 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <X className="w-7 h-7 text-error" />
+                </div>
+                <h3 className="text-lg font-bold">{rejectTarget.name}</h3>
+                <p className="text-sm text-text-secondary">이 후보자를 거절하시겠어요?</p>
+                <p className="text-xs text-text-tertiary mt-1">남은 거절 횟수: {remainingRejects}회</p>
               </div>
 
-              {/* 콘텐츠 - 스크롤 가능 */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                <div className="bg-error/10 border border-error/20 rounded-xl p-4">
-                  <p className="text-sm text-text-primary">
-                    <strong>{rejectTarget.name}</strong>님을 거절하시겠습니까?
-                  </p>
-                  <p className="text-xs text-text-secondary mt-1">
-                    거절 시 해당 후보자가 리스트에서 제외됩니다.
-                  </p>
-                </div>
-
-                <div className="bg-bg-secondary rounded-xl p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-text-secondary">오늘 남은 거절 횟수</span>
-                    <span className={`text-sm font-bold ${remainingRejects <= 3 ? 'text-error' : 'text-text-primary'}`}>
-                      {remainingRejects}회 / {DAILY_REJECT_LIMIT}회
-                    </span>
-                  </div>
-                  {remainingRejects <= 3 && (
-                    <p className="text-xs text-error mt-1">거절 횟수가 얼마 남지 않았습니다.</p>
-                  )}
+              {/* 거절 사유 버튼 선택 */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">거절 사유 선택</p>
+                <div className="flex flex-wrap gap-2">
+                  {['경력 부족', '전문 분야 불일치', '급여 조건', '근무 시간', '기타'].map((reason) => (
+                    <button
+                      key={reason}
+                      onClick={() => {
+                        if (selectedRejectReasons.includes(reason)) {
+                          setSelectedRejectReasons(prev => prev.filter(r => r !== reason));
+                        } else {
+                          setSelectedRejectReasons(prev => [...prev, reason]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                        selectedRejectReasons.includes(reason)
+                          ? 'bg-error text-white'
+                          : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* 푸터 버튼 - 고정 */}
-              <div className="flex gap-3 p-5 pt-3 border-t border-border-light flex-shrink-0">
+              {/* 직접 입력 (선택) */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">추가 의견 (선택)</p>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="거절 사유를 입력해주세요"
+                  className="w-full p-3 border border-border-light rounded-xl text-sm resize-none h-16"
+                />
+              </div>
+
+              <div className="flex gap-3">
                 <button
-                  onClick={() => setShowRejectModal(false)}
-                  className="flex-1 py-3 text-sm border border-border-light text-text-secondary rounded-xl"
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setSelectedRejectReasons([]);
+                    setRejectReason('');
+                  }}
+                  className="flex-1 py-3 rounded-xl border border-border-light text-text-secondary font-medium"
                 >
                   취소
                 </button>
                 <button
-                  onClick={confirmReject}
-                  className="flex-1 py-3 text-sm bg-error text-white rounded-xl flex items-center justify-center gap-1"
+                  onClick={() => {
+                    confirmReject();
+                    setSelectedRejectReasons([]);
+                    setRejectReason('');
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-error text-white font-medium"
                 >
-                  <XCircle className="w-4 h-4" />
                   거절하기
                 </button>
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 

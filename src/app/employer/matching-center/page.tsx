@@ -812,13 +812,13 @@ function MatchingCenterContent() {
               </button>
             </div>
 
-            {/* 신규공고 추가 버튼 */}
+            {/* 신규공고 추가 버튼 - 활성화 스타일 */}
             <button
               onClick={() => {
-                const newId = newJobs.length + 1;
-                setNewJobs([...newJobs, { id: newId, title: `신규공고 ${newId}`, isExpanded: false }]);
+                alert('신규 채용공고 작성 페이지로 이동합니다.');
+                // 실제 구현 시 라우팅 추가
               }}
-              className="w-full py-3 border-2 border-dashed border-border-light text-text-tertiary rounded-xl font-medium hover:border-brand-mint hover:text-brand-mint transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 bg-expert-navy text-white rounded-xl font-medium hover:bg-expert-navy/90 transition-colors flex items-center justify-center gap-2 shadow-lg"
             >
               <UserPlus className="w-5 h-5" />
               신규공고 추가하기
@@ -1183,21 +1183,22 @@ function MatchingCenterContent() {
                           <Link href={`/employer/ai-interview/report/${candidate.id}`} className="flex-1">
                             <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-info text-white rounded-lg min-h-[40px]">
                               <FileText className="w-3 h-3" />
-                              리포트 보기
+                              리포트
                             </button>
                           </Link>
                           <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
                             <Calendar className="w-3 h-3" />
-                            면접 잡기
+                            면접
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleReject(candidate);
                             }}
-                            className="flex items-center justify-center gap-1 px-3 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
                           >
                             <X className="w-3 h-3" />
+                            거절
                           </button>
                         </>
                       )}
@@ -1205,7 +1206,7 @@ function MatchingCenterContent() {
                         <>
                           <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
                             <Calendar className="w-3 h-3" />
-                            면접 잡기
+                            면접
                           </button>
                           <button
                             onClick={(e) => {
@@ -1216,16 +1217,17 @@ function MatchingCenterContent() {
                             className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-warning text-white rounded-lg min-h-[40px]"
                           >
                             <DollarSign className="w-3 h-3" />
-                            오퍼수정
+                            오퍼
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleReject(candidate);
                             }}
-                            className="flex items-center justify-center gap-1 px-3 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
                           >
                             <X className="w-3 h-3" />
+                            거절
                           </button>
                         </>
                       )}
@@ -1234,21 +1236,22 @@ function MatchingCenterContent() {
                           <Link href={`/employer/ai-interview/copilot?id=${candidate.id}`} className="flex-1">
                             <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]">
                               <Sparkles className="w-3 h-3" />
-                              면접 코파일럿
+                              코파일럿
                             </button>
                           </Link>
                           <div className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs text-success bg-success/10 rounded-lg min-h-[40px]">
                             <Calendar className="w-3 h-3" />
-                            {candidate.statusDetail?.includes('오후') ? candidate.statusDetail.split('(')[1]?.replace(')', '') : '일정 확인'}
+                            일정
                           </div>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleReject(candidate);
                             }}
-                            className="flex items-center justify-center gap-1 px-3 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
                           >
                             <X className="w-3 h-3" />
+                            거절
                           </button>
                         </>
                       )}
