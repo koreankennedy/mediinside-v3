@@ -60,13 +60,10 @@ const mainTabs = [
   { id: 'all-matching', label: '전체 매칭 리스트', icon: Users },
 ];
 
-// 상태 필터 (신규 매칭 리스트용) - 신규 매칭이므로 전체=신규값만
+// 상태 필터 (신규 매칭 리스트용) - 신규 15명만 표시
 const statusFilters = [
-  { id: 'all', label: '전체', count: 6 },
-  { id: 'negotiating', label: '협상중', count: 0 },
-  { id: 'interview', label: '대면면접 예정', count: 0 },
-  { id: 'ai-interview', label: 'AI인터뷰', count: 0 },
-  { id: 'new', label: '신규', count: 6 },
+  { id: 'all', label: '전체', count: 15 },
+  { id: 'new', label: '신규', count: 15 },
 ];
 
 // 채용상품 설정 하위 탭
@@ -175,11 +172,11 @@ function MatchingCenterContent() {
     );
   };
 
-  // 필터링된 후보자
+  // 필터링된 후보자 (신규 매칭 리스트용 - 신규 15명만)
   const filteredCandidates = mockNewMatchingCandidates.filter(c => {
     if (droppedCandidates.includes(c.id)) return false;
-    if (statusFilter === 'all') return true;
-    return c.status === statusFilter;
+    // 신규 매칭 리스트는 status가 'new'인 후보자만 표시
+    return c.status === 'new';
   });
 
   // 정렬
@@ -262,13 +259,13 @@ function MatchingCenterContent() {
     }, 1000);
   };
 
-  // 전체매칭리스트용 탭 데이터 (순서: 협상중 > 제안완료 > 대면면접 예정 > AI인터뷰) - 관심표시 제외
+  // 전체매칭리스트용 탭 데이터 (신규 15 + 진행중 8 = 23)
   const allMatchingTabs = [
-    { id: 'all', label: '전체', count: 8 },
-    { id: 'negotiating', label: '협상중', count: 1 },
-    { id: 'proposed', label: '제안완료', count: 3 },
-    { id: 'interview', label: '대면면접 예정', count: 1 },
-    { id: 'new', label: '신규', count: 3 },
+    { id: 'all', label: '전체', count: 23 },
+    { id: 'negotiating', label: '협상중', count: 2 },
+    { id: 'interview_scheduled', label: '대면면접 예정', count: 2 },
+    { id: 'ai_interview', label: 'AI인터뷰', count: 4 },
+    { id: 'new', label: '신규', count: 15 },
   ];
 
   // 채용상품 설정 하위 탭 상태
@@ -1056,29 +1053,32 @@ function MatchingCenterContent() {
               ))}
             </div>
 
-            {/* 전체 후보자 리스트 (기존 mockCandidates 활용) */}
+            {/* 전체 후보자 리스트 (mockNewMatchingCandidates 23명) */}
             <div className="space-y-4">
-              {mockCandidates
-                // 관심표시(interested) 제외
-                .filter(c => c.status !== 'interested')
+              {mockNewMatchingCandidates
                 .filter(c => {
                   if (droppedCandidates.includes(c.id)) return false;
                   if (allMatchingFilter === 'all') return true;
                   return c.status === allMatchingFilter;
                 })
-                // 노출 순서: 협상중 > 제안완료 > 대면면접 예정 > AI인터뷰 > 신규
+                // 노출 순서: 협상중 > 대면면접 예정 > AI인터뷰 > 신규
                 .sort((a, b) => {
                   const order: Record<string, number> = {
                     'negotiating': 1,
-                    'proposed': 2,
-                    'interview': 3,
-                    'ai-interview': 4,
-                    'new': 5,
+                    'interview_scheduled': 2,
+                    'ai_interview': 3,
+                    'new': 4,
                   };
                   return (order[a.status] || 99) - (order[b.status] || 99);
                 })
                 .map((candidate, index) => {
-                const status = statusConfig[candidate.status] || statusConfig.new;
+                const statusMap: Record<string, { label: string; color: string; bgColor: string }> = {
+                  new: { label: '신규', color: 'text-brand-mint', bgColor: 'bg-brand-mint/10' },
+                  negotiating: { label: '협상중', color: 'text-warning', bgColor: 'bg-warning/10' },
+                  interview_scheduled: { label: '대면면접 예정', color: 'text-success', bgColor: 'bg-success/10' },
+                  ai_interview: { label: 'AI인터뷰', color: 'text-info', bgColor: 'bg-info/10' },
+                };
+                const status = statusMap[candidate.status] || statusMap.new;
                 const isNegotiating = candidate.status === 'negotiating';
 
                 return (
@@ -1097,14 +1097,18 @@ function MatchingCenterContent() {
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
                         {status.label}
                       </span>
-                      {candidate.proposedAt && (
-                        <span className="text-xs text-text-tertiary">{candidate.proposedAt}</span>
+                      {candidate.statusDetail && (
+                        <span className="text-xs text-text-tertiary">{candidate.statusDetail}</span>
                       )}
                     </div>
 
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-12 h-12 bg-expert-navy/10 rounded-full flex items-center justify-center">
-                        <Users className="w-6 h-6 text-expert-navy" />
+                      <div className="w-12 h-12 bg-expert-navy/10 rounded-full flex items-center justify-center overflow-hidden">
+                        {candidate.profileImage ? (
+                          <img src={candidate.profileImage} alt={candidate.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <Users className="w-6 h-6 text-expert-navy" />
+                        )}
                       </div>
                       <div className="flex-1">
                         <div className="font-semibold text-text-primary">{candidate.name}</div>
@@ -1118,32 +1122,60 @@ function MatchingCenterContent() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {candidate.skills.slice(0, 3).map((skill) => (
-                        <span key={skill} className="text-xs bg-bg-secondary text-text-secondary px-2 py-0.5 rounded">
-                          {skill}
+                    {/* 태그 */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {candidate.preferredIntensity && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${intensityInfo[candidate.preferredIntensity]?.bgColor} ${intensityInfo[candidate.preferredIntensity]?.color}`}>
+                          희망 {intensityInfo[candidate.preferredIntensity]?.label}
                         </span>
-                      ))}
+                      )}
+                      {candidate.preferredProducts?.slice(0, 2).map((productType) => {
+                        const product = productInfo[productType];
+                        if (!product) return null;
+                        return (
+                          <span
+                            key={productType}
+                            className="text-xs px-2 py-1 rounded-full text-white"
+                            style={{ backgroundColor: product.color }}
+                          >
+                            {product.icon} {product.label}
+                          </span>
+                        );
+                      })}
                     </div>
 
                     <div className="flex gap-2 pt-3 border-t border-border-light">
                       {candidate.status === 'new' && (
                         <>
                           <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]">
-                            <Send className="w-3 h-3" />
-                            제안하기
+                            <Sparkles className="w-3 h-3" />
+                            AI인터뷰 요청
                           </button>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]">
-                            <Heart className="w-3 h-3" />
-                            관심표시
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleReject(candidate);
+                            }}
+                            className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
+                          >
+                            <X className="w-3 h-3" />
+                            거절
                           </button>
                         </>
                       )}
-                      {candidate.status === 'proposed' && (
-                        <div className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs text-info bg-info/10 rounded-lg min-h-[40px]">
-                          <Clock className="w-3 h-3" />
-                          응답 대기 중...
-                        </div>
+                      {candidate.status === 'ai_interview' && (
+                        <>
+                          <Link href={`/employer/ai-interview/report/${candidate.id}`} className="flex-1">
+                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-info text-white rounded-lg min-h-[40px]">
+                              <FileText className="w-3 h-3" />
+                              리포트 보기
+                            </button>
+                          </Link>
+                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
+                            <Calendar className="w-3 h-3" />
+                            대면면접 잡기
+                          </button>
+                        </>
                       )}
                       {candidate.status === 'negotiating' && (
                         <>
@@ -1157,7 +1189,7 @@ function MatchingCenterContent() {
                           </button>
                         </>
                       )}
-                      {candidate.status === 'interview' && (
+                      {candidate.status === 'interview_scheduled' && (
                         <>
                           <Link href={`/employer/ai-interview/copilot?id=${candidate.id}`} className="flex-1">
                             <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]">
@@ -1167,7 +1199,7 @@ function MatchingCenterContent() {
                           </Link>
                           <div className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs text-success bg-success/10 rounded-lg min-h-[40px]">
                             <Calendar className="w-3 h-3" />
-                            내일 14:00
+                            {candidate.statusDetail?.includes('오후') ? candidate.statusDetail.split('(')[1]?.replace(')', '') : '일정 확인'}
                           </div>
                         </>
                       )}
