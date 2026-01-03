@@ -355,7 +355,11 @@ export default function EmployerHomePage() {
   // 바이럴루프 CTA 핸들러
   const handleResetLimit = (type: 'profile' | 'referral' | 'employee' | 'workExperience') => {
     setShowViralLoopModal(false);
-    if (type === 'profile') setShowProfileCTA(true);
+    if (type === 'profile') {
+      // 프로필 완성도 모달을 바로 띄우기 위해 쿼리 파라미터와 함께 이동
+      router.push('/employer/profile?showCompletion=true');
+      return;
+    }
     else if (type === 'referral') setShowReferralCTA(true);
     else if (type === 'employee') setShowEmployeeCTA(true);
     else if (type === 'workExperience') setShowWorkExperienceCTA(true);
