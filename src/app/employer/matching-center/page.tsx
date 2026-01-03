@@ -167,6 +167,26 @@ function MatchingCenterContent() {
   const [offerBonus, setOfferBonus] = useState('');
   const [offerMessage, setOfferMessage] = useState('');
 
+  // 채용상품 저장 스플래시 상태
+  const [showSaveSplash, setShowSaveSplash] = useState(false);
+  const [savedJobIndex, setSavedJobIndex] = useState<number | null>(null);
+
+  // 신규 채용공고 2개 상태 관리
+  const [newJobs, setNewJobs] = useState([
+    { id: 1, title: '신규공고 1', isExpanded: true },
+    { id: 2, title: '신규공고 2', isExpanded: false },
+  ]);
+
+  // 저장 처리
+  const handleSaveJob = (jobIndex: number) => {
+    setSavedJobIndex(jobIndex);
+    setShowSaveSplash(true);
+    setTimeout(() => {
+      setShowSaveSplash(false);
+      setSavedJobIndex(null);
+    }, 2000);
+  };
+
   // URL 파라미터 변경 시 탭 업데이트
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -807,19 +827,35 @@ function MatchingCenterContent() {
               </p>
             </div>
 
-            {/* 설정 저장 + 신규매칭 받기 버튼 */}
-            <div className="space-y-3">
-              <button className="w-full py-4 bg-bg-secondary text-text-secondary rounded-xl font-medium text-lg hover:bg-bg-tertiary transition-colors border border-border-light">
-                설정 저장하기
+            {/* 설정 저장 + 신규매칭 받기 버튼 - 나란히 배치 */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleSaveJob(1)}
+                className="flex-1 py-4 bg-white border-2 border-expert-navy text-expert-navy rounded-xl font-medium text-base hover:bg-expert-navy/5 transition-colors flex items-center justify-center gap-2"
+              >
+                <CheckCircle className="w-5 h-5" />
+                설정 저장
               </button>
               <button
                 onClick={startAIMatching}
-                className="w-full py-4 bg-gradient-to-r from-brand-mint to-info text-white rounded-xl font-bold text-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-gradient-to-r from-brand-mint to-info text-white rounded-xl font-bold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
                 신규매칭 받기
               </button>
             </div>
+
+            {/* 신규공고 추가 버튼 */}
+            <button
+              onClick={() => {
+                const newId = newJobs.length + 1;
+                setNewJobs([...newJobs, { id: newId, title: `신규공고 ${newId}`, isExpanded: false }]);
+              }}
+              className="w-full py-3 border-2 border-dashed border-border-light text-text-tertiary rounded-xl font-medium hover:border-brand-mint hover:text-brand-mint transition-colors flex items-center justify-center gap-2"
+            >
+              <UserPlus className="w-5 h-5" />
+              신규공고 추가하기
+            </button>
               </motion.div>
             )}
           </motion.div>
@@ -1690,6 +1726,51 @@ function MatchingCenterContent() {
                 </motion.button>
               </motion.div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 저장 성공 스플래쉬 */}
+      <AnimatePresence>
+        {showSaveSplash && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50"
+          >
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={{ type: 'spring', duration: 0.5 }}
+              className="bg-white rounded-2xl p-8 text-center shadow-2xl"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: [0, 1.2, 1] }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="w-20 h-20 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4"
+              >
+                <CheckCircle className="w-12 h-12 text-success" />
+              </motion.div>
+              <motion.h3
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-xl font-bold text-text-primary mb-2"
+              >
+                설정이 저장되었습니다!
+              </motion.h3>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="text-sm text-text-secondary"
+              >
+                채용상품 설정이 성공적으로 저장되었습니다
+              </motion.p>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
