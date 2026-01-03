@@ -154,7 +154,8 @@ function MatchingCenterContent() {
     canReject,
     incrementRejectCount,
     resetRejectCount,
-    DAILY_REJECT_LIMIT
+    DAILY_REJECT_LIMIT,
+    isLoaded
   } = useGlobalRejectCount();
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectCandidate, setRejectCandidate] = useState<typeof mockNewMatchingCandidates[0] | null>(null);
@@ -288,6 +289,11 @@ function MatchingCenterContent() {
     if (rejectCandidate) {
       setDroppedCandidates(prev => [...prev, rejectCandidate.id]);
       incrementRejectCount(); // 글로벌 카운트 증가
+
+      // 10회 거절 완료 시 바로 바이럴루프 모달 표시
+      if (remainingRejects <= 1) {
+        setTimeout(() => setShowViralLoopModal(true), 300);
+      }
     }
     setShowRejectModal(false);
     setRejectCandidate(null);
@@ -949,7 +955,7 @@ function MatchingCenterContent() {
             </div>
 
             {/* 거절 잔여 횟수 알림 */}
-            {remainingRejects <= 5 && (
+            {isLoaded && remainingRejects <= 5 && (
               <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-xl mb-4">
                 <AlertCircle className="w-4 h-4 text-warning" />
                 <span className="text-sm text-warning">
@@ -1374,7 +1380,7 @@ function MatchingCenterContent() {
                 </div>
                 <h3 className="text-lg font-bold">{rejectCandidate.name}</h3>
                 <p className="text-sm text-text-secondary">이 후보자를 거절하시겠어요?</p>
-                <p className="text-xs text-text-tertiary mt-1">남은 거절 횟수: {remainingRejects}회</p>
+                {isLoaded && <p className="text-xs text-text-tertiary mt-1">남은 거절 횟수: {remainingRejects}회</p>}
               </div>
 
               {/* 거절 사유 버튼 선택 */}
@@ -2159,7 +2165,7 @@ function MatchingCenterContent() {
                 프로필을 완성하면<br />더 많은 구직자에게 노출돼요!
               </p>
               <div className="space-y-3">
-                <Link href="/employer/profile/setup">
+                <Link href="/employer/profile">
                   <button
                     onClick={completeReset}
                     className="btn-primary w-full"

@@ -276,7 +276,7 @@ export default function EmployerHomePage() {
   const [rejectReason, setRejectReason] = useState('');
 
   // 글로벌 거절 카운트 훅 사용
-  const { dailyRejectCount, remainingRejects, canReject, incrementRejectCount, resetRejectCount, DAILY_REJECT_LIMIT } = useGlobalRejectCount();
+  const { dailyRejectCount, remainingRejects, canReject, incrementRejectCount, resetRejectCount, DAILY_REJECT_LIMIT, isLoaded } = useGlobalRejectCount();
 
   // 거절된 후보자 ID 목록 (리스트에서 제거용)
   const [rejectedCandidates, setRejectedCandidates] = useState<string[]>([]);
@@ -342,6 +342,11 @@ export default function EmployerHomePage() {
     if (rejectTarget) {
       incrementRejectCount();
       setRejectedCandidates(prev => [...prev, rejectTarget.id]);
+
+      // 10회 거절 완료 시 바로 바이럴루프 모달 표시
+      if (remainingRejects <= 1) {
+        setTimeout(() => setShowViralLoopModal(true), 300);
+      }
     }
     setShowRejectModal(false);
     setRejectTarget(null);
@@ -1435,7 +1440,7 @@ export default function EmployerHomePage() {
                 </div>
                 <h3 className="text-lg font-bold">{rejectTarget.name}</h3>
                 <p className="text-sm text-text-secondary">이 후보자를 거절하시겠어요?</p>
-                <p className="text-xs text-text-tertiary mt-1">남은 거절 횟수: {remainingRejects}회</p>
+                {isLoaded && <p className="text-xs text-text-tertiary mt-1">남은 거절 횟수: {remainingRejects}회</p>}
               </div>
 
               {/* 거절 사유 버튼 선택 */}

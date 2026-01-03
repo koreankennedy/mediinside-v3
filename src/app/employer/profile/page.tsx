@@ -38,6 +38,8 @@ import {
   CheckCircle,
   ExternalLink,
   MessageCircle,
+  Lock,
+  PenLine,
 } from 'lucide-react';
 import Link from 'next/link';
 import { mockEmployerProfile } from '@/lib/mock/data';
@@ -51,7 +53,7 @@ const profileSections = [
   { id: 'team', label: '팀 소개', icon: Users },
   { id: 'gallery', label: '병원 갤러리', icon: Image },
   { id: 'naver-reviews', label: '네이버 리뷰', icon: ExternalLink },
-  { id: 'staff-reviews', label: '직원 리뷰', icon: MessageCircle },
+  { id: 'work-experience', label: '재직경험 공유', icon: MessageCircle },
 ];
 
 const benefitCategories = [
@@ -106,6 +108,35 @@ function ProfileContent() {
     '성장 지향',
     '환자 중심',
   ]);
+
+  // 재직경험 공유 섹션 상태
+  const [workExpSubTab, setWorkExpSubTab] = useState<'staff' | 'director'>('staff');
+  const [showWriteReviewModal, setShowWriteReviewModal] = useState(false);
+  const [reviewPassword, setReviewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [reviewContent, setReviewContent] = useState({
+    type: '원장' as '원장' | '직원',
+    workType: '현직' as '현직' | '전직',
+    position: '',
+    hospitalName: '',  // 원장 재직경험용
+    period: '',        // 근무 기간
+    rating: 4,
+    pros: '',
+    cons: '',
+  });
+  const [savedReviews, setSavedReviews] = useState<Array<{
+    id: string;
+    type: '원장' | '직원';
+    workType: '현직' | '전직';
+    position: string;
+    hospitalName?: string;
+    period?: string;
+    rating: number;
+    pros: string;
+    cons: string;
+    date: string;
+    passwordHash: string;
+  }>>([]);
 
   // URL 쿼리 파라미터로 섹션 이동
   useEffect(() => {
@@ -1410,157 +1441,487 @@ function ProfileContent() {
         </motion.div>
       )}
 
-      {/* Staff Reviews Section */}
-      {activeSection === 'staff-reviews' && (
+      {/* Work Experience Section (재직경험 공유) */}
+      {activeSection === 'work-experience' && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          {/* 직원 리뷰 요약 */}
-          <div className="bg-gradient-to-r from-brand-mint to-brand-mint-dark rounded-2xl p-5 text-white">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="text-sm text-white/70 mb-1">직원 평균 평점</div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-6 h-6 text-match-gold fill-match-gold" />
-                  <span className="text-4xl font-bold">4.3</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold">8</div>
-                <div className="text-sm text-white/70">리뷰 수</div>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="bg-white/10 rounded-lg py-2">
-                <div className="text-sm font-bold">4.5</div>
-                <div className="text-xs text-white/70">워라밸</div>
-              </div>
-              <div className="bg-white/10 rounded-lg py-2">
-                <div className="text-sm font-bold">4.2</div>
-                <div className="text-xs text-white/70">급여</div>
-              </div>
-              <div className="bg-white/10 rounded-lg py-2">
-                <div className="text-sm font-bold">4.4</div>
-                <div className="text-xs text-white/70">분위기</div>
-              </div>
-            </div>
+          {/* 서브탭 */}
+          <div className="flex gap-2 p-1 bg-bg-secondary rounded-xl">
+            <button
+              onClick={() => setWorkExpSubTab('staff')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                workExpSubTab === 'staff'
+                  ? 'bg-white text-expert-navy shadow-sm'
+                  : 'text-text-secondary'
+              }`}
+            >
+              직원 리뷰
+            </button>
+            <button
+              onClick={() => setWorkExpSubTab('director')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                workExpSubTab === 'director'
+                  ? 'bg-white text-expert-navy shadow-sm'
+                  : 'text-text-secondary'
+              }`}
+            >
+              원장 재직경험
+            </button>
           </div>
 
-          {/* 평가 항목별 상세 */}
-          <div className="bg-white rounded-2xl p-4 border border-border-light">
-            <h3 className="text-card-title mb-4">평가 항목별 점수</h3>
-            <div className="space-y-3">
-              {[
-                { label: '워라밸', score: 4.5 },
-                { label: '급여/복지', score: 4.2 },
-                { label: '조직문화', score: 4.4 },
-                { label: '성장기회', score: 4.0 },
-                { label: '경영진', score: 4.1 },
-              ].map((item) => (
-                <div key={item.label}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-text-secondary">{item.label}</span>
-                    <span className="text-sm font-medium text-text-primary">{item.score}</span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill bg-brand-mint"
-                      style={{ width: `${(item.score / 5) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* 리뷰 작성 버튼 */}
+          <button
+            onClick={() => {
+              setReviewContent({
+                ...reviewContent,
+                type: workExpSubTab === 'staff' ? '직원' : '원장',
+              });
+              setShowWriteReviewModal(true);
+            }}
+            className="w-full bg-expert-navy text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2"
+          >
+            <PenLine className="w-4 h-4" />
+            {workExpSubTab === 'staff' ? '직원 리뷰 작성하기' : '재직경험 공유하기'}
+          </button>
 
-          {/* 직원 리뷰 목록 */}
-          <div className="bg-white rounded-2xl p-4 border border-border-light">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-card-title">직원 리뷰</h3>
-              {isEditing && (
-                <button className="text-sm text-expert-navy flex items-center gap-1">
-                  <Plus className="w-4 h-4" />
-                  리뷰 요청
-                </button>
-              )}
-            </div>
-            <div className="space-y-4">
-              {[
-                {
-                  type: '현직',
-                  position: '치과위생사',
-                  rating: 4.5,
-                  pros: '워라밸이 정말 좋고, 원장님이 친절하세요. 교육 기회도 많이 주십니다.',
-                  cons: '때때로 바쁜 시기가 있어요.',
-                  date: '2024.01.12',
-                },
-                {
-                  type: '현직',
-                  position: '코디네이터',
-                  rating: 4.2,
-                  pros: '팀 분위기가 좋고 동료들이 서로 도와줘요. 정시퇴근 보장됩니다.',
-                  cons: '주차 공간이 부족해요.',
-                  date: '2024.01.05',
-                },
-                {
-                  type: '전직',
-                  position: '치과위생사',
-                  rating: 4.0,
-                  pros: '교육 시스템이 체계적이에요. 성장할 수 있는 환경입니다.',
-                  cons: '연봉 인상폭이 아쉬웠어요.',
-                  date: '2023.12.20',
-                },
-              ].map((review, index) => (
-                <div key={index} className="pb-4 border-b border-border-light last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between mb-2">
+          {workExpSubTab === 'staff' && (
+            <>
+              {/* 직원 리뷰 요약 */}
+              <div className="bg-gradient-to-r from-brand-mint to-brand-mint-dark rounded-2xl p-5 text-white">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <div className="text-sm text-white/70 mb-1">직원 평균 평점</div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        review.type === '현직' ? 'bg-success/10 text-success' : 'bg-bg-secondary text-text-tertiary'
-                      }`}>
-                        {review.type}
-                      </span>
-                      <span className="text-sm text-text-primary">{review.position}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 text-match-gold fill-match-gold" />
-                      <span className="text-xs font-medium">{review.rating}</span>
+                      <Star className="w-6 h-6 text-match-gold fill-match-gold" />
+                      <span className="text-4xl font-bold">4.3</span>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="bg-success/5 rounded-lg p-2">
-                      <div className="text-xs text-success mb-1 font-medium">장점</div>
-                      <p className="text-sm text-text-primary">{review.pros}</p>
-                    </div>
-                    <div className="bg-error/5 rounded-lg p-2">
-                      <div className="text-xs text-error mb-1 font-medium">단점</div>
-                      <p className="text-sm text-text-primary">{review.cons}</p>
-                    </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold">8</div>
+                    <div className="text-sm text-white/70">리뷰 수</div>
                   </div>
-                  <div className="text-xs text-text-tertiary mt-2">{review.date}</div>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="bg-white/10 rounded-lg py-2">
+                    <div className="text-sm font-bold">4.5</div>
+                    <div className="text-xs text-white/70">워라밸</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg py-2">
+                    <div className="text-sm font-bold">4.2</div>
+                    <div className="text-xs text-white/70">급여</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg py-2">
+                    <div className="text-sm font-bold">4.4</div>
+                    <div className="text-xs text-white/70">분위기</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 평가 항목별 상세 */}
+              <div className="bg-white rounded-2xl p-4 border border-border-light">
+                <h3 className="text-card-title mb-4">평가 항목별 점수</h3>
+                <div className="space-y-3">
+                  {[
+                    { label: '워라밸', score: 4.5 },
+                    { label: '급여/복지', score: 4.2 },
+                    { label: '조직문화', score: 4.4 },
+                    { label: '성장기회', score: 4.0 },
+                    { label: '경영진', score: 4.1 },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm text-text-secondary">{item.label}</span>
+                        <span className="text-sm font-medium text-text-primary">{item.score}</span>
+                      </div>
+                      <div className="progress-bar">
+                        <div
+                          className="progress-fill bg-brand-mint"
+                          style={{ width: `${(item.score / 5) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 직원 리뷰 목록 */}
+              <div className="bg-white rounded-2xl p-4 border border-border-light">
+                <h3 className="text-card-title mb-3">직원 리뷰</h3>
+                <div className="space-y-4">
+                  {[
+                    {
+                      type: '현직',
+                      position: '치과위생사',
+                      rating: 4.5,
+                      pros: '워라밸이 정말 좋고, 원장님이 친절하세요. 교육 기회도 많이 주십니다.',
+                      cons: '때때로 바쁜 시기가 있어요.',
+                      date: '2024.01.12',
+                    },
+                    {
+                      type: '현직',
+                      position: '코디네이터',
+                      rating: 4.2,
+                      pros: '팀 분위기가 좋고 동료들이 서로 도와줘요. 정시퇴근 보장됩니다.',
+                      cons: '주차 공간이 부족해요.',
+                      date: '2024.01.05',
+                    },
+                    {
+                      type: '전직',
+                      position: '치과위생사',
+                      rating: 4.0,
+                      pros: '교육 시스템이 체계적이에요. 성장할 수 있는 환경입니다.',
+                      cons: '연봉 인상폭이 아쉬웠어요.',
+                      date: '2023.12.20',
+                    },
+                  ].map((review, index) => (
+                    <div key={index} className="pb-4 border-b border-border-light last:border-0 last:pb-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            review.type === '현직' ? 'bg-success/10 text-success' : 'bg-bg-secondary text-text-tertiary'
+                          }`}>
+                            {review.type}
+                          </span>
+                          <span className="text-sm text-text-primary">{review.position}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3 h-3 text-match-gold fill-match-gold" />
+                          <span className="text-xs font-medium">{review.rating}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="bg-success/5 rounded-lg p-2">
+                          <div className="text-xs text-success mb-1 font-medium">장점</div>
+                          <p className="text-sm text-text-primary">{review.pros}</p>
+                        </div>
+                        <div className="bg-error/5 rounded-lg p-2">
+                          <div className="text-xs text-error mb-1 font-medium">단점</div>
+                          <p className="text-sm text-text-primary">{review.cons}</p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-text-tertiary mt-2">{review.date}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {workExpSubTab === 'director' && (
+            <>
+              {/* 원장 재직경험 안내 */}
+              <div className="bg-expert-navy/5 border border-expert-navy/10 rounded-2xl p-4">
+                <div className="flex items-start gap-3">
+                  <Briefcase className="w-5 h-5 text-expert-navy flex-shrink-0 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-medium text-text-primary mb-1">
+                      원장님의 봉직의 경험을 공유하세요
+                    </div>
+                    <p className="text-xs text-text-secondary">
+                      과거 봉직의로 근무했던 경험을 공유하면 구직자들이 원장님을 더 신뢰해요.
+                      솔직한 경험 공유가 좋은 인재 영입에 도움이 됩니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 원장 재직경험 목록 */}
+              <div className="bg-white rounded-2xl p-4 border border-border-light">
+                <h3 className="text-card-title mb-3">재직경험 목록</h3>
+                <div className="space-y-4">
+                  {[
+                    {
+                      hospitalName: '서울미소치과',
+                      period: '2018.03 - 2021.02',
+                      position: '봉직의',
+                      rating: 4.5,
+                      pros: '체계적인 진료 시스템과 환자 관리가 잘 되어 있었습니다. 선배 원장님께 많이 배웠어요.',
+                      cons: '주차 공간이 협소했습니다.',
+                      date: '2024.01.15',
+                    },
+                    {
+                      hospitalName: '행복한치과의원',
+                      period: '2015.05 - 2018.02',
+                      position: '봉직의',
+                      rating: 4.2,
+                      pros: '워라밸이 좋고 급여도 만족스러웠습니다. 직원분들도 친절했어요.',
+                      cons: '장비가 조금 오래되었었습니다.',
+                      date: '2024.01.10',
+                    },
+                  ].map((exp, index) => (
+                    <div key={index} className="pb-4 border-b border-border-light last:border-0 last:pb-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <div className="text-sm font-medium text-text-primary">{exp.hospitalName}</div>
+                          <div className="text-xs text-text-tertiary">{exp.period} · {exp.position}</div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3 h-3 text-match-gold fill-match-gold" />
+                          <span className="text-xs font-medium">{exp.rating}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="bg-success/5 rounded-lg p-2">
+                          <div className="text-xs text-success mb-1 font-medium">좋았던 점</div>
+                          <p className="text-sm text-text-primary">{exp.pros}</p>
+                        </div>
+                        <div className="bg-error/5 rounded-lg p-2">
+                          <div className="text-xs text-error mb-1 font-medium">아쉬웠던 점</div>
+                          <p className="text-sm text-text-primary">{exp.cons}</p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-text-tertiary mt-2">{exp.date}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* 리뷰 관리 안내 */}
           <div className="bg-brand-mint/10 border border-brand-mint/20 rounded-2xl p-4">
             <div className="flex items-start gap-3">
-              <MessageCircle className="w-5 h-5 text-brand-mint flex-shrink-0 mt-0.5" />
+              <Lock className="w-5 h-5 text-brand-mint flex-shrink-0 mt-0.5" />
               <div>
                 <div className="text-sm font-medium text-text-primary mb-1">
-                  직원 리뷰로 신뢰도를 높이세요
+                  작성한 리뷰는 비밀번호로 보호돼요
                 </div>
                 <p className="text-xs text-text-secondary">
-                  솔직한 직원 리뷰가 있으면 구직자들이 병원을 더 신뢰해요.
-                  현직/전직 직원에게 리뷰를 요청해보세요.
+                  채용 계정을 공유하더라도 작성자 본인만 리뷰를 수정하거나 삭제할 수 있어요.
+                  리뷰 작성 시 비밀번호를 설정해주세요.
                 </p>
               </div>
             </div>
           </div>
         </motion.div>
       )}
+
+      {/* 리뷰 작성 모달 */}
+      <AnimatePresence>
+        {showWriteReviewModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowWriteReviewModal(false)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed inset-x-4 top-10 z-50 bg-white rounded-2xl max-w-md mx-auto overflow-hidden max-h-[calc(100vh-5rem)] overflow-y-auto shadow-xl"
+            >
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-text-primary">
+                    {reviewContent.type === '직원' ? '직원 리뷰 작성' : '재직경험 공유'}
+                  </h2>
+                  <button
+                    onClick={() => setShowWriteReviewModal(false)}
+                    className="p-1 hover:bg-bg-secondary rounded-full"
+                  >
+                    <X className="w-5 h-5 text-text-tertiary" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* 근무 유형 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-2 block">근무 유형</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setReviewContent({ ...reviewContent, workType: '현직' })}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                          reviewContent.workType === '현직'
+                            ? 'border-expert-navy bg-expert-navy/5 text-expert-navy'
+                            : 'border-border-light text-text-secondary'
+                        }`}
+                      >
+                        현직
+                      </button>
+                      <button
+                        onClick={() => setReviewContent({ ...reviewContent, workType: '전직' })}
+                        className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
+                          reviewContent.workType === '전직'
+                            ? 'border-expert-navy bg-expert-navy/5 text-expert-navy'
+                            : 'border-border-light text-text-secondary'
+                        }`}
+                      >
+                        전직
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 원장 재직경험인 경우 병원명 */}
+                  {reviewContent.type === '원장' && (
+                    <div>
+                      <label className="text-sm font-medium text-text-primary mb-2 block">근무했던 병원명</label>
+                      <input
+                        type="text"
+                        placeholder="예: 서울미소치과"
+                        value={reviewContent.hospitalName}
+                        onChange={(e) => setReviewContent({ ...reviewContent, hospitalName: e.target.value })}
+                        className="w-full px-4 py-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-expert-navy"
+                      />
+                    </div>
+                  )}
+
+                  {/* 직책/직무 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-2 block">
+                      {reviewContent.type === '직원' ? '직책/직무' : '직책'}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={reviewContent.type === '직원' ? '예: 치과위생사' : '예: 봉직의'}
+                      value={reviewContent.position}
+                      onChange={(e) => setReviewContent({ ...reviewContent, position: e.target.value })}
+                      className="w-full px-4 py-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-expert-navy"
+                    />
+                  </div>
+
+                  {/* 근무 기간 */}
+                  {reviewContent.type === '원장' && (
+                    <div>
+                      <label className="text-sm font-medium text-text-primary mb-2 block">근무 기간</label>
+                      <input
+                        type="text"
+                        placeholder="예: 2018.03 - 2021.02"
+                        value={reviewContent.period}
+                        onChange={(e) => setReviewContent({ ...reviewContent, period: e.target.value })}
+                        className="w-full px-4 py-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-expert-navy"
+                      />
+                    </div>
+                  )}
+
+                  {/* 평점 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-2 block">평점</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <button
+                          key={rating}
+                          onClick={() => setReviewContent({ ...reviewContent, rating })}
+                          className="p-2"
+                        >
+                          <Star
+                            className={`w-7 h-7 ${
+                              rating <= reviewContent.rating
+                                ? 'text-match-gold fill-match-gold'
+                                : 'text-border-light'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 장점 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-2 block">
+                      {reviewContent.type === '직원' ? '장점' : '좋았던 점'}
+                    </label>
+                    <textarea
+                      placeholder="좋았던 점을 작성해주세요"
+                      value={reviewContent.pros}
+                      onChange={(e) => setReviewContent({ ...reviewContent, pros: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-expert-navy resize-none"
+                    />
+                  </div>
+
+                  {/* 단점 */}
+                  <div>
+                    <label className="text-sm font-medium text-text-primary mb-2 block">
+                      {reviewContent.type === '직원' ? '단점' : '아쉬웠던 점'}
+                    </label>
+                    <textarea
+                      placeholder="아쉬웠던 점을 작성해주세요"
+                      value={reviewContent.cons}
+                      onChange={(e) => setReviewContent({ ...reviewContent, cons: e.target.value })}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-expert-navy resize-none"
+                    />
+                  </div>
+
+                  {/* 비밀번호 설정 */}
+                  <div className="bg-warning/5 border border-warning/20 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Lock className="w-4 h-4 text-warning" />
+                      <span className="text-sm font-medium text-text-primary">리뷰 비밀번호 설정</span>
+                    </div>
+                    <p className="text-xs text-text-secondary mb-3">
+                      작성한 리뷰를 수정하거나 삭제할 때 필요합니다. 잊어버리지 않도록 주의하세요.
+                    </p>
+                    <div className="space-y-2">
+                      <input
+                        type="password"
+                        placeholder="비밀번호 (4자리 이상)"
+                        value={reviewPassword}
+                        onChange={(e) => setReviewPassword(e.target.value)}
+                        className="w-full px-4 py-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-expert-navy"
+                      />
+                      <input
+                        type="password"
+                        placeholder="비밀번호 확인"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full px-4 py-3 border border-border-light rounded-xl text-sm focus:outline-none focus:border-expert-navy"
+                      />
+                      {reviewPassword && confirmPassword && reviewPassword !== confirmPassword && (
+                        <p className="text-xs text-error">비밀번호가 일치하지 않습니다</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 저장 버튼 */}
+                <button
+                  onClick={() => {
+                    if (reviewPassword.length >= 4 && reviewPassword === confirmPassword) {
+                      // 리뷰 저장 로직 (실제로는 API 호출)
+                      const newReview = {
+                        id: Date.now().toString(),
+                        ...reviewContent,
+                        date: new Date().toISOString().split('T')[0].replace(/-/g, '.'),
+                        passwordHash: reviewPassword, // 실제로는 해시 처리
+                      };
+                      setSavedReviews([...savedReviews, newReview]);
+                      setShowWriteReviewModal(false);
+                      setReviewPassword('');
+                      setConfirmPassword('');
+                      setReviewContent({
+                        type: '원장',
+                        workType: '현직',
+                        position: '',
+                        hospitalName: '',
+                        period: '',
+                        rating: 4,
+                        pros: '',
+                        cons: '',
+                      });
+                    }
+                  }}
+                  disabled={
+                    reviewPassword.length < 4 ||
+                    reviewPassword !== confirmPassword ||
+                    !reviewContent.position ||
+                    !reviewContent.pros
+                  }
+                  className="w-full mt-6 bg-expert-navy text-white py-4 rounded-xl font-semibold disabled:bg-bg-secondary disabled:text-text-tertiary"
+                >
+                  리뷰 저장하기
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* 프로필 미리보기 CTA */}
       <div className="fixed bottom-20 left-0 right-0 px-4">
