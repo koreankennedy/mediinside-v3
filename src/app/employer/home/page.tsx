@@ -83,21 +83,43 @@ const recruitmentActivityStats = {
     count: 8,
     label: 'AI인터뷰 수행',
     color: 'text-brand-mint',
+    details: [
+      { id: 'aic-1', name: '정민지', position: '간호사', score: 89, status: '완료', time: '어제' },
+      { id: 'aic-2', name: '강은비', position: '간호조무사', score: 85, status: '완료', time: '2일 전' },
+      { id: 'aic-3', name: '임수정', position: '간호사', score: 92, status: '완료', time: '2일 전' },
+      { id: 'aic-4', name: '한지원', position: '간호사', score: 78, status: '완료', time: '3일 전' },
+      { id: 'aic-5', name: '박예진', position: '간호사', score: 88, status: '완료', time: '3일 전' },
+      { id: 'aic-6', name: '조민서', position: '간호조무사', score: 82, status: '진행중', time: '오늘' },
+      { id: 'aic-7', name: '김나영', position: '간호사', score: 91, status: '완료', time: '4일 전' },
+      { id: 'aic-8', name: '이하나', position: '간호사', score: 86, status: '완료', time: '5일 전' },
+    ],
   },
   faceInterviewCompleted: {
     count: 3,
     label: '대면면접 진행',
     color: 'text-brand-mint',
+    details: [
+      { id: 'fic-1', name: '최수민', position: '간호사', date: '내일 오후 2시', location: '병원 면접실', time: '예정' },
+      { id: 'fic-2', name: '김서현', position: '간호사', date: '어제 오전 10시', location: '병원 면접실', time: '완료' },
+      { id: 'fic-3', name: '박수진', position: '간호사', date: '3일 전', location: '병원 면접실', time: '완료' },
+    ],
   },
   offerSent: {
     count: 2,
     label: '오퍼 발송',
     color: 'text-warning',
+    details: [
+      { id: 'os-1', name: '김서현', position: '간호사', salary: '4,200만원', status: '협상중', time: '1일 전' },
+      { id: 'os-2', name: '이은정', position: '간호사', salary: '4,000만원', status: '응답대기', time: '2일 전' },
+    ],
   },
   hired: {
     count: 1,
     label: '합격자',
     color: 'text-success',
+    details: [
+      { id: 'h-1', name: '박수진', position: '간호사', salary: '4,100만원', startDate: '2025.02.01', time: '확정' },
+    ],
   },
 };
 
@@ -198,13 +220,16 @@ export default function EmployerHomePage() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactTarget, setContactTarget] = useState<{ name: string } | null>(null);
   const [showActivityDetailModal, setShowActivityDetailModal] = useState(false);
-  const [activityDetailType, setActivityDetailType] = useState<'profileViewed' | 'interviewProposed' | null>(null);
+  const [activityDetailType, setActivityDetailType] = useState<'profileViewed' | 'interviewProposed' | 'aiInterview' | 'faceInterview' | 'offerSent' | 'hired' | null>(null);
 
   // 거절 모달 상태
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<{ id: string; name: string } | null>(null);
-  const [dailyRejectCount, setDailyRejectCount] = useState(3);
+  const [dailyRejectCount, setDailyRejectCount] = useState(0);
   const remainingRejects = DAILY_REJECT_LIMIT - dailyRejectCount;
+
+  // 거절된 후보자 ID 목록 (리스트에서 제거용)
+  const [rejectedCandidates, setRejectedCandidates] = useState<string[]>([]);
 
   // 일정조율 모달 상태
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -240,7 +265,7 @@ export default function EmployerHomePage() {
   };
 
   // 활동 상세 모달 열기
-  const openActivityDetail = (type: 'profileViewed' | 'interviewProposed') => {
+  const openActivityDetail = (type: 'profileViewed' | 'interviewProposed' | 'aiInterview' | 'faceInterview' | 'offerSent' | 'hired') => {
     setActivityDetailType(type);
     setShowActivityDetailModal(true);
   };
@@ -259,7 +284,7 @@ export default function EmployerHomePage() {
   const confirmReject = () => {
     if (rejectTarget) {
       setDailyRejectCount(prev => prev + 1);
-      alert(`${rejectTarget.name}님을 거절했습니다.`);
+      setRejectedCandidates(prev => [...prev, rejectTarget.id]);
     }
     setShowRejectModal(false);
     setRejectTarget(null);
@@ -282,6 +307,14 @@ export default function EmployerHomePage() {
   const ctaBtnSecondary = "flex-1 py-2.5 text-xs bg-info/10 text-info rounded-lg flex items-center justify-center gap-1 min-h-[40px]";
   const ctaBtnDanger = "flex-1 py-2.5 text-xs bg-error/10 text-error rounded-lg flex items-center justify-center gap-1 min-h-[40px]";
   const ctaBtnSuccess = "flex-1 py-2.5 text-xs bg-success/10 text-success rounded-lg flex items-center justify-center gap-1 min-h-[40px]";
+
+  // 거절된 후보자 필터링된 퍼널 데이터
+  const filteredFunnel = {
+    negotiating: funnelCandidates.negotiating.filter(c => !rejectedCandidates.includes(c.id)),
+    faceInterview: funnelCandidates.faceInterview.filter(c => !rejectedCandidates.includes(c.id)),
+    aiInterview: funnelCandidates.aiInterview.filter(c => !rejectedCandidates.includes(c.id)),
+    new: funnelCandidates.new.filter(c => !rejectedCandidates.includes(c.id)),
+  };
 
   return (
     <div className="px-4 py-6 pb-24">
@@ -315,7 +348,7 @@ export default function EmployerHomePage() {
       </div>
 
       {/* 긴급 확인 필요 알림 */}
-      {(funnelCandidates.new.some(c => c.urgent) || funnelCandidates.negotiating.some(c => c.needsAction)) && (
+      {(filteredFunnel.new.some(c => c.urgent) || filteredFunnel.negotiating.some(c => c.needsAction)) && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -327,7 +360,7 @@ export default function EmployerHomePage() {
           </div>
           <div className="space-y-2">
             {/* AI면접 완료 후보자 - 오퍼 단계 */}
-            {funnelCandidates.aiInterview.filter(c => c.status === '완료').map(c => (
+            {filteredFunnel.aiInterview.filter(c => c.status === '완료').map(c => (
               <div key={c.id} className="flex items-center justify-between">
                 <span className="text-sm text-text-primary">
                   <strong>{c.name}</strong>님 AI면접 완료 (점수 {c.aiScore}점) - 오퍼 발송 필요
@@ -341,7 +374,7 @@ export default function EmployerHomePage() {
               </div>
             ))}
             {/* 협상 중 회신 필요 */}
-            {funnelCandidates.negotiating.filter(c => c.needsAction).map(c => (
+            {filteredFunnel.negotiating.filter(c => c.needsAction).map(c => (
               <div key={c.id} className="flex items-center justify-between">
                 <span className="text-sm text-text-primary">
                   <strong>{c.name}</strong>님 협상 회신 필요 - {c.issue}
@@ -382,22 +415,34 @@ export default function EmployerHomePage() {
               <div className="text-2xl font-bold text-info">{recruitmentActivityStats.interviewProposed.count}</div>
               <div className="text-xs text-text-tertiary">인터뷰 제안</div>
             </button>
-            <div className="text-center">
+            <button
+              onClick={() => openActivityDetail('aiInterview')}
+              className="text-center hover:bg-bg-secondary rounded-xl p-2 transition-colors"
+            >
               <div className="text-2xl font-bold text-brand-mint">{recruitmentActivityStats.aiInterviewCompleted.count}</div>
               <div className="text-xs text-text-tertiary">AI인터뷰 수행</div>
-            </div>
-            <div className="text-center">
+            </button>
+            <button
+              onClick={() => openActivityDetail('faceInterview')}
+              className="text-center hover:bg-bg-secondary rounded-xl p-2 transition-colors"
+            >
               <div className="text-2xl font-bold text-brand-mint">{recruitmentActivityStats.faceInterviewCompleted.count}</div>
               <div className="text-xs text-text-tertiary">대면면접 진행</div>
-            </div>
-            <div className="text-center">
+            </button>
+            <button
+              onClick={() => openActivityDetail('offerSent')}
+              className="text-center hover:bg-bg-secondary rounded-xl p-2 transition-colors"
+            >
               <div className="text-2xl font-bold text-warning">{recruitmentActivityStats.offerSent.count}</div>
               <div className="text-xs text-text-tertiary">오퍼 발송</div>
-            </div>
-            <div className="text-center">
+            </button>
+            <button
+              onClick={() => openActivityDetail('hired')}
+              className="text-center hover:bg-bg-secondary rounded-xl p-2 transition-colors"
+            >
               <div className="text-2xl font-bold text-success">{recruitmentActivityStats.hired.count}</div>
               <div className="text-xs text-text-tertiary">합격자</div>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -423,7 +468,7 @@ export default function EmployerHomePage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-warning">{funnelCandidates.negotiating.length}</span>
+                <span className="text-2xl font-bold text-warning">{filteredFunnel.negotiating.length}</span>
                 <ChevronDown className={`w-5 h-5 text-text-tertiary transition-transform ${expandedFunnel === 'negotiating' ? 'rotate-180' : ''}`} />
               </div>
             </button>
@@ -436,7 +481,7 @@ export default function EmployerHomePage() {
                   className="overflow-hidden"
                 >
                   <div className="px-4 pb-4 space-y-2 border-t border-border-light pt-3">
-                    {funnelCandidates.negotiating.map(candidate => (
+                    {filteredFunnel.negotiating.map(candidate => (
                       <div key={candidate.id} className="p-3 bg-bg-secondary rounded-xl">
                         <Link href={`/employer/candidates/${candidate.id}`}>
                           <div className="flex items-center justify-between mb-2 hover:bg-bg-tertiary rounded-lg p-1 -m-1 transition-colors">
@@ -498,7 +543,7 @@ export default function EmployerHomePage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-success">{funnelCandidates.faceInterview.length}</span>
+                <span className="text-2xl font-bold text-success">{filteredFunnel.faceInterview.length}</span>
                 <ChevronDown className={`w-5 h-5 text-text-tertiary transition-transform ${expandedFunnel === 'faceInterview' ? 'rotate-180' : ''}`} />
               </div>
             </button>
@@ -511,7 +556,7 @@ export default function EmployerHomePage() {
                   className="overflow-hidden"
                 >
                   <div className="px-4 pb-4 space-y-2 border-t border-border-light pt-3">
-                    {funnelCandidates.faceInterview.map(candidate => (
+                    {filteredFunnel.faceInterview.map(candidate => (
                       <div key={candidate.id} className="p-3 bg-success/5 border border-success/20 rounded-xl">
                         <Link href={`/employer/candidates/${candidate.id}`}>
                           <div className="flex items-center justify-between mb-2 hover:bg-success/10 rounded-lg p-1 -m-1 transition-colors">
@@ -583,7 +628,7 @@ export default function EmployerHomePage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-info">{funnelCandidates.aiInterview.length}</span>
+                <span className="text-2xl font-bold text-info">{filteredFunnel.aiInterview.length}</span>
                 <ChevronDown className={`w-5 h-5 text-text-tertiary transition-transform ${expandedFunnel === 'aiInterview' ? 'rotate-180' : ''}`} />
               </div>
             </button>
@@ -596,7 +641,7 @@ export default function EmployerHomePage() {
                   className="overflow-hidden"
                 >
                   <div className="px-4 pb-4 space-y-2 border-t border-border-light pt-3">
-                    {funnelCandidates.aiInterview.map(candidate => (
+                    {filteredFunnel.aiInterview.map(candidate => (
                       <div key={candidate.id} className="p-3 bg-bg-secondary rounded-xl">
                         <Link href={`/employer/candidates/${candidate.id}`}>
                           <div className="flex items-center justify-between mb-2 hover:bg-bg-tertiary rounded-lg p-1 -m-1 transition-colors">
@@ -675,7 +720,7 @@ export default function EmployerHomePage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-brand-mint">{funnelCandidates.new.length}</span>
+                <span className="text-2xl font-bold text-brand-mint">{filteredFunnel.new.length}</span>
                 <ChevronDown className={`w-5 h-5 text-text-tertiary transition-transform ${expandedFunnel === 'new' ? 'rotate-180' : ''}`} />
               </div>
             </button>
@@ -688,7 +733,7 @@ export default function EmployerHomePage() {
                   className="overflow-hidden"
                 >
                   <div className="px-4 pb-4 space-y-2 border-t border-border-light pt-3">
-                    {funnelCandidates.new.map(candidate => (
+                    {filteredFunnel.new.map(candidate => (
                       <div key={candidate.id} className="p-3 bg-bg-secondary rounded-xl">
                         <Link href={`/employer/candidates/${candidate.id}`}>
                           <div className="flex items-center justify-between hover:bg-bg-tertiary transition-colors rounded-lg p-2 -m-2 mb-0">
@@ -1434,7 +1479,7 @@ export default function EmployerHomePage() {
         )}
       </AnimatePresence>
 
-      {/* 활동 상세 모달 (프로필 열람 / 인터뷰 제안) */}
+      {/* 활동 상세 모달 (6개 타입 모두 지원) */}
       <AnimatePresence>
         {showActivityDetailModal && activityDetailType && (
           <>
@@ -1453,7 +1498,12 @@ export default function EmployerHomePage() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-text-primary">
-                  {activityDetailType === 'profileViewed' ? '프로필 열람 상세' : '인터뷰 제안 상세'}
+                  {activityDetailType === 'profileViewed' && '프로필 열람 상세'}
+                  {activityDetailType === 'interviewProposed' && '인터뷰 제안 상세'}
+                  {activityDetailType === 'aiInterview' && 'AI인터뷰 수행 상세'}
+                  {activityDetailType === 'faceInterview' && '대면면접 진행 상세'}
+                  {activityDetailType === 'offerSent' && '오퍼 발송 상세'}
+                  {activityDetailType === 'hired' && '합격자 상세'}
                 </h3>
                 <button onClick={() => setShowActivityDetailModal(false)}>
                   <X className="w-5 h-5 text-text-tertiary" />
@@ -1461,6 +1511,7 @@ export default function EmployerHomePage() {
               </div>
 
               <div className="space-y-2">
+                {/* 프로필 열람 */}
                 {activityDetailType === 'profileViewed' && recruitmentActivityStats.profileViewed.details.map((item, index) => (
                   <Link key={item.id} href={`/employer/candidates/${item.id}`}>
                     <motion.div
@@ -1485,6 +1536,7 @@ export default function EmployerHomePage() {
                   </Link>
                 ))}
 
+                {/* 인터뷰 제안 */}
                 {activityDetailType === 'interviewProposed' && recruitmentActivityStats.interviewProposed.details.map((item, index) => (
                   <Link key={item.id} href={`/employer/candidates/${item.id}`}>
                     <motion.div
@@ -1500,6 +1552,115 @@ export default function EmployerHomePage() {
                       <div className="flex items-center gap-2">
                         <span className={`text-sm font-medium ${item.statusColor}`}>{item.status}</span>
                         <span className="text-xs text-text-tertiary">{item.time}</span>
+                      </div>
+                    </motion.div>
+                  </Link>
+                ))}
+
+                {/* AI인터뷰 수행 */}
+                {activityDetailType === 'aiInterview' && recruitmentActivityStats.aiInterviewCompleted.details.map((item, index) => (
+                  <Link key={item.id} href={`/employer/candidates/${item.id}?tab=ai-report`}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className={`p-3 rounded-xl flex items-center justify-between hover:bg-bg-tertiary transition-colors ${
+                        item.status === '진행중' ? 'bg-warning/5 border border-warning/20' : 'bg-bg-secondary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="font-medium text-text-primary">{item.name}</div>
+                        <span className="text-xs text-text-tertiary">{item.position}</span>
+                        {item.status === '완료' && (
+                          <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-brand-mint/10 text-brand-mint">
+                            {item.score}점
+                          </span>
+                        )}
+                        {item.status === '진행중' && (
+                          <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-warning/10 text-warning">
+                            진행중
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-text-tertiary">{item.time}</div>
+                    </motion.div>
+                  </Link>
+                ))}
+
+                {/* 대면면접 진행 */}
+                {activityDetailType === 'faceInterview' && recruitmentActivityStats.faceInterviewCompleted.details.map((item, index) => (
+                  <Link key={item.id} href={`/employer/candidates/${item.id}`}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className={`p-3 rounded-xl flex items-center justify-between hover:bg-bg-tertiary transition-colors ${
+                        item.time === '예정' ? 'bg-success/5 border border-success/20' : 'bg-bg-secondary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="font-medium text-text-primary">{item.name}</div>
+                        <span className="text-xs text-text-tertiary">{item.position}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-text-primary">{item.date}</div>
+                        <div className={`text-xs ${item.time === '예정' ? 'text-success' : 'text-text-tertiary'}`}>
+                          {item.time === '예정' ? '예정' : '완료'}
+                        </div>
+                      </div>
+                    </motion.div>
+                  </Link>
+                ))}
+
+                {/* 오퍼 발송 */}
+                {activityDetailType === 'offerSent' && recruitmentActivityStats.offerSent.details.map((item, index) => (
+                  <Link key={item.id} href={`/employer/candidates/${item.id}`}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className={`p-3 rounded-xl flex items-center justify-between hover:bg-bg-tertiary transition-colors ${
+                        item.status === '협상중' ? 'bg-warning/5 border border-warning/20' : 'bg-bg-secondary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="font-medium text-text-primary">{item.name}</div>
+                        <span className="text-xs text-text-tertiary">{item.position}</span>
+                        <span className="text-xs font-medium text-expert-navy">{item.salary}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                          item.status === '협상중' ? 'bg-warning/10 text-warning' : 'bg-info/10 text-info'
+                        }`}>{item.status}</span>
+                        <span className="text-xs text-text-tertiary">{item.time}</span>
+                      </div>
+                    </motion.div>
+                  </Link>
+                ))}
+
+                {/* 합격자 */}
+                {activityDetailType === 'hired' && recruitmentActivityStats.hired.details.map((item, index) => (
+                  <Link key={item.id} href={`/employer/candidates/${item.id}`}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      className="p-3 rounded-xl bg-success/5 border border-success/20 hover:bg-success/10 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-4 h-4 text-success" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-text-primary">{item.name}</div>
+                            <div className="text-xs text-text-tertiary">{item.position}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium text-success">{item.salary}</div>
+                          <div className="text-xs text-text-tertiary">입사일: {item.startDate}</div>
+                        </div>
                       </div>
                     </motion.div>
                   </Link>

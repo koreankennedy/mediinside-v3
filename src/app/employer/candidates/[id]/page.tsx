@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -410,7 +410,14 @@ const skillLevelLabels: Record<SkillLevel, string> = {
 export default function CandidateDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const candidateId = params.id as string;
+
+  // URL에서 탭 쿼리 파라미터 읽기
+  const tabParam = searchParams.get('tab');
+  const initialTab = (tabParam === 'ai-report' || tabParam === 'compare' || tabParam === 'review')
+    ? tabParam as 'ai-report' | 'compare' | 'review'
+    : 'profile';
 
   // URL ID에 따라 후보자 기본 정보 조회
   const candidateBase = candidateDataMap[candidateId] || defaultCandidateBase;
@@ -426,7 +433,14 @@ export default function CandidateDetailPage() {
     location: candidateBase.location,
   };
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'compare' | 'review' | 'ai-report'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'compare' | 'review' | 'ai-report'>(initialTab);
+
+  // URL 변경 시 탭 업데이트
+  useEffect(() => {
+    if (tabParam === 'ai-report' || tabParam === 'compare' || tabParam === 'review') {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
   const [showContactInfo, setShowContactInfo] = useState(false);
   const [isInterested, setIsInterested] = useState(displayCandidate.isInterested);
   const [showProposal, setShowProposal] = useState(false);

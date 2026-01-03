@@ -139,11 +139,19 @@ function MatchingCenterContent() {
   const [allowancePercent, setAllowancePercent] = useState(mockHiringProductSettings.hiringProducts.allowance.value);
 
   // 거절 관련 상태
-  const [dailyRejectCount, setDailyRejectCount] = useState(3);
+  const [dailyRejectCount, setDailyRejectCount] = useState(0);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectCandidate, setRejectCandidate] = useState<typeof mockNewMatchingCandidates[0] | null>(null);
   const [droppedCandidates, setDroppedCandidates] = useState<string[]>([]);
   const remainingRejects = DAILY_REJECT_LIMIT - dailyRejectCount;
+
+  // AI 매칭 모달 상태
+  const [showAIMatchingModal, setShowAIMatchingModal] = useState(false);
+  const [aiMatchingProgress, setAIMatchingProgress] = useState(0);
+  const [aiMatchingProfiles, setAIMatchingProfiles] = useState<string[]>([]);
+
+  // 전체매칭리스트 탭 필터
+  const [allMatchingFilter, setAllMatchingFilter] = useState('all');
 
   // URL 파라미터 변경 시 탭 업데이트
   useEffect(() => {
@@ -197,6 +205,50 @@ function MatchingCenterContent() {
     alert(`${candidate.name}님에게 AI 인터뷰를 요청했습니다.`);
   };
 
+  // AI 매칭 시작
+  const startAIMatching = () => {
+    setShowAIMatchingModal(true);
+    setAIMatchingProgress(0);
+    setAIMatchingProfiles([]);
+
+    // 매칭할 후보자 이름 목록
+    const candidateNames = ['김서연', '이민지', '박지현', '최은수', '정수민', '강하나', '윤서영', '한예진'];
+    let profileIndex = 0;
+
+    // 1초마다 프로필 롤링 (5초 동안)
+    const profileInterval = setInterval(() => {
+      if (profileIndex < candidateNames.length && aiMatchingProgress < 100) {
+        setAIMatchingProfiles(prev => [...prev.slice(-2), candidateNames[profileIndex]]);
+        profileIndex++;
+      }
+    }, 600);
+
+    // 진행률 업데이트
+    const progressInterval = setInterval(() => {
+      setAIMatchingProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          clearInterval(profileInterval);
+          // 5초 후 자동 닫기 및 신규매칭 리스트로 이동
+          setTimeout(() => {
+            setShowAIMatchingModal(false);
+            setActiveTab('new-matching');
+          }, 1000);
+          return 100;
+        }
+        return prev + 20;
+      });
+    }, 1000);
+  };
+
+  // 전체매칭리스트용 탭 데이터
+  const allMatchingTabs = [
+    { id: 'all', label: '전체', count: 10 },
+    { id: 'negotiating', label: '협상중', count: 2 },
+    { id: 'interview', label: '대면면접 예정', count: 4 },
+    { id: 'ai-interview', label: 'AI인터뷰', count: 4 },
+  ];
+
   return (
     <div className="px-4 py-6 pb-24">
       {/* Header */}
@@ -239,6 +291,33 @@ function MatchingCenterContent() {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-6"
           >
+            {/* 기존 채용공고 안내 */}
+            <div className="bg-success/10 border border-success/20 rounded-2xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-success">기존 채용공고 설정 완료</div>
+                  <div className="text-xs text-text-secondary mt-0.5">피부과 간호사 (380~450만원) · 정규직</div>
+                </div>
+                <Link href="/employer/jobs/1/edit">
+                  <button className="text-xs text-success underline">수정</button>
+                </Link>
+              </div>
+            </div>
+
+            {/* 신규상품 설정 헤더 */}
+            <div className="bg-gradient-to-r from-brand-mint/10 to-info/10 rounded-2xl p-4 border border-brand-mint/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-5 h-5 text-brand-mint" />
+                <h2 className="text-lg font-bold text-text-primary">신규상품 설정</h2>
+              </div>
+              <p className="text-sm text-text-secondary">
+                새로운 채용 조건을 설정하고 AI 매칭을 시작하세요
+              </p>
+            </div>
+
             {/* 근로조건 설정 */}
             <div className="bg-white rounded-2xl border border-border-light p-4">
               <h2 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
@@ -514,10 +593,19 @@ function MatchingCenterContent() {
               </p>
             </div>
 
-            {/* 저장 버튼 */}
-            <button className="w-full py-4 bg-expert-navy text-white rounded-xl font-bold text-lg hover:bg-expert-navy/90 transition-colors">
-              설정 저장하기
-            </button>
+            {/* 설정 저장 + 신규매칭 받기 버튼 */}
+            <div className="space-y-3">
+              <button className="w-full py-4 bg-bg-secondary text-text-secondary rounded-xl font-medium text-lg hover:bg-bg-tertiary transition-colors border border-border-light">
+                설정 저장하기
+              </button>
+              <button
+                onClick={startAIMatching}
+                className="w-full py-4 bg-gradient-to-r from-brand-mint to-info text-white rounded-xl font-bold text-lg hover:opacity-90 transition-all flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-5 h-5" />
+                신규매칭 받기
+              </button>
+            </div>
           </motion.div>
         )}
 
@@ -734,35 +822,24 @@ function MatchingCenterContent() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            {/* 요약 카드 */}
-            <div className="bg-expert-navy/5 rounded-2xl p-4 mb-4 border border-expert-navy/10">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-text-secondary">이번 주 채용 활동</div>
-                  <div className="text-lg font-bold text-expert-navy mt-1">
-                    제안 8건 · 응답 5건 · 면접 2건
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-expert-navy/10 rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-expert-navy" />
-                </div>
-              </div>
-            </div>
-
-            {/* 상태별 탭 */}
+            {/* 상태별 탭 - 협상중 강조 */}
             <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
-              {employerMatchingStatusTabs.map((tab) => (
+              {allMatchingTabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
+                  onClick={() => setAllMatchingFilter(tab.id)}
                   className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-all ${
-                    statusFilter === tab.id
-                      ? 'bg-expert-navy text-white'
-                      : 'bg-bg-secondary text-text-secondary'
+                    allMatchingFilter === tab.id
+                      ? tab.id === 'negotiating'
+                        ? 'bg-warning text-white'
+                        : 'bg-expert-navy text-white'
+                      : tab.id === 'negotiating'
+                        ? 'bg-warning/10 text-warning border border-warning/20'
+                        : 'bg-bg-secondary text-text-secondary'
                   }`}
                 >
                   {tab.label}
-                  <span className={`ml-1 ${statusFilter === tab.id ? 'text-white/70' : 'text-text-tertiary'}`}>
+                  <span className={`ml-1 ${allMatchingFilter === tab.id ? 'text-white/70' : 'text-text-tertiary'}`}>
                     {tab.count}
                   </span>
                 </button>
@@ -773,10 +850,11 @@ function MatchingCenterContent() {
             <div className="space-y-4">
               {mockCandidates.filter(c => {
                 if (droppedCandidates.includes(c.id)) return false;
-                if (statusFilter === 'all') return true;
-                return c.status === statusFilter;
+                if (allMatchingFilter === 'all') return true;
+                return c.status === allMatchingFilter;
               }).map((candidate, index) => {
                 const status = statusConfig[candidate.status] || statusConfig.new;
+                const isNegotiating = candidate.status === 'negotiating';
 
                 return (
                   <motion.div
@@ -784,7 +862,11 @@ function MatchingCenterContent() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-white rounded-2xl p-4 border border-border-light"
+                    className={`rounded-2xl p-4 border ${
+                      isNegotiating
+                        ? 'bg-warning/5 border-warning/30 ring-2 ring-warning/20'
+                        : 'bg-white border-border-light'
+                    }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.bgColor} ${status.color}`}>
@@ -911,6 +993,92 @@ function MatchingCenterContent() {
                   거절하기
                 </button>
               </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* AI 매칭 모달 */}
+      <AnimatePresence>
+        {showAIMatchingModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/70 z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-expert-navy to-expert-navy/90 rounded-2xl p-6 z-50 max-w-sm mx-auto text-center"
+            >
+              <div className="mb-6">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                  className="w-16 h-16 mx-auto mb-4 relative"
+                >
+                  <div className="absolute inset-0 rounded-full border-4 border-brand-mint/30" />
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-brand-mint" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-brand-mint" />
+                  </div>
+                </motion.div>
+                <h3 className="text-xl font-bold text-white mb-2">AI 매칭 분석 중...</h3>
+                <p className="text-white/70 text-sm">
+                  최적의 후보자를 찾고 있어요
+                </p>
+              </div>
+
+              {/* 프로필 롤링 */}
+              <div className="bg-white/10 rounded-xl p-4 mb-6 min-h-[80px]">
+                <div className="text-xs text-white/60 mb-2">분석 중인 프로필</div>
+                <AnimatePresence mode="popLayout">
+                  {aiMatchingProfiles.slice(-3).map((name, idx) => (
+                    <motion.div
+                      key={name + idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: idx === aiMatchingProfiles.slice(-3).length - 1 ? 1 : 0.5, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="flex items-center gap-2 py-1 justify-center"
+                    >
+                      <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                        <Users className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-white font-medium">{name}</span>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {/* 진행률 */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between text-sm text-white/70 mb-2">
+                  <span>진행률</span>
+                  <span>{aiMatchingProgress}%</span>
+                </div>
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${aiMatchingProgress}%` }}
+                    className="h-full bg-gradient-to-r from-brand-mint to-info rounded-full"
+                  />
+                </div>
+              </div>
+
+              {aiMatchingProgress >= 100 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center"
+                >
+                  <CheckCircle className="w-12 h-12 text-brand-mint mx-auto mb-2" />
+                  <p className="text-brand-mint font-medium">매칭 완료!</p>
+                  <p className="text-white/60 text-sm mt-1">8명의 새로운 후보자를 찾았어요</p>
+                </motion.div>
+              )}
             </motion.div>
           </>
         )}
