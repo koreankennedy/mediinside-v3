@@ -884,8 +884,8 @@ export default function JobEditPage() {
         </AnimatePresence>
       </div>
 
-      {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border-light px-4 pt-4 pb-[calc(2rem+env(safe-area-inset-bottom))] z-20">
+      {/* Bottom Action Bar - 하단 네비게이션 위에 위치 */}
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 bg-white border-t border-border-light px-4 py-3 z-20">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}

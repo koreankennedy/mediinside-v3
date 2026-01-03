@@ -21,6 +21,78 @@ import {
   Send,
 } from 'lucide-react';
 
+import { mockAIInterviewResults } from '@/lib/mock/data';
+
+// AI 인터뷰 리포트 생성 함수
+const generateReport = (name: string, experience: string, aiScore: number, matchRate: number, recommendation: string) => {
+  const recMap: Record<string, { label: string; color: string }> = {
+    'highly_recommended': { label: '적극 추천', color: 'text-brand-mint' },
+    'recommended': { label: '추천', color: 'text-info' },
+    'normal': { label: '보통', color: 'text-warning' },
+    'hold': { label: '보류', color: 'text-text-tertiary' },
+    'drop': { label: '드랍', color: 'text-error' },
+  };
+  const rec = recMap[recommendation] || { label: '보통', color: 'text-warning' };
+
+  return {
+    name,
+    position: '간호사',
+    experience: `경력 ${experience}`,
+    matchScore: matchRate,
+    interviewDuration: `${Math.floor(Math.random() * 20) + 25}분`,
+    totalScore: aiScore,
+    recommendation: rec.label,
+    recommendationColor: rec.color,
+    summary: `${name} 후보자는 ${experience}의 경력을 보유하고 있으며, AI 인터뷰를 통해 전문성과 열정을 확인했습니다. 특히 환자 케어와 팀워크에 뛰어난 능력을 보입니다.`,
+    categoryScores: [
+      { name: '경력 적합도', score: Math.min(aiScore + Math.floor(Math.random() * 10) - 5, 100), color: aiScore >= 90 ? 'bg-brand-mint' : 'bg-info' },
+      { name: '전문 기술', score: Math.min(aiScore + Math.floor(Math.random() * 10) - 5, 100), color: aiScore >= 90 ? 'bg-brand-mint' : 'bg-info' },
+      { name: '입사 의지', score: Math.min(aiScore + Math.floor(Math.random() * 10) - 5, 100), color: 'bg-brand-mint' },
+      { name: '조직 적합도', score: Math.min(aiScore + Math.floor(Math.random() * 10) - 5, 100), color: 'bg-brand-mint' },
+      { name: '의사소통', score: Math.min(aiScore + Math.floor(Math.random() * 10) - 5, 100), color: 'bg-brand-mint' },
+    ],
+    strengths: [
+      '풍부한 임상 경험',
+      '팀워크와 협업 능력이 우수함',
+      '학습 의지가 강하고 성장 잠재력이 높음',
+    ],
+    concerns: [
+      '야근에 대한 부담감 표현',
+      '급여 협상 여지가 필요할 수 있음',
+    ],
+    keyQA: [
+      {
+        question: '이전 직장에서 가장 성취감을 느꼈던 경험은?',
+        answer: '어려운 케이스를 성공적으로 해결한 경험이 있습니다. 환자분의 만족도가 높았고, 동료들로부터도 인정받았습니다.',
+        insight: '환자 케어에 대한 책임감과 전문성이 높음',
+      },
+      {
+        question: '우리 병원에서 기대하는 것은?',
+        answer: '최신 장비와 체계적인 시스템을 갖춘 곳에서 전문성을 더욱 발전시키고 싶습니다.',
+        insight: '명확한 커리어 목표와 성장 의지',
+      },
+      {
+        question: '야근이나 주말 근무에 대한 생각은?',
+        answer: '필요한 경우 가능하지만, 워라밸도 중요하게 생각합니다. 적절한 보상이 있다면 긍정적으로 검토하겠습니다.',
+        insight: '업무 강도에 대한 현실적인 기대치',
+      },
+    ],
+  };
+};
+
+// mockAIInterviewResults에서 리포트 데이터 자동 생성
+const generateReportsFromMockData = () => {
+  const reports: Record<string, ReturnType<typeof generateReport>> = {};
+  mockAIInterviewResults.forEach((result) => {
+    if (result.status === 'completed' && result.aiScore && result.matchRate && result.recommendation) {
+      reports[result.id] = generateReport(result.name, result.experience, result.aiScore, result.matchRate, result.recommendation);
+    }
+  });
+  return reports;
+};
+
+const dynamicReports = generateReportsFromMockData();
+
 // AI 인터뷰 리포트 목업 데이터
 const aiReportData: Record<string, {
   name: string;
@@ -37,6 +109,7 @@ const aiReportData: Record<string, {
   concerns: string[];
   keyQA: { question: string; answer: string; insight: string }[];
 }> = {
+  ...dynamicReports,
   'aic-1': {
     name: '정민지',
     position: '간호사',

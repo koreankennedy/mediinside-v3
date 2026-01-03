@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   Users,
@@ -115,6 +115,7 @@ const workHourOptions = [
 
 function MatchingCenterContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialTab = searchParams.get('tab') || 'product-settings';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -156,6 +157,7 @@ function MatchingCenterContent() {
   const [droppedCandidates, setDroppedCandidates] = useState<string[]>([]);
   const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
   const [rejectReason, setRejectReason] = useState('');
+  const [showViralLoopModal, setShowViralLoopModal] = useState(false);
 
   // AI 매칭 모달 상태
   const [showAIMatchingModal, setShowAIMatchingModal] = useState(false);
@@ -238,7 +240,7 @@ function MatchingCenterContent() {
   // 거절 처리 - 글로벌 훅 사용
   const handleReject = (candidate: typeof mockNewMatchingCandidates[0]) => {
     if (!canReject) {
-      alert('오늘의 거절 한도(10회)에 도달했습니다.');
+      setShowViralLoopModal(true);
       return;
     }
     setRejectCandidate(candidate);
@@ -930,7 +932,7 @@ function MatchingCenterContent() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    onClick={() => setSelectedCandidate(candidate)}
+                    onClick={() => router.push(`/employer/candidates/${candidate.id}`)}
                     className="bg-white rounded-2xl p-4 border border-border-light cursor-pointer hover:shadow-card transition-all"
                   >
                     {/* 상태 배지 */}
@@ -1115,7 +1117,8 @@ function MatchingCenterContent() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`rounded-2xl p-4 border ${
+                    onClick={() => router.push(`/employer/candidates/${candidate.id}`)}
+                    className={`rounded-2xl p-4 border cursor-pointer hover:shadow-card transition-all ${
                       isNegotiating
                         ? 'bg-warning/5 border-warning/30 ring-2 ring-warning/20'
                         : 'bg-white border-border-light'
@@ -1217,10 +1220,12 @@ function MatchingCenterContent() {
                       )}
                       {candidate.status === 'negotiating' && (
                         <>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
-                            <Calendar className="w-3 h-3" />
-                            면접
-                          </button>
+                          <Link href={`/employer/ai-interview/report/${candidate.id}`} className="flex-1" onClick={(e) => e.stopPropagation()}>
+                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-brand-mint text-white rounded-lg min-h-[40px]">
+                              <FileText className="w-3 h-3" />
+                              AI리포트
+                            </button>
+                          </Link>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1229,8 +1234,8 @@ function MatchingCenterContent() {
                             }}
                             className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-match-gold text-white rounded-lg min-h-[40px]"
                           >
-                            <DollarSign className="w-3 h-3" />
-                            오퍼하기
+                            <Send className="w-3 h-3" />
+                            오퍼발송
                           </button>
                           <button
                             onClick={(e) => {
@@ -1962,6 +1967,116 @@ function MatchingCenterContent() {
                   적용하기
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 거절 횟수 소진 - 바이럴 루프 모달 */}
+      <AnimatePresence>
+        {showViralLoopModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Lock className="w-8 h-8 text-warning" />
+                </div>
+                <h3 className="text-lg font-bold mb-2">오늘 거절 횟수를 모두 사용했어요</h3>
+                <p className="text-sm text-text-secondary">
+                  아래 활동을 하면 거절 횟수가 초기화돼요!
+                </p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <button
+                  onClick={() => {
+                    setShowViralLoopModal(false);
+                    alert('프로필 업데이트 페이지로 이동합니다.');
+                  }}
+                  className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-brand-mint" />
+                    </div>
+                    <div>
+                      <div className="font-semibold">병원 프로필 완성하기</div>
+                      <div className="text-xs text-text-secondary">프로필을 완성하면 거절 횟수 초기화</div>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowViralLoopModal(false);
+                    alert('친구 초대 링크가 복사되었습니다.');
+                  }}
+                  className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-info/10 rounded-full flex items-center justify-center">
+                      <UserPlus className="w-5 h-5 text-info" />
+                    </div>
+                    <div>
+                      <div className="font-semibold">동료 원장님 초대하기</div>
+                      <div className="text-xs text-text-secondary">동료를 초대하고 함께 혜택을 받으세요</div>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowViralLoopModal(false);
+                    alert('구직자 초대 링크가 복사되었습니다.');
+                  }}
+                  className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-success/10 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-success" />
+                    </div>
+                    <div>
+                      <div className="font-semibold">구직자 추천하기</div>
+                      <div className="text-xs text-text-secondary">구직자를 추천하고 혜택을 받으세요</div>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowViralLoopModal(false);
+                    alert('채용 공고가 공유되었습니다.');
+                  }}
+                  className="w-full p-4 border border-border-light rounded-xl text-left hover:border-brand-mint transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-warning/10 rounded-full flex items-center justify-center">
+                      <Share2 className="w-5 h-5 text-warning" />
+                    </div>
+                    <div>
+                      <div className="font-semibold">채용공고 공유하기</div>
+                      <div className="text-xs text-text-secondary">공고를 공유하고 더 많은 지원을 받으세요</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <button
+                onClick={() => setShowViralLoopModal(false)}
+                className="w-full py-3 text-text-secondary text-sm"
+              >
+                다음에 할게요
+              </button>
             </motion.div>
           </motion.div>
         )}

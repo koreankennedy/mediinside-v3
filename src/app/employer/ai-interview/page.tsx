@@ -166,6 +166,42 @@ export default function AIInterviewPage() {
   const [viewMode, setViewMode] = useState<'dashboard' | 'workflow'>('dashboard');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // 면접/거절 모달 상태
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<typeof mockAIInterviewResults[0] | null>(null);
+  const [selectedRejectReasons, setSelectedRejectReasons] = useState<string[]>([]);
+
+  const handleInterview = (candidate: typeof mockAIInterviewResults[0], e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedCandidate(candidate);
+    setShowInterviewModal(true);
+  };
+
+  const handleReject = (candidate: typeof mockAIInterviewResults[0], e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedCandidate(candidate);
+    setSelectedRejectReasons([]);
+    setShowRejectModal(true);
+  };
+
+  const confirmInterview = () => {
+    if (selectedCandidate) {
+      alert(`${selectedCandidate.name}님과의 대면면접이 예약되었습니다.`);
+      setShowInterviewModal(false);
+      setSelectedCandidate(null);
+    }
+  };
+
+  const confirmReject = () => {
+    if (selectedCandidate) {
+      alert(`${selectedCandidate.name}님을 거절했습니다.`);
+      setShowRejectModal(false);
+      setSelectedCandidate(null);
+      setSelectedRejectReasons([]);
+    }
+  };
+
   const employerSteps = workflowSteps.filter((s) => s.forEmployer);
 
   // 필터링된 인터뷰 결과
@@ -408,14 +444,14 @@ export default function AIInterviewPage() {
                           </button>
                         </Link>
                         <button
-                          onClick={(e) => { e.stopPropagation(); alert(`${result.name}님의 대면면접 일정을 잡습니다.`); }}
+                          onClick={(e) => handleInterview(result, e)}
                           className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg font-medium min-h-[40px]"
                         >
                           <Calendar className="w-3 h-3" />
                           면접
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); alert(`${result.name}님을 거절합니다.`); }}
+                          onClick={(e) => handleReject(result, e)}
                           className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg font-medium min-h-[40px]"
                         >
                           <X className="w-3 h-3" />
@@ -583,6 +619,136 @@ export default function AIInterviewPage() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* 면접 예약 모달 */}
+      <AnimatePresence>
+        {showInterviewModal && selectedCandidate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Calendar className="w-7 h-7 text-success" />
+                </div>
+                <h3 className="text-lg font-bold">{selectedCandidate.name}</h3>
+                <p className="text-sm text-text-secondary">대면 면접을 예약하시겠어요?</p>
+              </div>
+
+              <div className="bg-bg-secondary rounded-xl p-4 mb-4">
+                <div className="text-sm text-text-secondary mb-2">AI 인터뷰 결과</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-text-primary">AI 평가 점수</span>
+                  <span className="text-lg font-bold text-brand-mint">{selectedCandidate.aiScore || 85}점</span>
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-sm font-medium text-text-primary">매칭률</span>
+                  <span className="text-lg font-bold text-info">{selectedCandidate.matchRate || 90}%</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={confirmInterview}
+                  className="btn-primary w-full"
+                >
+                  면접 예약하기
+                </button>
+                <button
+                  onClick={() => {
+                    setShowInterviewModal(false);
+                    setSelectedCandidate(null);
+                  }}
+                  className="w-full py-3 text-text-secondary text-sm"
+                >
+                  취소
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 거절 모달 */}
+      <AnimatePresence>
+        {showRejectModal && selectedCandidate && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-white rounded-2xl p-6"
+            >
+              <div className="text-center mb-5">
+                <div className="w-14 h-14 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <X className="w-7 h-7 text-error" />
+                </div>
+                <h3 className="text-lg font-bold">{selectedCandidate.name}</h3>
+                <p className="text-sm text-text-secondary">이 후보자를 거절하시겠어요?</p>
+              </div>
+
+              {/* 거절 사유 선택 */}
+              <div className="mb-4">
+                <p className="text-sm font-medium text-text-primary mb-2">거절 사유 선택</p>
+                <div className="flex flex-wrap gap-2">
+                  {['적합도 부족', '경력 미달', '급여 조건', '출근 가능일', '기타'].map((reason) => (
+                    <button
+                      key={reason}
+                      onClick={() => {
+                        if (selectedRejectReasons.includes(reason)) {
+                          setSelectedRejectReasons(prev => prev.filter(r => r !== reason));
+                        } else {
+                          setSelectedRejectReasons(prev => [...prev, reason]);
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        selectedRejectReasons.includes(reason)
+                          ? 'bg-error text-white'
+                          : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+                      }`}
+                    >
+                      {reason}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={confirmReject}
+                  disabled={selectedRejectReasons.length === 0}
+                  className="w-full py-3 bg-error text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  거절하기
+                </button>
+                <button
+                  onClick={() => {
+                    setShowRejectModal(false);
+                    setSelectedCandidate(null);
+                    setSelectedRejectReasons([]);
+                  }}
+                  className="w-full py-3 text-text-secondary text-sm"
+                >
+                  취소
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
