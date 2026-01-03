@@ -40,16 +40,55 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// 후보자 상세 데이터 맵 (URL ID에 따라 다른 데이터 표시)
+const candidateDataMap: Record<string, { name: string; age: number; licenseType: string; experience: string; matchScore: number; location: string }> = {
+  // 프로필 열람 후보자
+  'pv-1': { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' },
+  'pv-2': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '서초구 거주' },
+  'pv-3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
+  'pv-4': { name: '정혜원', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 90, location: '강남구 거주' },
+  'pv-5': { name: '최지영', age: 32, licenseType: '간호사', experience: '6년차', matchScore: 88, location: '용산구 거주' },
+  'pv-6': { name: '강민경', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 92, location: '마포구 거주' },
+  'pv-7': { name: '윤서연', age: 28, licenseType: '간호사', experience: '3년차', matchScore: 89, location: '성동구 거주' },
+  'pv-8': { name: '서지은', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 87, location: '강동구 거주' },
+  'pv-9': { name: '홍수민', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 85, location: '영등포구 거주' },
+  'pv-10': { name: '장미라', age: 27, licenseType: '간호조무사', experience: '3년차', matchScore: 84, location: '구로구 거주' },
+  // 인터뷰 제안 후보자
+  'ip-1': { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' },
+  'ip-2': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '서초구 거주' },
+  'ip-3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
+  'ip-4': { name: '정혜원', age: 26, licenseType: '간호사', experience: '2년차', matchScore: 90, location: '강남구 거주' },
+  'ip-5': { name: '최지영', age: 32, licenseType: '간호사', experience: '6년차', matchScore: 88, location: '용산구 거주' },
+  'ip-6': { name: '강민경', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 92, location: '마포구 거주' },
+  'ip-7': { name: '윤서연', age: 28, licenseType: '간호사', experience: '3년차', matchScore: 89, location: '성동구 거주' },
+  'ip-8': { name: '서지은', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 87, location: '강동구 거주' },
+  // 퍼널 후보자
+  'neg-1': { name: '김서현', age: 31, licenseType: '간호사', experience: '7년차', matchScore: 95, location: '강남구 거주' },
+  'face-1': { name: '최수민', age: 28, licenseType: '간호사', experience: '4년차', matchScore: 90, location: '서초구 거주' },
+  'ai-1': { name: '정민지', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 88, location: '송파구 거주' },
+  'ai-2': { name: '강은비', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 85, location: '강동구 거주' },
+  'new-1': { name: '김하은', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 94, location: '강남구 거주' },
+  'new-2': { name: '이지민', age: 29, licenseType: '간호사', experience: '5년차', matchScore: 91, location: '서초구 거주' },
+  'new-3': { name: '박소연', age: 25, licenseType: '간호조무사', experience: '2년차', matchScore: 88, location: '송파구 거주' },
+  // 기존 ID 지원 (숫자 ID)
+  '1': { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' },
+  '2': { name: '이은정', age: 27, licenseType: '간호사', experience: '3년차', matchScore: 92, location: '서초구 거주' },
+  '3': { name: '박수진', age: 30, licenseType: '간호사', experience: '5년차', matchScore: 89, location: '송파구 거주' },
+};
+
+// 기본 후보자 데이터 (ID에 해당하는 데이터가 없을 때)
+const defaultCandidateBase = { name: '김미진', age: 29, licenseType: '간호사', experience: '4년차', matchScore: 95, location: '강남구 거주' };
+
 // 후보자 상세 데이터
 const candidateData = {
   id: 1,
-  name: '한소희',
-  age: 28,
+  name: '김미진',
+  age: 29,
   licenseType: '간호사',
-  experience: '3년차',
+  experience: '4년차',
   fitType: 'achiever',
   fitTypeLabel: '하이엔드 성과자',
-  matchScore: 94,
+  matchScore: 95,
   location: '강남구 거주',
   phone: '010-****-5678',
   email: 'han****@email.com',
@@ -371,9 +410,25 @@ const skillLevelLabels: Record<SkillLevel, string> = {
 export default function CandidateDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const candidateId = params.id as string;
+
+  // URL ID에 따라 후보자 기본 정보 조회
+  const candidateBase = candidateDataMap[candidateId] || defaultCandidateBase;
+
+  // 실제 표시할 데이터 (candidateData에 동적 데이터 오버라이드)
+  const displayCandidate = {
+    ...candidateData,
+    name: candidateBase.name,
+    age: candidateBase.age,
+    licenseType: candidateBase.licenseType,
+    experience: candidateBase.experience,
+    matchScore: candidateBase.matchScore,
+    location: candidateBase.location,
+  };
+
   const [activeTab, setActiveTab] = useState<'profile' | 'compare' | 'review' | 'ai-report'>('profile');
   const [showContactInfo, setShowContactInfo] = useState(false);
-  const [isInterested, setIsInterested] = useState(candidateData.isInterested);
+  const [isInterested, setIsInterested] = useState(displayCandidate.isInterested);
   const [showProposal, setShowProposal] = useState(false);
 
   // 조건 비교 함수
@@ -388,7 +443,7 @@ export default function CandidateDetailPage() {
   };
 
   const salaryCompare = compareCondition(
-    candidateData.preferences.salary.min,
+    displayCandidate.preferences.salary.min,
     hospitalConditions.salary.min,
     hospitalConditions.salary.max
   );
@@ -477,29 +532,29 @@ export default function CandidateDetailPage() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-xl font-bold text-text-primary">{candidateData.name}</h1>
+                  <h1 className="text-xl font-bold text-text-primary">{displayCandidate.name}</h1>
                   <span className="text-xs bg-brand-mint/10 text-brand-mint px-2 py-0.5 rounded">
-                    {candidateData.fitTypeLabel}
+                    {displayCandidate.fitTypeLabel}
                   </span>
                 </div>
                 <div className="text-sm text-text-secondary">
-                  {candidateData.licenseType} · {candidateData.experience}
+                  {displayCandidate.licenseType} · {displayCandidate.experience}
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <MapPin className="w-3 h-3 text-text-tertiary" />
-                  <span className="text-xs text-text-tertiary">{candidateData.location}</span>
+                  <span className="text-xs text-text-tertiary">{displayCandidate.location}</span>
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-brand-mint">{candidateData.matchScore}%</div>
+                <div className="text-3xl font-bold text-brand-mint">{displayCandidate.matchScore}%</div>
                 <div className="text-xs text-text-tertiary">매칭</div>
               </div>
             </div>
 
-            <p className="text-sm text-text-secondary mb-4">{candidateData.summary}</p>
+            <p className="text-sm text-text-secondary mb-4">{displayCandidate.summary}</p>
 
             <div className="flex flex-wrap gap-2">
-              {candidateData.strengths.map((strength, i) => (
+              {displayCandidate.strengths.map((strength, i) => (
                 <span
                   key={i}
                   className="text-xs bg-success/10 text-success px-2 py-1 rounded"
@@ -522,7 +577,7 @@ export default function CandidateDetailPage() {
               경력
             </h2>
             <div className="space-y-3">
-              {candidateData.careers.map((career, index) => (
+              {displayCandidate.careers.map((career, index) => (
                 <div key={index} className="relative pl-4 border-l-2 border-border-light">
                   <div className={`absolute -left-1.5 top-0 w-3 h-3 rounded-full ${
                     career.isCurrent ? 'bg-brand-mint' : 'bg-bg-tertiary'
@@ -552,7 +607,7 @@ export default function CandidateDetailPage() {
               보유 술기
             </h2>
             <div className="space-y-2">
-              {candidateData.skills.map((skill, index) => (
+              {displayCandidate.skills.map((skill, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <span className="text-sm text-text-primary">{skill.name}</span>
                   <span className={`text-xs px-2 py-1 rounded ${skillLevelColors[skill.level]}`}>
@@ -581,7 +636,7 @@ export default function CandidateDetailPage() {
                   <span className="text-sm text-text-secondary">희망 연봉</span>
                 </div>
                 <span className="text-sm font-medium text-text-primary">
-                  {candidateData.preferences.salary.min}~{candidateData.preferences.salary.max}만원
+                  {displayCandidate.preferences.salary.min}~{displayCandidate.preferences.salary.max}만원
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -589,14 +644,14 @@ export default function CandidateDetailPage() {
                   <Briefcase className="w-4 h-4 text-text-tertiary" />
                   <span className="text-sm text-text-secondary">근무 형태</span>
                 </div>
-                <span className="text-sm font-medium text-text-primary">{candidateData.preferences.workType}</span>
+                <span className="text-sm font-medium text-text-primary">{displayCandidate.preferences.workType}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-text-tertiary" />
                   <span className="text-sm text-text-secondary">근무 시간</span>
                 </div>
-                <span className="text-sm font-medium text-text-primary">{candidateData.preferences.workHours}</span>
+                <span className="text-sm font-medium text-text-primary">{displayCandidate.preferences.workHours}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -604,7 +659,7 @@ export default function CandidateDetailPage() {
                   <span className="text-sm text-text-secondary">희망 지역</span>
                 </div>
                 <span className="text-sm font-medium text-text-primary">
-                  {candidateData.preferences.regions.join(', ')}
+                  {displayCandidate.preferences.regions.join(', ')}
                 </span>
               </div>
             </div>
@@ -625,8 +680,8 @@ export default function CandidateDetailPage() {
               <div>
                 <div className="text-sm text-white/70">AI 면접 종합 점수</div>
                 <div className="flex items-baseline gap-2">
-                  <div className="text-4xl font-bold">{candidateData.aiInterview.totalScore}점</div>
-                  <span className="text-xl font-bold text-match-gold">{candidateData.aiInterview.grade}</span>
+                  <div className="text-4xl font-bold">{displayCandidate.aiInterview.totalScore}점</div>
+                  <span className="text-xl font-bold text-match-gold">{displayCandidate.aiInterview.grade}</span>
                 </div>
                 <div className="text-sm text-white/60 mt-1">상위 {100 - candidateData.aiInterview.percentile}%</div>
               </div>
@@ -643,11 +698,11 @@ export default function CandidateDetailPage() {
             <div className="flex items-center gap-4 text-sm text-white/80">
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {candidateData.aiInterview.duration}
+                {displayCandidate.aiInterview.duration}
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {candidateData.aiInterview.completedAt}
+                {displayCandidate.aiInterview.completedAt}
               </div>
             </div>
           </motion.div>
@@ -657,11 +712,11 @@ export default function CandidateDetailPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className={`rounded-2xl p-4 border ${candidateData.aiInterview.hiringRecommendation.recommend ? 'bg-success/5 border-success/20' : 'bg-warning/5 border-warning/20'}`}
+            className={`rounded-2xl p-4 border ${displayCandidate.aiInterview.hiringRecommendation.recommend ? 'bg-success/5 border-success/20' : 'bg-warning/5 border-warning/20'}`}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${candidateData.aiInterview.hiringRecommendation.recommend ? 'bg-success/10' : 'bg-warning/10'}`}>
-                {candidateData.aiInterview.hiringRecommendation.recommend ? (
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${displayCandidate.aiInterview.hiringRecommendation.recommend ? 'bg-success/10' : 'bg-warning/10'}`}>
+                {displayCandidate.aiInterview.hiringRecommendation.recommend ? (
                   <ThumbsUp className="w-6 h-6 text-success" />
                 ) : (
                   <AlertCircle className="w-6 h-6 text-warning" />
@@ -669,20 +724,20 @@ export default function CandidateDetailPage() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className={`font-bold ${candidateData.aiInterview.hiringRecommendation.recommend ? 'text-success' : 'text-warning'}`}>
-                    {candidateData.aiInterview.hiringRecommendation.recommend ? '채용 추천' : '보류 권장'}
+                  <span className={`font-bold ${displayCandidate.aiInterview.hiringRecommendation.recommend ? 'text-success' : 'text-warning'}`}>
+                    {displayCandidate.aiInterview.hiringRecommendation.recommend ? '채용 추천' : '보류 권장'}
                   </span>
                   <span className="text-xs bg-white px-2 py-0.5 rounded-full text-text-secondary">
-                    신뢰도 {candidateData.aiInterview.hiringRecommendation.confidence}%
+                    신뢰도 {displayCandidate.aiInterview.hiringRecommendation.confidence}%
                   </span>
                 </div>
-                <p className="text-sm text-text-secondary">{candidateData.aiInterview.hiringRecommendation.summary}</p>
+                <p className="text-sm text-text-secondary">{displayCandidate.aiInterview.hiringRecommendation.summary}</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="text-xs bg-white px-2 py-1 rounded text-text-secondary">
-                    추천 역할: {candidateData.aiInterview.hiringRecommendation.suggestedRole}
+                    추천 역할: {displayCandidate.aiInterview.hiringRecommendation.suggestedRole}
                   </span>
                   <span className="text-xs bg-white px-2 py-1 rounded text-text-secondary">
-                    예상 적응기간: {candidateData.aiInterview.hiringRecommendation.expectedAdaptation}
+                    예상 적응기간: {displayCandidate.aiInterview.hiringRecommendation.expectedAdaptation}
                   </span>
                 </div>
               </div>
@@ -708,15 +763,15 @@ export default function CandidateDetailPage() {
                   candidateData.aiInterview.personalityAnalysis.workStyle.preferredIntensity === 'middle' ? 'bg-warning/10 text-warning' :
                   'bg-error/10 text-error'
                 }`}>
-                  {candidateData.aiInterview.personalityAnalysis.workStyle.intensityLabel}
+                  {displayCandidate.aiInterview.personalityAnalysis.workStyle.intensityLabel}
                 </span>
               </div>
-              <p className="text-xs text-text-secondary">{candidateData.aiInterview.personalityAnalysis.workStyle.description}</p>
+              <p className="text-xs text-text-secondary">{displayCandidate.aiInterview.personalityAnalysis.workStyle.description}</p>
             </div>
             <div>
               <span className="text-sm font-medium text-text-primary block mb-2">선호 채용상품</span>
               <div className="flex gap-2">
-                {candidateData.aiInterview.personalityAnalysis.workStyle.preferredProducts.map((product) => {
+                {displayCandidate.aiInterview.personalityAnalysis.workStyle.preferredProducts.map((product) => {
                   const productMap: Record<string, { label: string; color: string; icon: string }> = {
                     share: { label: '매출 셰어', color: '#FF2D55', icon: '💰' },
                     bonus: { label: '근속 보너스', color: '#AF52DE', icon: '🎁' },
@@ -824,11 +879,11 @@ export default function CandidateDetailPage() {
             </h2>
             <div className="bg-info/5 rounded-xl p-3 mb-4">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium text-info">{candidateData.aiInterview.personalityAnalysis.fitTypeLabel}</span>
+                <span className="text-sm font-medium text-info">{displayCandidate.aiInterview.personalityAnalysis.fitTypeLabel}</span>
               </div>
             </div>
             <div className="space-y-3">
-              {candidateData.aiInterview.personalityAnalysis.traits.map((trait, index) => (
+              {displayCandidate.aiInterview.personalityAnalysis.traits.map((trait, index) => (
                 <div key={index}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-text-secondary">{trait.name}</span>
@@ -853,10 +908,10 @@ export default function CandidateDetailPage() {
             <h2 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-warning" />
               스트레스 대응력
-              <span className="text-sm font-bold text-brand-mint ml-auto">{candidateData.aiInterview.stressAnalysis.overallScore}점</span>
+              <span className="text-sm font-bold text-brand-mint ml-auto">{displayCandidate.aiInterview.stressAnalysis.overallScore}점</span>
             </h2>
             <div className="space-y-2">
-              {candidateData.aiInterview.stressAnalysis.scenarios.map((scenario, idx) => (
+              {displayCandidate.aiInterview.stressAnalysis.scenarios.map((scenario, idx) => (
                 <div key={idx} className="bg-bg-secondary rounded-lg p-3">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-medium text-text-primary">{scenario.situation}</span>
@@ -878,12 +933,12 @@ export default function CandidateDetailPage() {
             <h2 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-success" />
               성장 잠재력
-              <span className="text-sm font-bold text-success ml-auto">{candidateData.aiInterview.growthPotential.score}점</span>
+              <span className="text-sm font-bold text-success ml-auto">{displayCandidate.aiInterview.growthPotential.score}점</span>
             </h2>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="bg-success/5 rounded-xl p-3">
                 <div className="text-xs text-text-tertiary mb-2">강점</div>
-                {candidateData.aiInterview.growthPotential.strengths.map((s, i) => (
+                {displayCandidate.aiInterview.growthPotential.strengths.map((s, i) => (
                   <div key={i} className="flex items-center gap-1 text-xs text-success mb-1">
                     <CheckCircle className="w-3 h-3" />{s}
                   </div>
@@ -891,7 +946,7 @@ export default function CandidateDetailPage() {
               </div>
               <div className="bg-warning/5 rounded-xl p-3">
                 <div className="text-xs text-text-tertiary mb-2">개발 영역</div>
-                {candidateData.aiInterview.growthPotential.areas.map((a, i) => (
+                {displayCandidate.aiInterview.growthPotential.areas.map((a, i) => (
                   <div key={i} className="flex items-center gap-1 text-xs text-warning mb-1">
                     <AlertCircle className="w-3 h-3" />{a}
                   </div>
@@ -903,7 +958,7 @@ export default function CandidateDetailPage() {
                 <Sparkles className="w-3 h-3" />
                 <span className="font-medium">AI 추천</span>
               </div>
-              <p className="text-xs text-text-secondary mt-1">{candidateData.aiInterview.growthPotential.recommendation}</p>
+              <p className="text-xs text-text-secondary mt-1">{displayCandidate.aiInterview.growthPotential.recommendation}</p>
             </div>
           </motion.div>
 
@@ -917,10 +972,10 @@ export default function CandidateDetailPage() {
             <h2 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
               <Users className="w-5 h-5 text-expert-navy" />
               조직 문화 적합도
-              <span className="text-sm font-bold text-brand-mint ml-auto">{candidateData.aiInterview.cultureFit.score}%</span>
+              <span className="text-sm font-bold text-brand-mint ml-auto">{displayCandidate.aiInterview.cultureFit.score}%</span>
             </h2>
             <div className="space-y-2">
-              {candidateData.aiInterview.cultureFit.matchingFactors.map((factor, idx) => (
+              {displayCandidate.aiInterview.cultureFit.matchingFactors.map((factor, idx) => (
                 <div key={idx}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-text-secondary">{factor.factor}</span>
@@ -946,17 +1001,17 @@ export default function CandidateDetailPage() {
               AI 종합 인사이트
             </h2>
             <div className="space-y-2">
-              {candidateData.aiInterview.aiInsights.map((insight, index) => (
+              {displayCandidate.aiInterview.aiInsights.map((insight, index) => (
                 <div key={index} className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-brand-mint flex-shrink-0 mt-0.5" />
                   <span className="text-sm text-text-secondary">{insight}</span>
                 </div>
               ))}
             </div>
-            {candidateData.aiInterview.concerns.length > 0 && (
+            {displayCandidate.aiInterview.concerns.length > 0 && (
               <div className="mt-3 pt-3 border-t border-brand-mint/20">
                 <div className="text-xs text-text-tertiary mb-2">유의 사항</div>
-                {candidateData.aiInterview.concerns.map((concern, index) => (
+                {displayCandidate.aiInterview.concerns.map((concern, index) => (
                   <div key={index} className="flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
                     <span className="text-sm text-text-secondary">{concern}</span>
@@ -975,10 +1030,10 @@ export default function CandidateDetailPage() {
           >
             <h2 className="font-semibold text-text-primary mb-4 flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-info" />
-              면접 대화 기록 ({candidateData.aiInterview.conversationSummary.length}개 문항)
+              면접 대화 기록 ({displayCandidate.aiInterview.conversationSummary.length}개 문항)
             </h2>
             <div className="space-y-4">
-              {candidateData.aiInterview.conversationSummary.map((conv, index) => (
+              {displayCandidate.aiInterview.conversationSummary.map((conv, index) => (
                 <div key={index} className="border-l-2 border-info/30 pl-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs bg-info/10 text-info px-2 py-0.5 rounded font-medium">
@@ -1021,7 +1076,7 @@ export default function CandidateDetailPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="text-sm text-white/70">종합 매칭 점수</div>
-                <div className="text-4xl font-bold">{candidateData.matchScore}%</div>
+                <div className="text-4xl font-bold">{displayCandidate.matchScore}%</div>
               </div>
               <div className="w-20 h-20 relative">
                 <svg className="w-full h-full -rotate-90">
@@ -1082,7 +1137,7 @@ export default function CandidateDetailPage() {
                   <div>
                     <span className="text-text-tertiary">후보자 희망: </span>
                     <span className="font-medium text-text-primary">
-                      {candidateData.preferences.salary.min}~{candidateData.preferences.salary.max}만원
+                      {displayCandidate.preferences.salary.min}~{displayCandidate.preferences.salary.max}만원
                     </span>
                   </div>
                   <div>
@@ -1105,7 +1160,7 @@ export default function CandidateDetailPage() {
                 <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="text-text-tertiary">후보자 희망: </span>
-                    <span className="font-medium text-text-primary">{candidateData.preferences.workType}</span>
+                    <span className="font-medium text-text-primary">{displayCandidate.preferences.workType}</span>
                   </div>
                   <div>
                     <span className="text-text-tertiary">우리 병원: </span>
@@ -1125,7 +1180,7 @@ export default function CandidateDetailPage() {
                 <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="text-text-tertiary">후보자 희망: </span>
-                    <span className="font-medium text-text-primary">{candidateData.preferences.workHours}</span>
+                    <span className="font-medium text-text-primary">{displayCandidate.preferences.workHours}</span>
                   </div>
                   <div>
                     <span className="text-text-tertiary">우리 병원: </span>
@@ -1145,7 +1200,7 @@ export default function CandidateDetailPage() {
                 <div className="flex items-center justify-between text-xs">
                   <div>
                     <span className="text-text-tertiary">후보자 희망: </span>
-                    <span className="font-medium text-text-primary">{candidateData.preferences.regions.join(', ')}</span>
+                    <span className="font-medium text-text-primary">{displayCandidate.preferences.regions.join(', ')}</span>
                   </div>
                   <div>
                     <span className="text-text-tertiary">우리 병원: </span>
@@ -1250,7 +1305,7 @@ export default function CandidateDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-4 text-xs text-text-secondary">
-              <span>{candidateData.peerReviews.length}개의 리뷰</span>
+              <span>{displayCandidate.peerReviews.length}개의 리뷰</span>
               <span>·</span>
               <span className="flex items-center gap-1 text-success">
                 <CheckCircle className="w-3 h-3" />
@@ -1261,7 +1316,7 @@ export default function CandidateDetailPage() {
 
           {/* 리뷰 목록 */}
           <div className="space-y-3">
-            {candidateData.peerReviews.map((review, index) => {
+            {displayCandidate.peerReviews.map((review, index) => {
               const reviewTypeConfig: Record<string, { bg: string; text: string; label: string }> = {
                 director: { bg: 'bg-expert-navy/10', text: 'text-expert-navy', label: '원장 리뷰' },
                 supervisor: { bg: 'bg-brand-mint/10', text: 'text-brand-mint', label: '상급자 리뷰' },
@@ -1374,14 +1429,14 @@ export default function CandidateDetailPage() {
                     <Phone className="w-4 h-4 text-text-tertiary" />
                     <span className="text-sm text-text-secondary">전화번호</span>
                   </div>
-                  <span className="text-sm font-medium text-text-primary">{candidateData.phone}</span>
+                  <span className="text-sm font-medium text-text-primary">{displayCandidate.phone}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl">
                   <div className="flex items-center gap-2">
                     <MessageCircle className="w-4 h-4 text-text-tertiary" />
                     <span className="text-sm text-text-secondary">이메일</span>
                   </div>
-                  <span className="text-sm font-medium text-text-primary">{candidateData.email}</span>
+                  <span className="text-sm font-medium text-text-primary">{displayCandidate.email}</span>
                 </div>
               </div>
               <p className="text-xs text-text-tertiary mt-4">
@@ -1430,7 +1485,7 @@ export default function CandidateDetailPage() {
                     placeholder="후보자에게 전할 메시지를 입력하세요..."
                     rows={3}
                     className="w-full px-3 py-3 bg-bg-secondary rounded-xl text-sm resize-none"
-                    defaultValue={`안녕하세요, ${candidateData.name}님. 저희 병원에서 ${candidateData.name}님의 프로필을 보고 연락드립니다.`}
+                    defaultValue={`안녕하세요, ${displayCandidate.name}님. 저희 병원에서 ${displayCandidate.name}님의 프로필을 보고 연락드립니다.`}
                   />
                 </div>
               </div>

@@ -1569,7 +1569,7 @@ function ProfileContent() {
           className="w-full bg-expert-navy text-white py-4 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg"
         >
           <Eye className="w-5 h-5" />
-          후보자에게 보이는 프로필 미리보기
+          프로필 미리보기
         </button>
       </div>
 
@@ -1828,6 +1828,32 @@ function ProfileContent() {
                   </p>
                 </div>
 
+                {/* 업무환경 (근무 환경) - 순서 변경: 기본정보 → 병원소개 → 업무환경 */}
+                <div className="bg-white rounded-2xl p-4 border border-border-light">
+                  <h2 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-info" />
+                    업무환경
+                  </h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-bg-secondary rounded-lg p-3">
+                      <div className="text-xs text-text-tertiary mb-1">근무 형태</div>
+                      <div className="text-sm font-medium text-text-primary">주 5일 근무</div>
+                    </div>
+                    <div className="bg-bg-secondary rounded-lg p-3">
+                      <div className="text-xs text-text-tertiary mb-1">근무 시간</div>
+                      <div className="text-sm font-medium text-text-primary">09:00 - 18:00</div>
+                    </div>
+                    <div className="bg-bg-secondary rounded-lg p-3">
+                      <div className="text-xs text-text-tertiary mb-1">점심 시간</div>
+                      <div className="text-sm font-medium text-text-primary">1시간</div>
+                    </div>
+                    <div className="bg-bg-secondary rounded-lg p-3">
+                      <div className="text-xs text-text-tertiary mb-1">야근 빈도</div>
+                      <div className="text-sm font-medium text-success">거의 없음</div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* 복리후생 */}
                 <div className="bg-white rounded-2xl p-4 border border-border-light">
                   <h2 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
@@ -1858,32 +1884,6 @@ function ProfileContent() {
                         </div>
                       );
                     })}
-                  </div>
-                </div>
-
-                {/* 근무 환경 */}
-                <div className="bg-white rounded-2xl p-4 border border-border-light">
-                  <h2 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-info" />
-                    근무 환경
-                  </h2>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-bg-secondary rounded-lg p-3">
-                      <div className="text-xs text-text-tertiary mb-1">근무 형태</div>
-                      <div className="text-sm font-medium text-text-primary">주 5일 근무</div>
-                    </div>
-                    <div className="bg-bg-secondary rounded-lg p-3">
-                      <div className="text-xs text-text-tertiary mb-1">근무 시간</div>
-                      <div className="text-sm font-medium text-text-primary">09:00 - 18:00</div>
-                    </div>
-                    <div className="bg-bg-secondary rounded-lg p-3">
-                      <div className="text-xs text-text-tertiary mb-1">점심 시간</div>
-                      <div className="text-sm font-medium text-text-primary">1시간</div>
-                    </div>
-                    <div className="bg-bg-secondary rounded-lg p-3">
-                      <div className="text-xs text-text-tertiary mb-1">야근 빈도</div>
-                      <div className="text-sm font-medium text-success">거의 없음</div>
-                    </div>
                   </div>
                 </div>
 

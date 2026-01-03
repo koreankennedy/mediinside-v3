@@ -696,9 +696,9 @@ function MatchingCenterContent() {
                           e.stopPropagation();
                           handleAIInterviewRequest(candidate);
                         }}
-                        className="flex-1 flex items-center justify-center gap-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium"
+                        className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]"
                       >
-                        <Sparkles className="w-4 h-4" />
+                        <Sparkles className="w-3 h-3" />
                         AI인터뷰 요청
                       </button>
                       <button
@@ -706,10 +706,10 @@ function MatchingCenterContent() {
                           e.stopPropagation();
                           handleReject(candidate);
                         }}
-                        className="flex items-center justify-center gap-1 px-4 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg font-medium hover:bg-error/10 hover:text-error transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]"
                       >
-                        <X className="w-4 h-4" />
-                        거절
+                        <X className="w-3 h-3" />
+                        거절하기
                       </button>
                     </div>
                   </motion.div>
@@ -822,30 +822,30 @@ function MatchingCenterContent() {
                     <div className="flex gap-2 pt-3 border-t border-border-light">
                       {candidate.status === 'new' && (
                         <>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2 text-sm bg-expert-navy text-white rounded-lg font-medium">
-                            <Send className="w-4 h-4" />
+                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]">
+                            <Send className="w-3 h-3" />
                             제안하기
                           </button>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2 text-sm bg-error/10 text-error rounded-lg font-medium">
-                            <Heart className="w-4 h-4" />
-                            관심
+                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-error/10 text-error rounded-lg min-h-[40px]">
+                            <Heart className="w-3 h-3" />
+                            관심표시
                           </button>
                         </>
                       )}
                       {candidate.status === 'proposed' && (
-                        <div className="flex-1 text-center text-sm text-info bg-info/10 py-2 rounded-lg font-medium">
-                          <Clock className="w-4 h-4 inline mr-1" />
+                        <div className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs text-info bg-info/10 rounded-lg min-h-[40px]">
+                          <Clock className="w-3 h-3" />
                           응답 대기 중...
                         </div>
                       )}
                       {candidate.status === 'negotiating' && (
                         <>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2 text-sm bg-warning text-white rounded-lg font-medium">
-                            <DollarSign className="w-4 h-4" />
+                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-warning text-white rounded-lg min-h-[40px]">
+                            <DollarSign className="w-3 h-3" />
                             협상 상세
                           </button>
-                          <button className="flex-1 flex items-center justify-center gap-1 py-2 text-sm bg-success text-white rounded-lg font-medium">
-                            <Calendar className="w-4 h-4" />
+                          <button className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs bg-success text-white rounded-lg min-h-[40px]">
+                            <Calendar className="w-3 h-3" />
                             면접 잡기
                           </button>
                         </>
@@ -853,13 +853,13 @@ function MatchingCenterContent() {
                       {candidate.status === 'interview' && (
                         <>
                           <Link href={`/employer/ai-interview/copilot?id=${candidate.id}`} className="flex-1">
-                            <button className="w-full flex items-center justify-center gap-1 py-2 text-sm bg-expert-navy text-white rounded-lg font-medium">
-                              <Sparkles className="w-4 h-4" />
+                            <button className="w-full flex items-center justify-center gap-1 py-2.5 text-xs bg-expert-navy text-white rounded-lg min-h-[40px]">
+                              <Sparkles className="w-3 h-3" />
                               면접 코파일럿
                             </button>
                           </Link>
-                          <div className="flex-1 flex items-center justify-center gap-1 py-2 text-sm text-success bg-success/10 rounded-lg font-medium">
-                            <Calendar className="w-4 h-4" />
+                          <div className="flex-1 flex items-center justify-center gap-1 py-2.5 text-xs text-success bg-success/10 rounded-lg min-h-[40px]">
+                            <Calendar className="w-3 h-3" />
                             내일 14:00
                           </div>
                         </>
