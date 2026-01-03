@@ -33,16 +33,17 @@ import {
   Award,
   Heart,
 } from 'lucide-react';
+import { mockJobPostings } from '@/lib/mock/data';
 
-// 채용 공고 데이터
-const jobData = {
+// 기본 채용 공고 데이터 (mockJobPostings에서 찾지 못할 경우 사용)
+const defaultJobData = {
   id: 1,
   title: '피부과 간호사',
   department: '피부과',
   position: '일반 간호사',
   status: 'active',
   createdAt: '2024-12-01',
-  views: 234,
+  views: 245,
   applications: 12,
   matchedCandidates: 8,
   conditions: {
@@ -161,6 +162,33 @@ const matchedData = [
 export default function JobEditPage() {
   const router = useRouter();
   const params = useParams();
+
+  // mockJobPostings에서 해당 공고 찾기
+  const jobId = params.id as string;
+  const mockJob = mockJobPostings.find(j => j.id === `job-${jobId}`);
+
+  // mockJobPostings 데이터와 연동된 jobData
+  const jobData = {
+    ...defaultJobData,
+    id: mockJob ? parseInt(jobId) : 1,
+    title: mockJob?.title || defaultJobData.title,
+    department: mockJob?.department || defaultJobData.department,
+    position: mockJob?.position || defaultJobData.position,
+    status: mockJob?.status || defaultJobData.status,
+    views: mockJob?.views || defaultJobData.views,
+    applications: mockJob?.applicants || defaultJobData.applications,
+    matchedCandidates: mockJob?.aiRecommended || defaultJobData.matchedCandidates,
+    conditions: {
+      ...defaultJobData.conditions,
+      workHours: mockJob?.workHours ? mockJob.workHours.replace('~', '-') : defaultJobData.conditions.workHours,
+      salary: {
+        min: mockJob?.salaryRange ? parseInt(mockJob.salaryRange.split('~')[0]) : defaultJobData.conditions.salary.min,
+        max: mockJob?.salaryRange ? parseInt(mockJob.salaryRange.split('~')[1]) : defaultJobData.conditions.salary.max,
+        negotiable: true,
+      },
+    },
+  };
+
   const [expandedSection, setExpandedSection] = useState<string | null>('basic');
   const [showAIPanel, setShowAIPanel] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
