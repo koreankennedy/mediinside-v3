@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   ArrowLeft,
   Save,
@@ -135,6 +136,28 @@ const editSections = [
   { id: 'benefits', label: '복리후생', icon: Heart },
 ];
 
+// 지원자/조회자/매칭후보 상세 데이터
+const viewersData = [
+  { id: 1, name: '김미진', type: '간호사', time: '3분 13초', matchScore: 95 },
+  { id: 2, name: '이은정', type: '간호사', time: '2분 1초', matchScore: 92 },
+  { id: 3, name: '박수진', type: '간호사', time: '2분 54초', matchScore: 89 },
+  { id: 4, name: '정혜원', type: '간호사', time: '3분 24초', matchScore: 90 },
+  { id: 5, name: '최지영', type: '간호사', time: '1분 20초', matchScore: 88 },
+];
+
+const applicantsData = [
+  { id: 1, name: '김민지', type: '간호사', experience: '3년', matchScore: 94, status: '서류심사' },
+  { id: 2, name: '이서연', type: '간호사', experience: '5년', matchScore: 91, status: '면접예정' },
+  { id: 3, name: '박지현', type: '간호사', experience: '4년', matchScore: 88, status: '서류심사' },
+];
+
+const matchedData = [
+  { id: 1, name: '김민지', type: '간호사', experience: '3년', matchScore: 94, insight: 'AI 매칭 최적화 후보' },
+  { id: 2, name: '이서연', type: '간호사', experience: '5년', matchScore: 91, insight: '경력 우수' },
+  { id: 3, name: '박지현', type: '간호사', experience: '4년', matchScore: 88, insight: '즉시 출근 가능' },
+  { id: 4, name: '정민지', type: '간호사', experience: '2년', matchScore: 86, insight: '성장 잠재력' },
+];
+
 export default function JobEditPage() {
   const router = useRouter();
   const params = useParams();
@@ -144,6 +167,9 @@ export default function JobEditPage() {
   const [appliedSuggestions, setAppliedSuggestions] = useState<number[]>([]);
   const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // 상세 모달 상태
+  const [activeStatModal, setActiveStatModal] = useState<'views' | 'applicants' | 'matched' | null>(null);
 
   // 수정 가능한 데이터
   const [formData, setFormData] = useState({
@@ -308,9 +334,9 @@ export default function JobEditPage() {
       </div>
 
       <div className="flex">
-        {/* Main Content */}
-        <div className={`flex-1 px-4 py-4 space-y-4 ${showAIPanel ? 'pr-2' : ''}`}>
-          {/* 공고 현황 카드 */}
+        {/* Main Content - AI패널 표시시 축소 */}
+        <div className={`px-4 py-4 space-y-4 ${showAIPanel ? 'w-[45%] pr-2' : 'flex-1'}`}>
+          {/* 공고 현황 카드 - 클릭 가능한 통계 */}
           <div className="bg-white rounded-2xl p-4 border border-border-light">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -323,18 +349,27 @@ export default function JobEditPage() {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
+              <button
+                onClick={() => setActiveStatModal('views')}
+                className="text-center p-3 rounded-xl hover:bg-expert-navy/5 transition-colors cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-expert-navy">{jobData.views}</div>
                 <div className="text-xs text-text-secondary">조회수</div>
-              </div>
-              <div className="text-center">
+              </button>
+              <button
+                onClick={() => setActiveStatModal('applicants')}
+                className="text-center p-3 rounded-xl hover:bg-brand-mint/10 transition-colors cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-brand-mint">{jobData.applications}</div>
                 <div className="text-xs text-text-secondary">지원자</div>
-              </div>
-              <div className="text-center">
+              </button>
+              <button
+                onClick={() => setActiveStatModal('matched')}
+                className="text-center p-3 rounded-xl hover:bg-match-gold/10 transition-colors cursor-pointer"
+              >
                 <div className="text-2xl font-bold text-match-gold">{jobData.matchedCandidates}</div>
                 <div className="text-xs text-text-secondary">매칭 후보</div>
-              </div>
+              </button>
             </div>
           </div>
 
@@ -665,12 +700,12 @@ export default function JobEditPage() {
           ))}
         </div>
 
-        {/* AI Panel */}
+        {/* AI Panel - 확대된 영역 (55%) */}
         <AnimatePresence>
           {showAIPanel && (
             <motion.div
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 320, opacity: 1 }}
+              animate={{ width: '55%', opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               className="bg-white border-l border-border-light overflow-hidden"
             >
@@ -932,6 +967,120 @@ export default function JobEditPage() {
                     ))}
                   </ul>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 통계 상세 모달 */}
+      <AnimatePresence>
+        {activeStatModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+            onClick={() => setActiveStatModal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-hidden"
+            >
+              <div className="sticky top-0 bg-white border-b border-border-light px-4 py-4 flex items-center justify-between">
+                <h2 className="font-bold text-text-primary">
+                  {activeStatModal === 'views' && '프로필 열람 상세'}
+                  {activeStatModal === 'applicants' && '지원자 상세'}
+                  {activeStatModal === 'matched' && '매칭 후보 상세'}
+                </h2>
+                <button
+                  onClick={() => setActiveStatModal(null)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-bg-secondary"
+                >
+                  <X className="w-5 h-5 text-text-secondary" />
+                </button>
+              </div>
+              <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+                {/* 조회수 상세 */}
+                {activeStatModal === 'views' && viewersData.map((viewer) => (
+                  <Link
+                    key={viewer.id}
+                    href={`/employer/candidates/viewer-${viewer.id}`}
+                    className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl hover:bg-bg-tertiary transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-expert-navy/10 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-expert-navy" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-text-primary">{viewer.name}</div>
+                        <div className="text-xs text-text-secondary">{viewer.type} · 열람 {viewer.time}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-brand-mint">{viewer.matchScore}%</div>
+                      <div className="text-xs text-text-tertiary">매칭</div>
+                    </div>
+                  </Link>
+                ))}
+
+                {/* 지원자 상세 */}
+                {activeStatModal === 'applicants' && applicantsData.map((applicant) => (
+                  <Link
+                    key={applicant.id}
+                    href={`/employer/candidates/applicant-${applicant.id}`}
+                    className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl hover:bg-bg-tertiary transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-brand-mint/10 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-brand-mint" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-text-primary">{applicant.name}</div>
+                        <div className="text-xs text-text-secondary">{applicant.type} · {applicant.experience}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-brand-mint">{applicant.matchScore}%</div>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-info/10 text-info">{applicant.status}</span>
+                    </div>
+                  </Link>
+                ))}
+
+                {/* 매칭 후보 상세 */}
+                {activeStatModal === 'matched' && matchedData.map((matched) => (
+                  <Link
+                    key={matched.id}
+                    href={`/employer/candidates/matched-${matched.id}`}
+                    className="flex items-center justify-between p-3 bg-bg-secondary rounded-xl hover:bg-bg-tertiary transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-match-gold/10 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-match-gold" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-text-primary">{matched.name}</div>
+                        <div className="text-xs text-text-secondary">{matched.type} · {matched.experience}</div>
+                        <div className="text-xs text-brand-mint mt-0.5">{matched.insight}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-match-gold">{matched.matchScore}%</div>
+                      <div className="text-xs text-text-tertiary">매칭</div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              <div className="border-t border-border-light p-4">
+                <button
+                  onClick={() => setActiveStatModal(null)}
+                  className="w-full py-3 bg-expert-navy text-white rounded-xl font-medium"
+                >
+                  닫기
+                </button>
               </div>
             </motion.div>
           </motion.div>

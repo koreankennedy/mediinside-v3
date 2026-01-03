@@ -41,6 +41,8 @@ import {
   Zap,
   Eye,
   AlertCircle,
+  Brain,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   mockCandidates,
@@ -339,78 +341,155 @@ function MatchingCenterContent() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-4"
               >
-                {/* 기존 채용공고 #1 */}
-                <div className="bg-white rounded-2xl border border-border-light p-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-success" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-text-primary">피부과 간호사</div>
-                      <div className="text-xs text-text-secondary mt-0.5">380~450만원 · 정규직</div>
-                    </div>
-                    <span className="px-2 py-1 bg-success/10 text-success text-xs rounded-full">활성</span>
+                {/* 헤더 + 우측 공고 필터 */}
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-text-secondary">
+                    등록된 공고 <strong className="text-text-primary">2건</strong>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-text-tertiary">근무시간</span>
-                      <span className="text-text-primary">09:00 - 18:00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-tertiary">채용상품</span>
-                      <div className="flex gap-1">
-                        <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF2D55' }}>💰 매출 셰어</span>
-                        <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#AF52DE' }}>🎁 근속 보너스</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-border-light">
-                    <Link href="/employer/jobs/1/edit" className="flex-1">
-                      <button className="w-full py-2.5 text-sm border border-expert-navy text-expert-navy rounded-lg font-medium">
-                        조건 수정
-                      </button>
-                    </Link>
-                    <button className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium">
-                      상세 보기
-                    </button>
+                  <div className="relative">
+                    <select className="px-3 py-1.5 pr-8 border border-border-light rounded-lg text-sm bg-white text-text-primary appearance-none">
+                      <option value="all">전체</option>
+                      <option value="active">활성</option>
+                      <option value="pending">마감 임박</option>
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary pointer-events-none" />
                   </div>
                 </div>
 
-                {/* 기존 채용공고 #2 */}
-                <div className="bg-white rounded-2xl border border-border-light p-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-info/20 rounded-full flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-info" />
+                {/* 기존 채용공고 #1 - 피부과 간호사 */}
+                <Link href="/employer/jobs/1/edit" className="block">
+                  <div className="bg-white rounded-2xl border border-border-light p-4 hover:shadow-card transition-all cursor-pointer">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-success" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-text-primary">피부과 간호사</div>
+                        <div className="text-xs text-text-secondary mt-0.5">380~450만원 · 정규직</div>
+                      </div>
+                      <span className="px-2 py-1 bg-success/10 text-success text-xs rounded-full">활성</span>
                     </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-text-primary">성형외과 간호사</div>
-                      <div className="text-xs text-text-secondary mt-0.5">400~500만원 · 정규직</div>
+
+                    {/* AI 분석 요약 */}
+                    <div className="bg-gradient-to-r from-brand-mint/5 to-info/5 rounded-xl p-3 mb-3 border border-brand-mint/10">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Brain className="w-3.5 h-3.5 text-brand-mint" />
+                        <span className="text-xs font-medium text-brand-mint">AI 분석 요약</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <div className="text-lg font-bold text-expert-navy">245</div>
+                          <div className="text-[10px] text-text-tertiary">조회수</div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-brand-mint">12</div>
+                          <div className="text-[10px] text-text-tertiary">지원자</div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-info">8</div>
+                          <div className="text-[10px] text-text-tertiary">AI 추천</div>
+                        </div>
+                      </div>
                     </div>
-                    <span className="px-2 py-1 bg-info/10 text-info text-xs rounded-full">D-7</span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-text-tertiary">근무시간</span>
-                      <span className="text-text-primary">10:00 - 19:00</span>
+
+                    {/* AI 인사이트 */}
+                    <div className="bg-warning/5 rounded-lg p-2.5 mb-3">
+                      <div className="flex items-start gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-warning flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-text-secondary leading-relaxed">
+                          급여 범위를 +10% 높이면 <strong className="text-warning">지원율 25% 증가</strong> 예상
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-text-tertiary">채용상품</span>
-                      <div className="flex gap-1">
-                        <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF9500' }}>💵 수당 보장</span>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-text-tertiary">근무시간</span>
+                        <span className="text-text-primary">09:00 - 18:00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-tertiary">채용상품</span>
+                        <div className="flex gap-1">
+                          <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF2D55' }}>💰 매출 셰어</span>
+                          <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#AF52DE' }}>🎁 근속 보너스</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4 pt-3 border-t border-border-light">
+                      <div className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium text-center flex items-center justify-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        상세 보기
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4 pt-4 border-t border-border-light">
-                    <Link href="/employer/jobs/2/edit" className="flex-1">
-                      <button className="w-full py-2.5 text-sm border border-expert-navy text-expert-navy rounded-lg font-medium">
-                        조건 수정
-                      </button>
-                    </Link>
-                    <button className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium">
-                      상세 보기
-                    </button>
+                </Link>
+
+                {/* 기존 채용공고 #2 - 피부과 간호조무사 (같은 분과) */}
+                <Link href="/employer/jobs/2/edit" className="block">
+                  <div className="bg-white rounded-2xl border border-border-light p-4 hover:shadow-card transition-all cursor-pointer">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-warning/20 rounded-full flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-warning" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-text-primary">피부과 간호조무사</div>
+                        <div className="text-xs text-text-secondary mt-0.5">320~380만원 · 정규직</div>
+                      </div>
+                      <span className="px-2 py-1 bg-warning/10 text-warning text-xs rounded-full font-medium">D-7</span>
+                    </div>
+
+                    {/* AI 분석 요약 */}
+                    <div className="bg-gradient-to-r from-brand-mint/5 to-info/5 rounded-xl p-3 mb-3 border border-brand-mint/10">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Brain className="w-3.5 h-3.5 text-brand-mint" />
+                        <span className="text-xs font-medium text-brand-mint">AI 분석 요약</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div>
+                          <div className="text-lg font-bold text-expert-navy">156</div>
+                          <div className="text-[10px] text-text-tertiary">조회수</div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-brand-mint">8</div>
+                          <div className="text-[10px] text-text-tertiary">지원자</div>
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-info">5</div>
+                          <div className="text-[10px] text-text-tertiary">AI 추천</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AI 인사이트 - 마감 임박 */}
+                    <div className="bg-error/5 rounded-lg p-2.5 mb-3">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-error flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-text-secondary leading-relaxed">
+                          <strong className="text-error">마감 임박</strong> - 후보자 제안을 서둘러 주세요
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-text-tertiary">근무시간</span>
+                        <span className="text-text-primary">10:00 - 19:00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-tertiary">채용상품</span>
+                        <div className="flex gap-1">
+                          <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF9500' }}>💵 수당 보장</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4 pt-3 border-t border-border-light">
+                      <div className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium text-center flex items-center justify-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        상세 보기
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* 새 채용공고 추가 안내 */}
                 <div className="bg-bg-secondary rounded-2xl p-6 text-center border-2 border-dashed border-border-light">
@@ -1116,16 +1195,20 @@ function MatchingCenterContent() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed left-4 right-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-6 z-50 max-w-sm mx-auto"
+              className="fixed left-4 right-4 top-[20%] bottom-[20%] mx-auto bg-white rounded-2xl z-50 max-w-sm flex flex-col"
             >
-              <h3 className="text-lg font-bold text-text-primary mb-2">후보자를 거절하시겠어요?</h3>
-              <p className="text-sm text-text-secondary mb-4">
-                {rejectCandidate.name}님을 거절하면 매칭 리스트에서 제외됩니다.
-              </p>
-              <p className="text-xs text-warning mb-4">
-                오늘 남은 거절 횟수: {remainingRejects}회
-              </p>
-              <div className="flex gap-3">
+              {/* 콘텐츠 */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <h3 className="text-lg font-bold text-text-primary mb-2">후보자를 거절하시겠어요?</h3>
+                <p className="text-sm text-text-secondary mb-4">
+                  {rejectCandidate.name}님을 거절하면 매칭 리스트에서 제외됩니다.
+                </p>
+                <p className="text-xs text-warning">
+                  오늘 남은 거절 횟수: {remainingRejects}회
+                </p>
+              </div>
+              {/* 푸터 버튼 - 고정 */}
+              <div className="flex gap-3 p-6 pt-3 border-t border-border-light flex-shrink-0">
                 <button
                   onClick={() => setShowRejectModal(false)}
                   className="flex-1 py-3 bg-bg-secondary text-text-secondary rounded-xl font-medium"
@@ -1153,82 +1236,179 @@ function MatchingCenterContent() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
             style={{
-              background: 'linear-gradient(180deg, #FAFAFF 0%, #F5F0FF 50%, #EDE5FF 100%)'
+              background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
             }}
           >
+            {/* 배경 파티클 효과 */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 rounded-full"
+                  style={{
+                    background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)',
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                  }}
+                  animate={{
+                    y: [0, -30, 0],
+                    opacity: [0.2, 0.6, 0.2],
+                    scale: [1, 1.5, 1],
+                  }}
+                  transition={{
+                    duration: 3 + Math.random() * 2,
+                    repeat: Infinity,
+                    delay: Math.random() * 2,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* 상단 로고 / 타이틀 */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 text-center"
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)' }}
+                >
+                  <Brain className="w-5 h-5 text-white" />
+                </motion.div>
+                <span className="text-xl font-bold text-white">AI 매칭 분석</span>
+              </div>
+              <p className="text-sm text-white/60">최적의 후보자를 찾고 있습니다</p>
+            </motion.div>
+
             {/* 가로 캐러셀 프로필 카드 영역 */}
-            <div className="w-full flex items-center justify-center gap-3 px-4 mb-12 overflow-hidden">
-              {/* 5개 카드 표시: 2개 왼쪽 흐림 + 1개 중앙 + 2개 오른쪽 흐림 */}
+            <div className="w-full flex items-center justify-center gap-4 px-4 mb-10 overflow-hidden">
+              {/* 5개 카드 표시: 2개 왼쪽 블러 + 1개 중앙 + 2개 오른쪽 블러 */}
               {[-2, -1, 0, 1, 2].map((offset) => {
                 const cardIdx = (currentCardIndex + offset + aiMatchingCardData.length) % aiMatchingCardData.length;
                 const cardData = aiMatchingCardData[cardIdx];
                 const isCenter = offset === 0;
-                const opacity = isCenter ? 1 : Math.abs(offset) === 1 ? 0.5 : 0.3;
-                const scale = isCenter ? 1 : Math.abs(offset) === 1 ? 0.9 : 0.8;
+                const blurAmount = isCenter ? 0 : Math.abs(offset) === 1 ? 4 : 8;
+                const scale = isCenter ? 1 : Math.abs(offset) === 1 ? 0.85 : 0.7;
 
                 return (
                   <motion.div
                     key={`card-${cardIdx}-${offset}`}
                     animate={{
-                      opacity: opacity,
                       scale: scale,
+                      rotateY: offset * 15,
                     }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                    style={{ zIndex: isCenter ? 10 : 5 - Math.abs(offset) }}
-                    className={`flex-shrink-0 bg-white rounded-3xl p-5 ${
-                      isCenter ? 'w-[200px] shadow-2xl' : Math.abs(offset) === 1 ? 'w-[180px] shadow-xl' : 'w-[160px] shadow-lg'
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    style={{
+                      zIndex: isCenter ? 10 : 5 - Math.abs(offset),
+                      filter: `blur(${blurAmount}px)`,
+                      transformStyle: 'preserve-3d',
+                    }}
+                    className={`flex-shrink-0 rounded-3xl p-5 ${
+                      isCenter
+                        ? 'w-[220px] shadow-2xl bg-white'
+                        : 'w-[180px] shadow-lg bg-white/80'
                     }`}
                   >
-                    {/* 이니셜 원형 아바타 */}
-                    <div className={`${isCenter ? 'w-16 h-16' : 'w-12 h-12'} rounded-full mx-auto mb-3 flex items-center justify-center`}
-                      style={{ backgroundColor: '#E8D5FF' }}
-                    >
-                      <span className={`${isCenter ? 'text-2xl' : 'text-xl'} font-bold`} style={{ color: '#9B59B6' }}>
-                        {cardData.initial}
-                      </span>
-                    </div>
+                    {/* 매칭 점수 배지 - 중앙 카드만 */}
+                    {isCenter && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-3 -right-3 w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
+                        style={{ background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)' }}
+                      >
+                        <div className="text-center">
+                          <div className="text-white text-sm font-bold">92%</div>
+                          <div className="text-white/70 text-[8px]">매칭</div>
+                        </div>
+                      </motion.div>
+                    )}
 
-                    {/* 이름 (마스킹) */}
-                    <h3 className={`${isCenter ? 'text-base' : 'text-sm'} font-bold text-text-primary text-center mb-1`}>
-                      {cardData.name}
+                    {/* 이니셜 원형 아바타 */}
+                    <motion.div
+                      className={`${isCenter ? 'w-18 h-18' : 'w-14 h-14'} rounded-full mx-auto mb-3 flex items-center justify-center relative`}
+                      style={{
+                        background: isCenter
+                          ? 'linear-gradient(135deg, #E8D5FF 0%, #D4B8FF 100%)'
+                          : '#E8E8E8'
+                      }}
+                      animate={isCenter ? {
+                        boxShadow: ['0 0 0 0 rgba(155, 89, 182, 0.4)', '0 0 0 15px rgba(155, 89, 182, 0)', '0 0 0 0 rgba(155, 89, 182, 0.4)']
+                      } : {}}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      <span className={`${isCenter ? 'text-2xl' : 'text-xl'} font-bold`} style={{ color: isCenter ? '#9B59B6' : '#999' }}>
+                        {isCenter ? cardData.initial : '?'}
+                      </span>
+                    </motion.div>
+
+                    {/* 이름 - 중앙만 표시, 나머지 블러 마스킹 */}
+                    <h3 className={`${isCenter ? 'text-base' : 'text-sm'} font-bold text-center mb-1`}
+                      style={{ color: isCenter ? '#1a1a2e' : '#CCC' }}
+                    >
+                      {isCenter ? cardData.name : '• • •'}
                     </h3>
 
-                    {/* 직업 (주황색) */}
-                    <p className={`${isCenter ? 'text-sm' : 'text-xs'} font-medium text-center mb-2`} style={{ color: '#F5A623' }}>
-                      {cardData.job}
+                    {/* 직업 */}
+                    <p className={`${isCenter ? 'text-sm' : 'text-xs'} font-medium text-center mb-2`}
+                      style={{ color: isCenter ? '#F5A623' : '#CCC' }}
+                    >
+                      {isCenter ? cardData.job : '분석 중...'}
                     </p>
 
-                    {/* 경력 */}
-                    <div className="flex items-center justify-center gap-1 text-xs text-text-secondary mb-3">
-                      <Briefcase className="w-3 h-3" />
-                      <span>경력 {cardData.exp}</span>
-                    </div>
+                    {/* 경력 - 중앙만 */}
+                    {isCenter && (
+                      <div className="flex items-center justify-center gap-1 text-xs text-text-secondary mb-3">
+                        <Briefcase className="w-3 h-3" />
+                        <span>경력 {cardData.exp}</span>
+                      </div>
+                    )}
 
                     {/* 태그들 (보라색 테두리) - 중앙 카드만 */}
                     {isCenter && (
-                      <div className="flex flex-wrap justify-center gap-1 mb-3">
-                        {cardData.tags.map((tag) => (
-                          <span
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="flex flex-wrap justify-center gap-1 mb-3"
+                      >
+                        {cardData.tags.map((tag, i) => (
+                          <motion.span
                             key={tag}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.3 + i * 0.1 }}
                             className="px-2 py-0.5 text-xs rounded-full border"
                             style={{ borderColor: '#9B59B6', color: '#9B59B6' }}
                           >
                             {tag}
-                          </span>
+                          </motion.span>
                         ))}
-                      </div>
+                      </motion.div>
                     )}
 
-                    {/* 희망 급여 (보라색 그라데이션 언더라인) */}
-                    <div className="text-center mb-2">
-                      <div className="inline-block">
-                        <div className="flex items-center gap-1 text-xs text-text-primary mb-0.5">
-                          <DollarSign className="w-3 h-3" />
-                          <span>희망 급여 <strong>{cardData.salary.toLocaleString()}</strong>만원</span>
+                    {/* 희망 급여 - 중앙만 */}
+                    {isCenter && (
+                      <div className="text-center mb-2">
+                        <div className="inline-block">
+                          <div className="flex items-center gap-1 text-xs text-text-primary mb-0.5">
+                            <DollarSign className="w-3 h-3" />
+                            <span>희망 급여 <strong>{cardData.salary.toLocaleString()}</strong>만원</span>
+                          </div>
+                          <motion.div
+                            className="h-0.5 rounded-full"
+                            style={{ background: 'linear-gradient(90deg, #E8D5FF 0%, #9B59B6 100%)' }}
+                            initial={{ scaleX: 0 }}
+                            animate={{ scaleX: 1 }}
+                            transition={{ delay: 0.5, duration: 0.5 }}
+                          />
                         </div>
-                        <div className="h-0.5 rounded-full" style={{ background: 'linear-gradient(90deg, #E8D5FF 0%, #9B59B6 100%)' }} />
                       </div>
-                    </div>
+                    )}
 
                     {/* 설명 텍스트 - 중앙 카드만 */}
                     {isCenter && (
@@ -1241,15 +1421,36 @@ function MatchingCenterContent() {
               })}
             </div>
 
-            {/* 하단 텍스트 (주황색) */}
-            <motion.p
+            {/* 프로그레스 바 */}
+            <div className="w-64 mb-6">
+              <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ background: 'linear-gradient(90deg, #9B59B6 0%, #3498db 100%)' }}
+                  initial={{ width: '0%' }}
+                  animate={{ width: `${aiMatchingProgress}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+              <div className="flex justify-between mt-2 text-xs text-white/60">
+                <span>분석 중...</span>
+                <span>{aiMatchingProgress}%</span>
+              </div>
+            </div>
+
+            {/* 하단 텍스트 */}
+            <motion.div
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="text-base font-medium"
-              style={{ color: '#F5A623' }}
+              className="text-center"
             >
-              AI가 매칭 점수를 계산하고 있습니다...
-            </motion.p>
+              <p className="text-base font-medium text-white">
+                AI가 최적의 매칭을 분석하고 있습니다
+              </p>
+              <p className="text-sm text-white/50 mt-1">
+                {currentCardIndex + 1} / {aiMatchingCardData.length} 후보자 분석 완료
+              </p>
+            </motion.div>
 
             {/* 완료 시 버튼 */}
             {aiMatchingProgress >= 100 && (
@@ -1258,15 +1459,18 @@ function MatchingCenterContent() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-8"
               >
-                <button
+                <motion.button
                   onClick={() => {
                     setShowAIMatchingModal(false);
                     setActiveTab('new-matching');
                   }}
-                  className="px-8 py-4 bg-expert-navy text-white rounded-xl font-bold text-lg shadow-lg"
+                  className="px-8 py-4 text-white rounded-xl font-bold text-lg shadow-lg"
+                  style={{ background: 'linear-gradient(135deg, #9B59B6 0%, #3498db 100%)' }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   매칭 결과 보기
-                </button>
+                </motion.button>
               </motion.div>
             )}
           </motion.div>

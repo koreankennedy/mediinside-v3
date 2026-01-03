@@ -46,38 +46,83 @@ import {
 const DAILY_REJECT_LIMIT = 10;
 
 // 채용 활동 현황 데이터 (6개 지표)
+// 45명 프로필 열람 데이터 생성
+const profileViewedDetails = [
+  { id: 'pv-1', name: '김미진', position: '간호사', matchScore: 95, time: '1시간 전', viewDuration: '3분 13초' },
+  { id: 'pv-2', name: '이은정', position: '간호사', matchScore: 92, time: '1시간 전', viewDuration: '2분 1초' },
+  { id: 'pv-3', name: '박수진', position: '간호사', matchScore: 89, time: '1시간 전', viewDuration: '2분 54초' },
+  { id: 'pv-4', name: '정혜원', position: '간호사', matchScore: 90, time: '1시간 전', viewDuration: '3분 24초' },
+  { id: 'pv-5', name: '최지영', position: '간호사', matchScore: 88, time: '1시간 전', viewDuration: '1분 20초' },
+  { id: 'pv-6', name: '강민경', position: '간호사', matchScore: 92, time: '2시간 전', viewDuration: '1분 27초' },
+  { id: 'pv-7', name: '윤서연', position: '간호사', matchScore: 89, time: '2시간 전', viewDuration: '1분 31초' },
+  { id: 'pv-8', name: '서지은', position: '간호사', matchScore: 87, time: '2시간 전', viewDuration: '1분 34초' },
+  { id: 'pv-9', name: '홍수민', position: '간호조무사', matchScore: 85, time: '2시간 전', viewDuration: '2분 52초' },
+  { id: 'pv-10', name: '장미라', position: '간호조무사', matchScore: 84, time: '2시간 전', viewDuration: '2분 57초' },
+  { id: 'pv-11', name: '오세린', position: '간호사', matchScore: 91, time: '3시간 전', viewDuration: '2분 15초' },
+  { id: 'pv-12', name: '신예진', position: '간호사', matchScore: 86, time: '3시간 전', viewDuration: '1분 45초' },
+  { id: 'pv-13', name: '류현아', position: '간호조무사', matchScore: 83, time: '3시간 전', viewDuration: '2분 30초' },
+  { id: 'pv-14', name: '문지현', position: '간호사', matchScore: 88, time: '4시간 전', viewDuration: '3분 5초' },
+  { id: 'pv-15', name: '배소희', position: '간호사', matchScore: 90, time: '4시간 전', viewDuration: '2분 48초' },
+  { id: 'pv-16', name: '손유진', position: '간호사', matchScore: 87, time: '5시간 전', viewDuration: '1분 55초' },
+  { id: 'pv-17', name: '안수빈', position: '간호조무사', matchScore: 82, time: '5시간 전', viewDuration: '2분 22초' },
+  { id: 'pv-18', name: '유지아', position: '간호사', matchScore: 89, time: '6시간 전', viewDuration: '3분 10초' },
+  { id: 'pv-19', name: '임다희', position: '간호사', matchScore: 85, time: '6시간 전', viewDuration: '1분 38초' },
+  { id: 'pv-20', name: '장서윤', position: '간호사', matchScore: 91, time: '7시간 전', viewDuration: '2분 45초' },
+  { id: 'pv-21', name: '전미나', position: '간호조무사', matchScore: 80, time: '8시간 전', viewDuration: '1분 52초' },
+  { id: 'pv-22', name: '정수아', position: '간호사', matchScore: 88, time: '9시간 전', viewDuration: '2분 35초' },
+  { id: 'pv-23', name: '조은서', position: '간호사', matchScore: 86, time: '10시간 전', viewDuration: '2분 18초' },
+  { id: 'pv-24', name: '차민지', position: '간호사', matchScore: 84, time: '11시간 전', viewDuration: '1분 42초' },
+  { id: 'pv-25', name: '최예은', position: '간호조무사', matchScore: 81, time: '12시간 전', viewDuration: '2분 8초' },
+  { id: 'pv-26', name: '한소연', position: '간호사', matchScore: 90, time: '어제', viewDuration: '3분 25초' },
+  { id: 'pv-27', name: '황지수', position: '간호사', matchScore: 87, time: '어제', viewDuration: '2분 55초' },
+  { id: 'pv-28', name: '고유나', position: '간호사', matchScore: 85, time: '어제', viewDuration: '1분 48초' },
+  { id: 'pv-29', name: '권민서', position: '간호조무사', matchScore: 79, time: '어제', viewDuration: '2분 12초' },
+  { id: 'pv-30', name: '김나연', position: '간호사', matchScore: 92, time: '어제', viewDuration: '3분 38초' },
+  { id: 'pv-31', name: '김다은', position: '간호사', matchScore: 88, time: '어제', viewDuration: '2분 22초' },
+  { id: 'pv-32', name: '김보람', position: '간호사', matchScore: 86, time: '2일 전', viewDuration: '1분 58초' },
+  { id: 'pv-33', name: '김서현', position: '간호조무사', matchScore: 83, time: '2일 전', viewDuration: '2분 42초' },
+  { id: 'pv-34', name: '김아름', position: '간호사', matchScore: 89, time: '2일 전', viewDuration: '3분 15초' },
+  { id: 'pv-35', name: '김연수', position: '간호사', matchScore: 84, time: '2일 전', viewDuration: '2분 5초' },
+  { id: 'pv-36', name: '김은비', position: '간호사', matchScore: 87, time: '2일 전', viewDuration: '1분 35초' },
+  { id: 'pv-37', name: '김주희', position: '간호조무사', matchScore: 80, time: '3일 전', viewDuration: '2분 28초' },
+  { id: 'pv-38', name: '김지현', position: '간호사', matchScore: 91, time: '3일 전', viewDuration: '3분 42초' },
+  { id: 'pv-39', name: '김하늘', position: '간호사', matchScore: 85, time: '3일 전', viewDuration: '2분 15초' },
+  { id: 'pv-40', name: '김현정', position: '간호사', matchScore: 88, time: '3일 전', viewDuration: '1분 52초' },
+  { id: 'pv-41', name: '김희선', position: '간호조무사', matchScore: 82, time: '4일 전', viewDuration: '2분 38초' },
+  { id: 'pv-42', name: '나민주', position: '간호사', matchScore: 86, time: '4일 전', viewDuration: '2분 8초' },
+  { id: 'pv-43', name: '남지원', position: '간호사', matchScore: 89, time: '4일 전', viewDuration: '1분 45초' },
+  { id: 'pv-44', name: '노현아', position: '간호사', matchScore: 84, time: '5일 전', viewDuration: '2분 55초' },
+  { id: 'pv-45', name: '도유진', position: '간호조무사', matchScore: 81, time: '5일 전', viewDuration: '2분 22초' },
+];
+
+// 12명 인터뷰 제안 데이터
+const interviewProposedDetails = [
+  { id: 'ip-1', name: '김미진', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '1일 전' },
+  { id: 'ip-2', name: '이은정', position: '간호사', type: '화상면접', status: '대기중', statusColor: 'text-warning', time: '1일 전' },
+  { id: 'ip-3', name: '박수진', position: '간호사', type: '화상면접', status: '거절', statusColor: 'text-error', time: '1일 전' },
+  { id: 'ip-4', name: '정혜원', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '1일 전' },
+  { id: 'ip-5', name: '최지영', position: '간호사', type: '화상면접', status: '대기중', statusColor: 'text-warning', time: '2일 전' },
+  { id: 'ip-6', name: '강민경', position: '간호사', type: '화상면접', status: '거절', statusColor: 'text-error', time: '2일 전' },
+  { id: 'ip-7', name: '윤서연', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '2일 전' },
+  { id: 'ip-8', name: '서지은', position: '간호사', type: '화상면접', status: '대기중', statusColor: 'text-warning', time: '2일 전' },
+  { id: 'ip-9', name: '오세린', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '3일 전' },
+  { id: 'ip-10', name: '신예진', position: '간호조무사', type: '화상면접', status: '대기중', statusColor: 'text-warning', time: '3일 전' },
+  { id: 'ip-11', name: '류현아', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '4일 전' },
+  { id: 'ip-12', name: '문지현', position: '간호사', type: '화상면접', status: '거절', statusColor: 'text-error', time: '4일 전' },
+];
+
 const recruitmentActivityStats = {
   profileViewed: {
     count: 45,
     label: '프로필 열람',
     color: 'text-expert-navy',
-    details: [
-      { id: 'pv-1', name: '김미진', position: '간호사', matchScore: 95, time: '1시간 전', viewDuration: '3분 13초' },
-      { id: 'pv-2', name: '이은정', position: '간호사', matchScore: 92, time: '1시간 전', viewDuration: '2분 1초' },
-      { id: 'pv-3', name: '박수진', position: '간호사', matchScore: 89, time: '1시간 전', viewDuration: '2분 54초' },
-      { id: 'pv-4', name: '정혜원', position: '간호사', matchScore: 90, time: '1시간 전', viewDuration: '3분 24초' },
-      { id: 'pv-5', name: '최지영', position: '간호사', matchScore: 88, time: '1시간 전', viewDuration: '1분 20초' },
-      { id: 'pv-6', name: '강민경', position: '간호사', matchScore: 92, time: '2시간 전', viewDuration: '1분 27초' },
-      { id: 'pv-7', name: '윤서연', position: '간호사', matchScore: 89, time: '2시간 전', viewDuration: '1분 31초' },
-      { id: 'pv-8', name: '서지은', position: '간호사', matchScore: 87, time: '2시간 전', viewDuration: '1분 34초' },
-      { id: 'pv-9', name: '홍수민', position: '간호사', matchScore: 85, time: '2시간 전', viewDuration: '2분 52초' },
-      { id: 'pv-10', name: '장미라', position: '간호사', matchScore: 84, time: '2시간 전', viewDuration: '2분 57초' },
-    ],
+    details: profileViewedDetails,
   },
   interviewProposed: {
     count: 12,
     label: '인터뷰 제안',
     color: 'text-info',
-    details: [
-      { id: 'ip-1', name: '김미진', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '1일 전' },
-      { id: 'ip-2', name: '이은정', position: '간호사', type: '화상면접', status: '대기중', statusColor: 'text-warning', time: '1일 전' },
-      { id: 'ip-3', name: '박수진', position: '간호사', type: '화상면접', status: '거절', statusColor: 'text-error', time: '1일 전' },
-      { id: 'ip-4', name: '정혜원', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '1일 전' },
-      { id: 'ip-5', name: '최지영', position: '간호사', type: '화상면접', status: '대기중', statusColor: 'text-warning', time: '2일 전' },
-      { id: 'ip-6', name: '강민경', position: '간호사', type: '화상면접', status: '거절', statusColor: 'text-error', time: '2일 전' },
-      { id: 'ip-7', name: '윤서연', position: '간호사', type: 'AI 채팅', status: '수락', statusColor: 'text-success', time: '2일 전' },
-      { id: 'ip-8', name: '서지은', position: '간호사', type: '화상면접', status: '대기중', statusColor: 'text-warning', time: '2일 전' },
-    ],
+    details: interviewProposedDetails,
   },
   aiInterviewCompleted: {
     count: 8,
@@ -1127,19 +1172,21 @@ export default function EmployerHomePage() {
               className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-md max-h-[80vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-4 right-4 top-[10%] bottom-[10%] mx-auto bg-white rounded-2xl z-[100] max-w-md flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4">
+              {/* 헤더 - 고정 */}
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-border-light flex-shrink-0">
                 <h3 className="text-lg font-bold text-text-primary">오퍼 조건 확인</h3>
                 <button onClick={() => setShowOfferModal(false)}>
                   <X className="w-5 h-5 text-text-tertiary" />
                 </button>
               </div>
 
-              <div className="space-y-4">
+              {/* 콘텐츠 - 스크롤 가능 */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 {/* 후보자 정보 */}
                 <div className="bg-bg-secondary rounded-xl p-4">
                   <div className="flex items-center gap-3 mb-3">
@@ -1237,38 +1284,38 @@ export default function EmployerHomePage() {
                     <p className="text-sm text-text-primary">&ldquo;{offerTarget.lastMessage}&rdquo;</p>
                   </div>
                 )}
+              </div>
 
-                {/* 버튼 */}
-                <div className="flex gap-3 pt-2">
-                  {!isEditingOffer ? (
-                    <button
-                      onClick={() => setIsEditingOffer(true)}
-                      className="flex-1 py-3 text-sm border border-info text-info rounded-xl flex items-center justify-center gap-1"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      조건 수정
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setIsEditingOffer(false)}
-                      className="flex-1 py-3 text-sm bg-success/10 text-success rounded-xl flex items-center justify-center gap-1"
-                    >
-                      <CheckCircle className="w-4 h-4" />
-                      수정 완료
-                    </button>
-                  )}
+              {/* 푸터 버튼 - 고정 */}
+              <div className="flex gap-3 p-5 pt-3 border-t border-border-light flex-shrink-0">
+                {!isEditingOffer ? (
                   <button
-                    onClick={() => {
-                      alert(`${offerTarget.name}님에게 오퍼를 발송했습니다!\n제안 연봉: ${editedSalary}`);
-                      setShowOfferModal(false);
-                      setIsEditingOffer(false);
-                    }}
-                    className="flex-1 py-3 text-sm bg-expert-navy text-white rounded-xl flex items-center justify-center gap-1"
+                    onClick={() => setIsEditingOffer(true)}
+                    className="flex-1 py-3 text-sm border border-info text-info rounded-xl flex items-center justify-center gap-1"
                   >
-                    <Send className="w-4 h-4" />
-                    오퍼 보내기
+                    <Edit2 className="w-4 h-4" />
+                    조건 수정
                   </button>
-                </div>
+                ) : (
+                  <button
+                    onClick={() => setIsEditingOffer(false)}
+                    className="flex-1 py-3 text-sm bg-success/10 text-success rounded-xl flex items-center justify-center gap-1"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    수정 완료
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    alert(`${offerTarget.name}님에게 오퍼를 발송했습니다!\n제안 연봉: ${editedSalary}`);
+                    setShowOfferModal(false);
+                    setIsEditingOffer(false);
+                  }}
+                  className="flex-1 py-3 text-sm bg-expert-navy text-white rounded-xl flex items-center justify-center gap-1"
+                >
+                  <Send className="w-4 h-4" />
+                  오퍼 보내기
+                </button>
               </div>
             </motion.div>
           </>
@@ -1287,19 +1334,21 @@ export default function EmployerHomePage() {
               className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-4 right-4 top-[15%] bottom-[15%] mx-auto bg-white rounded-2xl z-[100] max-w-sm flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4">
+              {/* 헤더 - 고정 */}
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-border-light flex-shrink-0">
                 <h3 className="text-lg font-bold text-text-primary">{contactTarget.name}님에게 연락하기</h3>
                 <button onClick={() => setShowContactModal(false)}>
                   <X className="w-5 h-5 text-text-tertiary" />
                 </button>
               </div>
 
-              <div className="space-y-3">
+              {/* 콘텐츠 - 스크롤 가능 */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-3">
                 <button className="w-full p-4 bg-bg-secondary rounded-xl flex items-center gap-3 hover:bg-bg-tertiary transition-colors">
                   <div className="w-10 h-10 bg-success/10 rounded-xl flex items-center justify-center">
                     <Phone className="w-5 h-5 text-success" />
@@ -1345,20 +1394,22 @@ export default function EmployerHomePage() {
               className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-4 right-4 top-[15%] bottom-[15%] mx-auto bg-white rounded-2xl z-[100] max-w-sm flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4">
+              {/* 헤더 - 고정 */}
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-border-light flex-shrink-0">
                 <h3 className="text-lg font-bold text-text-primary">후보자 거절</h3>
                 <button onClick={() => setShowRejectModal(false)}>
                   <X className="w-5 h-5 text-text-tertiary" />
                 </button>
               </div>
 
-              <div className="mb-4">
-                <div className="bg-error/10 border border-error/20 rounded-xl p-4 mb-4">
+              {/* 콘텐츠 - 스크롤 가능 */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div className="bg-error/10 border border-error/20 rounded-xl p-4">
                   <p className="text-sm text-text-primary">
                     <strong>{rejectTarget.name}</strong>님을 거절하시겠습니까?
                   </p>
@@ -1380,7 +1431,8 @@ export default function EmployerHomePage() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              {/* 푸터 버튼 - 고정 */}
+              <div className="flex gap-3 p-5 pt-3 border-t border-border-light flex-shrink-0">
                 <button
                   onClick={() => setShowRejectModal(false)}
                   className="flex-1 py-3 text-sm border border-border-light text-text-secondary rounded-xl"
@@ -1412,19 +1464,21 @@ export default function EmployerHomePage() {
               className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-4 right-4 top-[10%] bottom-[10%] mx-auto bg-white rounded-2xl z-[100] max-w-sm flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4">
+              {/* 헤더 - 고정 */}
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-border-light flex-shrink-0">
                 <h3 className="text-lg font-bold text-text-primary">면접 일정 조율</h3>
                 <button onClick={() => setShowScheduleModal(false)}>
                   <X className="w-5 h-5 text-text-tertiary" />
                 </button>
               </div>
 
-              <div className="space-y-4">
+              {/* 콘텐츠 - 스크롤 가능 */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <div className="bg-bg-secondary rounded-xl p-4">
                   <div className="text-sm text-text-secondary mb-1">후보자</div>
                   <div className="font-medium text-text-primary">{scheduleTarget.name}</div>
@@ -1442,25 +1496,26 @@ export default function EmployerHomePage() {
                     className="w-full px-3 py-3 bg-bg-secondary rounded-xl text-sm"
                   />
                 </div>
+              </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowScheduleModal(false)}
-                    className="flex-1 py-3 text-sm border border-border-light text-text-secondary rounded-xl"
-                  >
-                    취소
-                  </button>
-                  <button
-                    onClick={() => {
-                      alert(`${scheduleTarget.name}님에게 일정 조율 요청을 보냈습니다.`);
-                      setShowScheduleModal(false);
-                    }}
-                    className="flex-1 py-3 text-sm bg-expert-navy text-white rounded-xl flex items-center justify-center gap-1"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    일정 요청
-                  </button>
-                </div>
+              {/* 푸터 버튼 - 고정 */}
+              <div className="flex gap-3 p-5 pt-3 border-t border-border-light flex-shrink-0">
+                <button
+                  onClick={() => setShowScheduleModal(false)}
+                  className="flex-1 py-3 text-sm border border-border-light text-text-secondary rounded-xl"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    alert(`${scheduleTarget.name}님에게 일정 조율 요청을 보냈습니다.`);
+                    setShowScheduleModal(false);
+                  }}
+                  className="flex-1 py-3 text-sm bg-expert-navy text-white rounded-xl flex items-center justify-center gap-1"
+                >
+                  <Calendar className="w-4 h-4" />
+                  일정 요청
+                </button>
               </div>
             </motion.div>
           </>
@@ -1479,19 +1534,21 @@ export default function EmployerHomePage() {
               className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-4 right-4 top-[10%] bottom-[10%] mx-auto bg-white rounded-2xl z-[100] max-w-sm flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4">
+              {/* 헤더 - 고정 */}
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-border-light flex-shrink-0">
                 <h3 className="text-lg font-bold text-text-primary">AI 인터뷰 요청</h3>
                 <button onClick={() => setShowAIInterviewModal(false)}>
                   <X className="w-5 h-5 text-text-tertiary" />
                 </button>
               </div>
 
-              <div className="space-y-4">
+              {/* 콘텐츠 - 스크롤 가능 */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 <div className="bg-info/10 border border-info/20 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Video className="w-5 h-5 text-info" />
@@ -1519,25 +1576,26 @@ export default function EmployerHomePage() {
                     <span>채용 추천 및 적합도 분석</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowAIInterviewModal(false)}
-                    className="flex-1 py-3 text-sm border border-border-light text-text-secondary rounded-xl"
-                  >
-                    취소
-                  </button>
-                  <button
-                    onClick={() => {
-                      alert(`${aiInterviewTarget.name}님에게 AI 인터뷰 요청을 보냈습니다.`);
-                      setShowAIInterviewModal(false);
-                    }}
-                    className="flex-1 py-3 text-sm bg-info text-white rounded-xl flex items-center justify-center gap-1"
-                  >
-                    <Video className="w-4 h-4" />
-                    요청하기
-                  </button>
-                </div>
+              {/* 푸터 버튼 - 고정 */}
+              <div className="flex gap-3 p-5 pt-3 border-t border-border-light flex-shrink-0">
+                <button
+                  onClick={() => setShowAIInterviewModal(false)}
+                  className="flex-1 py-3 text-sm border border-border-light text-text-secondary rounded-xl"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    alert(`${aiInterviewTarget.name}님에게 AI 인터뷰 요청을 보냈습니다.`);
+                    setShowAIInterviewModal(false);
+                  }}
+                  className="flex-1 py-3 text-sm bg-info text-white rounded-xl flex items-center justify-center gap-1"
+                >
+                  <Video className="w-4 h-4" />
+                  요청하기
+                </button>
               </div>
             </motion.div>
           </>
@@ -1559,9 +1617,10 @@ export default function EmployerHomePage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-md max-h-[70vh] overflow-y-auto"
+              className="fixed left-4 right-4 top-[10%] bottom-[10%] mx-auto bg-white rounded-2xl z-[100] max-w-md flex flex-col"
             >
-              <div className="flex items-center justify-between mb-4">
+              {/* 헤더 - 고정 */}
+              <div className="flex items-center justify-between p-5 pb-3 border-b border-border-light flex-shrink-0">
                 <h3 className="text-lg font-bold text-text-primary">
                   {activityDetailType === 'profileViewed' && '프로필 열람 상세'}
                   {activityDetailType === 'interviewProposed' && '인터뷰 제안 상세'}
@@ -1575,7 +1634,8 @@ export default function EmployerHomePage() {
                 </button>
               </div>
 
-              <div className="space-y-2">
+              {/* 콘텐츠 - 스크롤 가능 */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-2">
                 {/* 프로필 열람 */}
                 {activityDetailType === 'profileViewed' && recruitmentActivityStats.profileViewed.details.map((item, index) => (
                   <Link key={item.id} href={`/employer/candidates/${item.id}`}>

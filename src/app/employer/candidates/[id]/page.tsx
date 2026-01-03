@@ -1399,24 +1399,80 @@ export default function CandidateDetailPage() {
         </div>
       )}
 
-      {/* Bottom Action Bar */}
+      {/* Bottom Action Bar - 탭별 동적 CTA */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border-light px-4 py-4 z-20">
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowContactInfo(true)}
-            className="flex-1 py-3 border border-expert-navy text-expert-navy rounded-xl font-medium flex items-center justify-center gap-2"
-          >
-            <Phone className="w-5 h-5" />
-            연락처 확인
-          </button>
-          <button
-            onClick={() => setShowProposal(true)}
-            className="flex-1 py-3 bg-expert-navy text-white rounded-xl font-medium flex items-center justify-center gap-2"
-          >
-            <Send className="w-5 h-5" />
-            채용 제안하기
-          </button>
-        </div>
+        {activeTab === 'profile' && (
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowContactInfo(true)}
+              className="flex-1 py-3 border border-expert-navy text-expert-navy rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Phone className="w-5 h-5" />
+              연락처 확인
+            </button>
+            <button
+              onClick={() => setShowProposal(true)}
+              className="flex-1 py-3 bg-expert-navy text-white rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Send className="w-5 h-5" />
+              채용 제안하기
+            </button>
+          </div>
+        )}
+        {activeTab === 'ai-report' && (
+          <div className="flex gap-3">
+            <button
+              onClick={() => alert('AI 리포트가 공유되었습니다.')}
+              className="flex-1 py-3 border border-info text-info rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Share2 className="w-5 h-5" />
+              리포트 공유
+            </button>
+            <button
+              onClick={() => alert('대면면접 일정 조율 요청을 보냈습니다.')}
+              className="flex-1 py-3 bg-expert-navy text-white rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-5 h-5" />
+              대면면접 일정잡기
+            </button>
+          </div>
+        )}
+        {activeTab === 'compare' && (
+          <div className="flex gap-3">
+            <button
+              onClick={() => alert('관심 후보자로 저장되었습니다.')}
+              className="flex-1 py-3 border border-warning text-warning rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Heart className="w-5 h-5" />
+              관심 표시
+            </button>
+            <button
+              onClick={() => setShowProposal(true)}
+              className="flex-1 py-3 bg-expert-navy text-white rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Send className="w-5 h-5" />
+              채용 제안하기
+            </button>
+          </div>
+        )}
+        {activeTab === 'review' && (
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowContactInfo(true)}
+              className="flex-1 py-3 border border-text-tertiary text-text-secondary rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="w-5 h-5" />
+              추가 리뷰 요청
+            </button>
+            <button
+              onClick={() => setShowProposal(true)}
+              className="flex-1 py-3 bg-expert-navy text-white rounded-xl font-medium flex items-center justify-center gap-2"
+            >
+              <Send className="w-5 h-5" />
+              채용 제안하기
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 연락처 모달 */}
