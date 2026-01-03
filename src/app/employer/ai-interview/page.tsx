@@ -21,7 +21,21 @@ import {
   BarChart3,
   Zap,
   Award,
+  Eye,
+  Calendar,
+  TrendingUp,
+  Percent,
+  X,
+  Star,
+  AlertCircle,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
+import {
+  mockAIInterviewResults,
+  mockAIInterviewStats,
+  recommendationLabels,
+} from '@/lib/mock/data';
 
 // 10단계 워크플로우 정의
 const workflowSteps = [
@@ -137,31 +151,26 @@ const workflowSteps = [
   },
 ];
 
-// Mock 진행중인 채용
-const activeRecruitments = [
-  {
-    id: 'rec-1',
-    title: '피부과 전문 간호사',
-    step: 3,
-    applicants: 12,
-    newApplicants: 3,
-    createdAt: '2024-12-20',
-  },
-  {
-    id: 'rec-2',
-    title: '치과위생사 (경력 3년 이상)',
-    step: 8,
-    applicants: 8,
-    newApplicants: 0,
-    createdAt: '2024-12-15',
-  },
+// 상태 필터
+const statusFilters = [
+  { id: 'all', label: '전체', count: mockAIInterviewResults.length },
+  { id: 'completed', label: '완료', count: mockAIInterviewResults.filter(r => r.status === 'completed').length },
+  { id: 'in_progress', label: '진행중', count: mockAIInterviewResults.filter(r => r.status === 'in_progress').length },
+  { id: 'scheduled', label: '예정', count: mockAIInterviewResults.filter(r => r.status === 'scheduled').length },
 ];
 
 export default function AIInterviewPage() {
   const [selectedStep, setSelectedStep] = useState<typeof workflowSteps[0] | null>(null);
-  const [viewMode, setViewMode] = useState<'workflow' | 'active'>('workflow');
+  const [viewMode, setViewMode] = useState<'dashboard' | 'workflow'>('dashboard');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const employerSteps = workflowSteps.filter((s) => s.forEmployer);
+
+  // 필터링된 인터뷰 결과
+  const filteredResults = mockAIInterviewResults.filter(result => {
+    if (statusFilter === 'all') return true;
+    return result.status === statusFilter;
+  });
 
   return (
     <div className="px-4 py-6 pb-24">
@@ -199,6 +208,16 @@ export default function AIInterviewPage() {
       {/* 탭 전환 */}
       <div className="flex gap-2 mb-4">
         <button
+          onClick={() => setViewMode('dashboard')}
+          className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
+            viewMode === 'dashboard'
+              ? 'bg-expert-navy text-white'
+              : 'bg-white text-text-secondary border border-border-light'
+          }`}
+        >
+          대시보드
+        </button>
+        <button
           onClick={() => setViewMode('workflow')}
           className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
             viewMode === 'workflow'
@@ -208,17 +227,229 @@ export default function AIInterviewPage() {
         >
           워크플로우
         </button>
-        <button
-          onClick={() => setViewMode('active')}
-          className={`flex-1 py-3 rounded-xl text-sm font-medium transition-all ${
-            viewMode === 'active'
-              ? 'bg-expert-navy text-white'
-              : 'bg-white text-text-secondary border border-border-light'
-          }`}
-        >
-          진행중인 채용 ({activeRecruitments.length})
-        </button>
       </div>
+
+      {/* 대시보드 뷰 */}
+      {viewMode === 'dashboard' && (
+        <div className="space-y-4">
+          {/* 인터뷰 현황 카드 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white rounded-xl p-4 border border-border-light">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-expert-navy/10 rounded-lg flex items-center justify-center">
+                  <Video className="w-4 h-4 text-expert-navy" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-expert-navy">{mockAIInterviewStats.totalInterviews}</div>
+              <div className="text-xs text-text-tertiary">총 인터뷰</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-border-light">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-brand-mint/10 rounded-lg flex items-center justify-center">
+                  <Star className="w-4 h-4 text-brand-mint" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-brand-mint">{mockAIInterviewStats.avgScore}점</div>
+              <div className="text-xs text-text-tertiary">평균 점수</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-border-light">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-success" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-success">{mockAIInterviewStats.conversionRate}%</div>
+              <div className="text-xs text-text-tertiary">전환율</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-border-light">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-info/10 rounded-lg flex items-center justify-center">
+                  <Percent className="w-4 h-4 text-info" />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-info">{mockAIInterviewStats.responseRate}%</div>
+              <div className="text-xs text-text-tertiary">응답률</div>
+            </div>
+          </div>
+
+          {/* 상태 필터 */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+            {statusFilters.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setStatusFilter(filter.id)}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm transition-all ${
+                  statusFilter === filter.id
+                    ? 'bg-expert-navy text-white'
+                    : 'bg-bg-secondary text-text-secondary'
+                }`}
+              >
+                {filter.label}
+                <span className={`ml-1 ${statusFilter === filter.id ? 'text-white/70' : 'text-text-tertiary'}`}>
+                  {filter.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* 인터뷰 결과 리스트 */}
+          <div className="space-y-3">
+            {filteredResults.map((result, index) => {
+              const recommendation = result.recommendation ? recommendationLabels[result.recommendation] : null;
+
+              return (
+                <motion.div
+                  key={result.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="bg-white rounded-2xl p-4 border border-border-light"
+                >
+                  {/* 상단: 상태 & 열람 횟수 */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                      result.status === 'completed' ? 'bg-success/10 text-success' :
+                      result.status === 'in_progress' ? 'bg-warning/10 text-warning' :
+                      'bg-info/10 text-info'
+                    }`}>
+                      {result.status === 'completed' ? '완료' :
+                       result.status === 'in_progress' ? '진행중' : '예정'}
+                    </span>
+                    {result.viewCount && result.viewCount >= 3 && (
+                      <span className="flex items-center gap-1 text-xs text-error">
+                        <Eye className="w-3 h-3" />
+                        {result.viewCount}회 열람
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 후보자 정보 */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-12 h-12 bg-expert-navy/10 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Users className="w-6 h-6 text-expert-navy" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-text-primary">{result.name}</div>
+                      <div className="text-sm text-text-secondary">
+                        {'specialty' in result ? `${result.specialty} · ` : ''}{result.experience}
+                      </div>
+                      {result.completedAt && (
+                        <div className="text-xs text-text-tertiary mt-0.5">
+                          {result.completedAt} 완료
+                        </div>
+                      )}
+                    </div>
+                    {/* 추천 등급 */}
+                    {result.status === 'completed' && recommendation && (
+                      <div className={`px-2.5 py-1 rounded-lg text-xs font-medium ${recommendation.bgColor} ${recommendation.color}`}>
+                        {recommendation.label}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 점수 정보 (완료된 경우만) */}
+                  {result.status === 'completed' && (
+                    <>
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <Star className="w-4 h-4 text-brand-mint" />
+                          <span className="text-sm font-medium text-text-primary">AI 평가 {result.aiScore}점</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Target className="w-4 h-4 text-info" />
+                          <span className="text-sm text-text-secondary">매칭률 {result.matchRate}%</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 text-text-tertiary" />
+                          <span className="text-sm text-text-tertiary">{result.interviewDuration}분</span>
+                        </div>
+                      </div>
+
+                      {/* 강점 & 고려사항 */}
+                      <div className="space-y-2 mb-3">
+                        {result.strengths && result.strengths.length > 0 && (
+                          <div className="flex items-start gap-2">
+                            <ThumbsUp className="w-4 h-4 text-success flex-shrink-0 mt-0.5" />
+                            <div className="flex flex-wrap gap-1">
+                              {result.strengths.map((strength) => (
+                                <span key={strength} className="text-xs bg-success/10 text-success px-2 py-0.5 rounded">
+                                  {strength}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {result.concerns && result.concerns.length > 0 && (
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
+                            <div className="flex flex-wrap gap-1">
+                              {result.concerns.map((concern) => (
+                                <span key={concern} className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded">
+                                  {concern}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CTA 버튼 */}
+                      <div className="flex gap-2 pt-3 border-t border-border-light">
+                        <Link href={`/employer/ai-interview/report/${result.id}`} className="flex-1">
+                          <button className="w-full flex items-center justify-center gap-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium">
+                            <FileText className="w-4 h-4" />
+                            AI인터뷰 리포트 보기
+                          </button>
+                        </Link>
+                        <button className="flex items-center justify-center gap-1 px-3 py-2.5 text-sm bg-success/10 text-success rounded-lg font-medium">
+                          <Calendar className="w-4 h-4" />
+                          면접 잡기
+                        </button>
+                        <button className="flex items-center justify-center px-3 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg hover:bg-error/10 hover:text-error transition-colors">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* 진행중인 경우 */}
+                  {result.status === 'in_progress' && (
+                    <div className="flex gap-2 pt-3 border-t border-border-light">
+                      <div className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm text-warning bg-warning/10 rounded-lg font-medium">
+                        <Clock className="w-4 h-4" />
+                        면접 진행 중...
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 예정인 경우 */}
+                  {result.status === 'scheduled' && result.scheduledAt && (
+                    <div className="flex gap-2 pt-3 border-t border-border-light">
+                      <div className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm text-info bg-info/10 rounded-lg font-medium">
+                        <Calendar className="w-4 h-4" />
+                        {result.scheduledAt} 예정
+                      </div>
+                      <button className="flex items-center justify-center px-3 py-2.5 text-sm bg-bg-secondary text-text-secondary rounded-lg hover:bg-error/10 hover:text-error transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {filteredResults.length === 0 && (
+            <div className="text-center py-12">
+              <Video className="w-12 h-12 text-text-tertiary mx-auto mb-3" />
+              <div className="text-text-secondary">해당 상태의 인터뷰가 없어요</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 워크플로우 뷰 */}
       {viewMode === 'workflow' && (
@@ -293,89 +524,6 @@ export default function AIInterviewPage() {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 진행중인 채용 뷰 */}
-      {viewMode === 'active' && (
-        <div className="space-y-4">
-          {activeRecruitments.map((recruitment) => {
-            const currentStep = workflowSteps.find((s) => s.step === recruitment.step);
-
-            return (
-              <motion.div
-                key={recruitment.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-2xl p-4 border border-border-light"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-text-primary">{recruitment.title}</h3>
-                    <div className="text-xs text-text-tertiary mt-1">
-                      {recruitment.createdAt} 등록
-                    </div>
-                  </div>
-                  {recruitment.newApplicants > 0 && (
-                    <span className="badge-error">
-                      +{recruitment.newApplicants} 신규
-                    </span>
-                  )}
-                </div>
-
-                {/* 진행 상태 */}
-                <div className="bg-bg-secondary rounded-xl p-3 mb-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-text-secondary">현재 단계</span>
-                    <span className={`text-sm font-medium ${currentStep?.color.replace('bg-', 'text-')}`}>
-                      Step {recruitment.step}: {currentStep?.title}
-                    </span>
-                  </div>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill bg-expert-navy"
-                      style={{ width: `${(recruitment.step / 10) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* 통계 */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-text-secondary">
-                    <Users className="w-4 h-4" />
-                    지원자 {recruitment.applicants}명
-                  </div>
-                </div>
-
-                {/* 액션 버튼 */}
-                <div className="flex gap-2">
-                  <Link href={`/employer/ai-interview/pipeline?id=${recruitment.id}`} className="flex-1">
-                    <button className="w-full py-2.5 bg-expert-navy text-white rounded-xl text-sm font-medium">
-                      지원자 관리
-                    </button>
-                  </Link>
-                  <Link href={`/employer/ai-interview/${currentStep?.id}?id=${recruitment.id}`}>
-                    <button className="px-4 py-2.5 border border-expert-navy text-expert-navy rounded-xl text-sm font-medium">
-                      계속하기
-                    </button>
-                  </Link>
-                </div>
-              </motion.div>
-            );
-          })}
-
-          {activeRecruitments.length === 0 && (
-            <div className="text-center py-12">
-              <Briefcase className="w-12 h-12 text-text-tertiary mx-auto mb-3" />
-              <div className="text-text-secondary mb-4">진행중인 채용이 없어요</div>
-              <Link href="/employer/ai-interview/job-posting">
-                <button className="btn-primary">
-                  <Play className="w-5 h-5 mr-2" />
-                  새 채용 시작하기
-                </button>
-              </Link>
-            </div>
-          )}
         </div>
       )}
 
