@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Users,
   Bell,
@@ -254,6 +255,7 @@ const candidateDetailMap: Record<string, { name: string; position: string; exper
 };
 
 export default function EmployerHomePage() {
+  const router = useRouter();
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
   const [expandedFunnel, setExpandedFunnel] = useState<string | null>(null);
   const [expandedJob, setExpandedJob] = useState<number | null>(null);
