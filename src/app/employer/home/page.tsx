@@ -1124,13 +1124,13 @@ export default function EmployerHomePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowOfferModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 z-50 max-w-md mx-auto max-h-[80vh] overflow-y-auto"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-md max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-text-primary">오퍼 조건 확인</h3>
@@ -1284,13 +1284,13 @@ export default function EmployerHomePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowContactModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 z-50 max-w-sm mx-auto"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-text-primary">{contactTarget.name}님에게 연락하기</h3>
@@ -1342,13 +1342,13 @@ export default function EmployerHomePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowRejectModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 z-50 max-w-sm mx-auto"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-text-primary">후보자 거절</h3>
@@ -1409,13 +1409,13 @@ export default function EmployerHomePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowScheduleModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 z-50 max-w-sm mx-auto"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-text-primary">면접 일정 조율</h3>
@@ -1476,13 +1476,13 @@ export default function EmployerHomePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAIInterviewModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 z-50 max-w-sm mx-auto"
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-sm max-h-[80vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-text-primary">AI 인터뷰 요청</h3>
@@ -1553,13 +1553,13 @@ export default function EmployerHomePage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowActivityDetailModal(false)}
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 bg-black/50 z-[100]"
             />
             <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white rounded-2xl p-5 z-50 max-w-md mx-auto max-h-[70vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] bg-white rounded-2xl p-5 z-[100] max-w-md max-h-[70vh] overflow-y-auto"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-text-primary">

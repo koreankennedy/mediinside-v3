@@ -58,13 +58,19 @@ const mainTabs = [
   { id: 'all-matching', label: '전체 매칭 리스트', icon: Users },
 ];
 
-// 상태 필터 (신규 매칭 리스트용)
+// 상태 필터 (신규 매칭 리스트용) - 신규 매칭이므로 전체=신규값만
 const statusFilters = [
-  { id: 'all', label: '전체', count: 15 },
-  { id: 'negotiating', label: '협상중', count: 3 },
-  { id: 'interview', label: '대면면접 예정', count: 2 },
-  { id: 'ai-interview', label: 'AI인터뷰', count: 4 },
+  { id: 'all', label: '전체', count: 6 },
+  { id: 'negotiating', label: '협상중', count: 0 },
+  { id: 'interview', label: '대면면접 예정', count: 0 },
+  { id: 'ai-interview', label: 'AI인터뷰', count: 0 },
   { id: 'new', label: '신규', count: 6 },
+];
+
+// 채용상품 설정 하위 탭
+const productSettingSubTabs = [
+  { id: 'existing', label: '기존 채용상품 설정' },
+  { id: 'new', label: '신규상품 설정' },
 ];
 
 const statusConfig: Record<string, { label: string; color: string; bgColor: string }> = {
@@ -205,49 +211,66 @@ function MatchingCenterContent() {
     alert(`${candidate.name}님에게 AI 인터뷰를 요청했습니다.`);
   };
 
+  // AI 매칭용 카드 데이터
+  const aiMatchingCardData = [
+    { initial: '김', name: '김**', job: '간호사', exp: '4년', tags: ['성실함', '응답왕'], salary: 3500, desc: '환자 케어에 최선을 다합니다.' },
+    { initial: '이', name: '이**', job: '간호조무사', exp: '2년', tags: ['장기 근무', '출석왕'], salary: 3200, desc: '꼼꼼한 업무 처리가 강점입니다.' },
+    { initial: '최', name: '최**', job: '약사', exp: '7년', tags: ['장기 근무', '응답왕', '출석왕'], salary: 3800, desc: '정확한 복약 지도를 제공합니다.' },
+    { initial: '박', name: '박**', job: '간호사', exp: '5년', tags: ['전문성', '친절함'], salary: 3600, desc: '피부과 전문 경력 보유.' },
+    { initial: '정', name: '정**', job: '간호사', exp: '3년', tags: ['빠른 응답', '성실함'], salary: 3400, desc: '성형외과 경험 풍부합니다.' },
+    { initial: '윤', name: '윤**', job: '간호조무사', exp: '6년', tags: ['장기 근무', '전문성'], salary: 3700, desc: '내과 전문 베테랑입니다.' },
+    { initial: '강', name: '강**', job: '간호사', exp: '4년', tags: ['출석왕', '친절함'], salary: 3550, desc: '소아과 경력 보유자입니다.' },
+    { initial: '한', name: '한**', job: '약사', exp: '8년', tags: ['전문성', '응답왕'], salary: 4000, desc: '병원약국 근무 경험 풍부.' },
+  ];
+
+  // 현재 표시할 카드 인덱스
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+
   // AI 매칭 시작
   const startAIMatching = () => {
     setShowAIMatchingModal(true);
     setAIMatchingProgress(0);
-    setAIMatchingProfiles([]);
+    setCurrentCardIndex(0);
 
-    // 매칭할 후보자 이름 목록
-    const candidateNames = ['김서연', '이민지', '박지현', '최은수', '정수민', '강하나', '윤서영', '한예진'];
-    let profileIndex = 0;
+    // 0.8초마다 카드 롤링
+    const cardInterval = setInterval(() => {
+      setCurrentCardIndex(prev => {
+        if (prev >= aiMatchingCardData.length - 1) {
+          return 0;
+        }
+        return prev + 1;
+      });
+    }, 800);
 
-    // 1초마다 프로필 롤링 (5초 동안)
-    const profileInterval = setInterval(() => {
-      if (profileIndex < candidateNames.length && aiMatchingProgress < 100) {
-        setAIMatchingProfiles(prev => [...prev.slice(-2), candidateNames[profileIndex]]);
-        profileIndex++;
-      }
-    }, 600);
-
-    // 진행률 업데이트
+    // 진행률 업데이트 (더 천천히)
     const progressInterval = setInterval(() => {
       setAIMatchingProgress(prev => {
         if (prev >= 100) {
           clearInterval(progressInterval);
-          clearInterval(profileInterval);
-          // 5초 후 자동 닫기 및 신규매칭 리스트로 이동
+          clearInterval(cardInterval);
+          // 1.5초 후 자동 닫기 및 신규매칭 리스트로 이동
           setTimeout(() => {
             setShowAIMatchingModal(false);
             setActiveTab('new-matching');
-          }, 1000);
+          }, 1500);
           return 100;
         }
-        return prev + 20;
+        return prev + 10; // 10%씩 증가 (10초 동안)
       });
     }, 1000);
   };
 
-  // 전체매칭리스트용 탭 데이터
+  // 전체매칭리스트용 탭 데이터 (순서: 협상중 > 제안완료 > 대면면접 예정 > AI인터뷰) - 관심표시 제외
   const allMatchingTabs = [
-    { id: 'all', label: '전체', count: 10 },
-    { id: 'negotiating', label: '협상중', count: 2 },
-    { id: 'interview', label: '대면면접 예정', count: 4 },
-    { id: 'ai-interview', label: 'AI인터뷰', count: 4 },
+    { id: 'all', label: '전체', count: 8 },
+    { id: 'negotiating', label: '협상중', count: 1 },
+    { id: 'proposed', label: '제안완료', count: 3 },
+    { id: 'interview', label: '대면면접 예정', count: 1 },
+    { id: 'new', label: '신규', count: 3 },
   ];
+
+  // 채용상품 설정 하위 탭 상태
+  const [productSubTab, setProductSubTab] = useState('existing');
 
   return (
     <div className="px-4 py-6 pb-24">
@@ -291,32 +314,138 @@ function MatchingCenterContent() {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-6"
           >
-            {/* 기존 채용공고 안내 */}
-            <div className="bg-success/10 border border-success/20 rounded-2xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-success" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-success">기존 채용공고 설정 완료</div>
-                  <div className="text-xs text-text-secondary mt-0.5">피부과 간호사 (380~450만원) · 정규직</div>
-                </div>
-                <Link href="/employer/jobs/1/edit">
-                  <button className="text-xs text-success underline">수정</button>
-                </Link>
-              </div>
+            {/* 하위 탭: 기존 채용상품 설정 / 신규상품 설정 */}
+            <div className="flex gap-2 border-b border-border-light pb-3">
+              {productSettingSubTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setProductSubTab(tab.id)}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    productSubTab === tab.id
+                      ? 'bg-expert-navy text-white'
+                      : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {/* 신규상품 설정 헤더 */}
-            <div className="bg-gradient-to-r from-brand-mint/10 to-info/10 rounded-2xl p-4 border border-brand-mint/20">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-brand-mint" />
-                <h2 className="text-lg font-bold text-text-primary">신규상품 설정</h2>
-              </div>
-              <p className="text-sm text-text-secondary">
-                새로운 채용 조건을 설정하고 AI 매칭을 시작하세요
-              </p>
-            </div>
+            {/* 기존 채용상품 설정 */}
+            {productSubTab === 'existing' && (
+              <motion.div
+                key="existing-product"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-4"
+              >
+                {/* 기존 채용공고 #1 */}
+                <div className="bg-white rounded-2xl border border-border-light p-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-success" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-text-primary">피부과 간호사</div>
+                      <div className="text-xs text-text-secondary mt-0.5">380~450만원 · 정규직</div>
+                    </div>
+                    <span className="px-2 py-1 bg-success/10 text-success text-xs rounded-full">활성</span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-text-tertiary">근무시간</span>
+                      <span className="text-text-primary">09:00 - 18:00</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-tertiary">채용상품</span>
+                      <div className="flex gap-1">
+                        <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF2D55' }}>💰 매출 셰어</span>
+                        <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#AF52DE' }}>🎁 근속 보너스</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-border-light">
+                    <Link href="/employer/jobs/1/edit" className="flex-1">
+                      <button className="w-full py-2.5 text-sm border border-expert-navy text-expert-navy rounded-lg font-medium">
+                        조건 수정
+                      </button>
+                    </Link>
+                    <button className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium">
+                      상세 보기
+                    </button>
+                  </div>
+                </div>
+
+                {/* 기존 채용공고 #2 */}
+                <div className="bg-white rounded-2xl border border-border-light p-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-info/20 rounded-full flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-info" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-text-primary">성형외과 간호사</div>
+                      <div className="text-xs text-text-secondary mt-0.5">400~500만원 · 정규직</div>
+                    </div>
+                    <span className="px-2 py-1 bg-info/10 text-info text-xs rounded-full">D-7</span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-text-tertiary">근무시간</span>
+                      <span className="text-text-primary">10:00 - 19:00</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text-tertiary">채용상품</span>
+                      <div className="flex gap-1">
+                        <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF9500' }}>💵 수당 보장</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-border-light">
+                    <Link href="/employer/jobs/2/edit" className="flex-1">
+                      <button className="w-full py-2.5 text-sm border border-expert-navy text-expert-navy rounded-lg font-medium">
+                        조건 수정
+                      </button>
+                    </Link>
+                    <button className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium">
+                      상세 보기
+                    </button>
+                  </div>
+                </div>
+
+                {/* 새 채용공고 추가 안내 */}
+                <div className="bg-bg-secondary rounded-2xl p-6 text-center border-2 border-dashed border-border-light">
+                  <UserPlus className="w-10 h-10 text-text-tertiary mx-auto mb-3" />
+                  <p className="text-sm text-text-secondary mb-3">
+                    새로운 채용 조건으로 후보자를 찾고 싶으시다면
+                  </p>
+                  <button
+                    onClick={() => setProductSubTab('new')}
+                    className="px-6 py-2.5 bg-expert-navy text-white rounded-lg text-sm font-medium"
+                  >
+                    신규상품 설정하기
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* 신규상품 설정 */}
+            {productSubTab === 'new' && (
+              <motion.div
+                key="new-product"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
+              >
+                {/* 신규상품 설정 헤더 */}
+                <div className="bg-gradient-to-r from-brand-mint/10 to-info/10 rounded-2xl p-4 border border-brand-mint/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5 text-brand-mint" />
+                    <h2 className="text-lg font-bold text-text-primary">신규상품 설정</h2>
+                  </div>
+                  <p className="text-sm text-text-secondary">
+                    새로운 채용 조건을 설정하고 AI 매칭을 시작하세요
+                  </p>
+                </div>
 
             {/* 근로조건 설정 */}
             <div className="bg-white rounded-2xl border border-border-light p-4">
@@ -606,6 +735,8 @@ function MatchingCenterContent() {
                 신규매칭 받기
               </button>
             </div>
+              </motion.div>
+            )}
           </motion.div>
         )}
 
@@ -848,11 +979,26 @@ function MatchingCenterContent() {
 
             {/* 전체 후보자 리스트 (기존 mockCandidates 활용) */}
             <div className="space-y-4">
-              {mockCandidates.filter(c => {
-                if (droppedCandidates.includes(c.id)) return false;
-                if (allMatchingFilter === 'all') return true;
-                return c.status === allMatchingFilter;
-              }).map((candidate, index) => {
+              {mockCandidates
+                // 관심표시(interested) 제외
+                .filter(c => c.status !== 'interested')
+                .filter(c => {
+                  if (droppedCandidates.includes(c.id)) return false;
+                  if (allMatchingFilter === 'all') return true;
+                  return c.status === allMatchingFilter;
+                })
+                // 노출 순서: 협상중 > 제안완료 > 대면면접 예정 > AI인터뷰 > 신규
+                .sort((a, b) => {
+                  const order: Record<string, number> = {
+                    'negotiating': 1,
+                    'proposed': 2,
+                    'interview': 3,
+                    'ai-interview': 4,
+                    'new': 5,
+                  };
+                  return (order[a.status] || 99) - (order[b.status] || 99);
+                })
+                .map((candidate, index) => {
                 const status = statusConfig[candidate.status] || statusConfig.new;
                 const isNegotiating = candidate.status === 'negotiating';
 
@@ -998,89 +1144,132 @@ function MatchingCenterContent() {
         )}
       </AnimatePresence>
 
-      {/* AI 매칭 모달 */}
+      {/* AI 매칭 - 전체 화면 (보라색 그라데이션 배경 + 가로 캐러셀) */}
       <AnimatePresence>
         {showAIMatchingModal && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/70 z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-gradient-to-br from-expert-navy to-expert-navy/90 rounded-2xl p-6 z-50 max-w-sm mx-auto text-center"
-            >
-              <div className="mb-6">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                  className="w-16 h-16 mx-auto mb-4 relative"
-                >
-                  <div className="absolute inset-0 rounded-full border-4 border-brand-mint/30" />
-                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-brand-mint" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-brand-mint" />
-                  </div>
-                </motion.div>
-                <h3 className="text-xl font-bold text-white mb-2">AI 매칭 분석 중...</h3>
-                <p className="text-white/70 text-sm">
-                  최적의 후보자를 찾고 있어요
-                </p>
-              </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden"
+            style={{
+              background: 'linear-gradient(180deg, #FAFAFF 0%, #F5F0FF 50%, #EDE5FF 100%)'
+            }}
+          >
+            {/* 가로 캐러셀 프로필 카드 영역 */}
+            <div className="w-full flex items-center justify-center gap-3 px-4 mb-12 overflow-hidden">
+              {/* 5개 카드 표시: 2개 왼쪽 흐림 + 1개 중앙 + 2개 오른쪽 흐림 */}
+              {[-2, -1, 0, 1, 2].map((offset) => {
+                const cardIdx = (currentCardIndex + offset + aiMatchingCardData.length) % aiMatchingCardData.length;
+                const cardData = aiMatchingCardData[cardIdx];
+                const isCenter = offset === 0;
+                const opacity = isCenter ? 1 : Math.abs(offset) === 1 ? 0.5 : 0.3;
+                const scale = isCenter ? 1 : Math.abs(offset) === 1 ? 0.9 : 0.8;
 
-              {/* 프로필 롤링 */}
-              <div className="bg-white/10 rounded-xl p-4 mb-6 min-h-[80px]">
-                <div className="text-xs text-white/60 mb-2">분석 중인 프로필</div>
-                <AnimatePresence mode="popLayout">
-                  {aiMatchingProfiles.slice(-3).map((name, idx) => (
-                    <motion.div
-                      key={name + idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: idx === aiMatchingProfiles.slice(-3).length - 1 ? 1 : 0.5, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center gap-2 py-1 justify-center"
-                    >
-                      <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                        <Users className="w-3 h-3 text-white" />
-                      </div>
-                      <span className="text-white font-medium">{name}</span>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-
-              {/* 진행률 */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between text-sm text-white/70 mb-2">
-                  <span>진행률</span>
-                  <span>{aiMatchingProgress}%</span>
-                </div>
-                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                return (
                   <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${aiMatchingProgress}%` }}
-                    className="h-full bg-gradient-to-r from-brand-mint to-info rounded-full"
-                  />
-                </div>
-              </div>
+                    key={`card-${cardIdx}-${offset}`}
+                    animate={{
+                      opacity: opacity,
+                      scale: scale,
+                    }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    style={{ zIndex: isCenter ? 10 : 5 - Math.abs(offset) }}
+                    className={`flex-shrink-0 bg-white rounded-3xl p-5 ${
+                      isCenter ? 'w-[200px] shadow-2xl' : Math.abs(offset) === 1 ? 'w-[180px] shadow-xl' : 'w-[160px] shadow-lg'
+                    }`}
+                  >
+                    {/* 이니셜 원형 아바타 */}
+                    <div className={`${isCenter ? 'w-16 h-16' : 'w-12 h-12'} rounded-full mx-auto mb-3 flex items-center justify-center`}
+                      style={{ backgroundColor: '#E8D5FF' }}
+                    >
+                      <span className={`${isCenter ? 'text-2xl' : 'text-xl'} font-bold`} style={{ color: '#9B59B6' }}>
+                        {cardData.initial}
+                      </span>
+                    </div>
 
-              {aiMatchingProgress >= 100 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center"
+                    {/* 이름 (마스킹) */}
+                    <h3 className={`${isCenter ? 'text-base' : 'text-sm'} font-bold text-text-primary text-center mb-1`}>
+                      {cardData.name}
+                    </h3>
+
+                    {/* 직업 (주황색) */}
+                    <p className={`${isCenter ? 'text-sm' : 'text-xs'} font-medium text-center mb-2`} style={{ color: '#F5A623' }}>
+                      {cardData.job}
+                    </p>
+
+                    {/* 경력 */}
+                    <div className="flex items-center justify-center gap-1 text-xs text-text-secondary mb-3">
+                      <Briefcase className="w-3 h-3" />
+                      <span>경력 {cardData.exp}</span>
+                    </div>
+
+                    {/* 태그들 (보라색 테두리) - 중앙 카드만 */}
+                    {isCenter && (
+                      <div className="flex flex-wrap justify-center gap-1 mb-3">
+                        {cardData.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 text-xs rounded-full border"
+                            style={{ borderColor: '#9B59B6', color: '#9B59B6' }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 희망 급여 (보라색 그라데이션 언더라인) */}
+                    <div className="text-center mb-2">
+                      <div className="inline-block">
+                        <div className="flex items-center gap-1 text-xs text-text-primary mb-0.5">
+                          <DollarSign className="w-3 h-3" />
+                          <span>희망 급여 <strong>{cardData.salary.toLocaleString()}</strong>만원</span>
+                        </div>
+                        <div className="h-0.5 rounded-full" style={{ background: 'linear-gradient(90deg, #E8D5FF 0%, #9B59B6 100%)' }} />
+                      </div>
+                    </div>
+
+                    {/* 설명 텍스트 - 중앙 카드만 */}
+                    {isCenter && (
+                      <p className="text-xs text-text-tertiary text-center">
+                        {cardData.desc}
+                      </p>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* 하단 텍스트 (주황색) */}
+            <motion.p
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-base font-medium"
+              style={{ color: '#F5A623' }}
+            >
+              AI가 매칭 점수를 계산하고 있습니다...
+            </motion.p>
+
+            {/* 완료 시 버튼 */}
+            {aiMatchingProgress >= 100 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-8"
+              >
+                <button
+                  onClick={() => {
+                    setShowAIMatchingModal(false);
+                    setActiveTab('new-matching');
+                  }}
+                  className="px-8 py-4 bg-expert-navy text-white rounded-xl font-bold text-lg shadow-lg"
                 >
-                  <CheckCircle className="w-12 h-12 text-brand-mint mx-auto mb-2" />
-                  <p className="text-brand-mint font-medium">매칭 완료!</p>
-                  <p className="text-white/60 text-sm mt-1">8명의 새로운 후보자를 찾았어요</p>
-                </motion.div>
-              )}
-            </motion.div>
-          </>
+                  매칭 결과 보기
+                </button>
+              </motion.div>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
