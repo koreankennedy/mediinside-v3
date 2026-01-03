@@ -48,7 +48,8 @@ import {
   mockCandidates,
   mockHiringProductSettings,
   mockNewMatchingCandidates,
-  employerMatchingStatusTabs
+  employerMatchingStatusTabs,
+  mockJobPostings
 } from '@/lib/mock/data';
 
 const DAILY_REJECT_LIMIT = 10;
@@ -382,140 +383,102 @@ function MatchingCenterContent() {
                   </div>
                 </div>
 
-                {/* 기존 채용공고 #1 - 피부과 간호사 */}
-                <Link href="/employer/jobs/1/edit" className="block">
-                  <div className="bg-white rounded-2xl border border-border-light p-4 hover:shadow-card transition-all cursor-pointer">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-success/20 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-success" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-text-primary">피부과 간호사</div>
-                        <div className="text-xs text-text-secondary mt-0.5">380~450만원 · 정규직</div>
-                      </div>
-                      <span className="px-2 py-1 bg-success/10 text-success text-xs rounded-full">활성</span>
-                    </div>
+                {/* 채용공고 목록 - mockJobPostings 데이터 연동 */}
+                {mockJobPostings.map((job) => {
+                  const isActive = job.status === 'active';
+                  const isPending = job.status === 'pending';
+                  const productLabels: Record<string, { label: string; color: string }> = {
+                    revenueShare: { label: '💰 매출 셰어', color: '#FF2D55' },
+                    loyaltyBonus: { label: '🎁 근속 보너스', color: '#AF52DE' },
+                    signingBonus: { label: '💵 사이닝 보너스', color: '#FF9500' },
+                    allowance: { label: '💵 수당 보장', color: '#5856D6' },
+                  };
 
-                    {/* AI 분석 요약 */}
-                    <div className="bg-gradient-to-r from-brand-mint/5 to-info/5 rounded-xl p-3 mb-3 border border-brand-mint/10">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Brain className="w-3.5 h-3.5 text-brand-mint" />
-                        <span className="text-xs font-medium text-brand-mint">AI 분석 요약</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div>
-                          <div className="text-lg font-bold text-expert-navy">245</div>
-                          <div className="text-[10px] text-text-tertiary">조회수</div>
+                  return (
+                    <Link key={job.id} href={`/employer/jobs/${job.id.split('-')[1]}/edit`} className="block">
+                      <div className="bg-white rounded-2xl border border-border-light p-4 hover:shadow-card transition-all cursor-pointer">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-success/20' : 'bg-warning/20'}`}>
+                            {isActive ? (
+                              <CheckCircle className="w-5 h-5 text-success" />
+                            ) : (
+                              <Clock className="w-5 h-5 text-warning" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-text-primary">{job.title}</div>
+                            <div className="text-xs text-text-secondary mt-0.5">{job.salaryRange} · {job.workType}</div>
+                          </div>
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${isActive ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                            {isActive ? '활성' : 'D-7'}
+                          </span>
                         </div>
-                        <div>
-                          <div className="text-lg font-bold text-brand-mint">12</div>
-                          <div className="text-[10px] text-text-tertiary">지원자</div>
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold text-info">8</div>
-                          <div className="text-[10px] text-text-tertiary">AI 추천</div>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* AI 인사이트 */}
-                    <div className="bg-warning/5 rounded-lg p-2.5 mb-3">
-                      <div className="flex items-start gap-2">
-                        <Sparkles className="w-3.5 h-3.5 text-warning flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          급여 범위를 +10% 높이면 <strong className="text-warning">지원율 25% 증가</strong> 예상
-                        </p>
-                      </div>
-                    </div>
+                        {/* AI 분석 요약 */}
+                        <div className="bg-gradient-to-r from-brand-mint/5 to-info/5 rounded-xl p-3 mb-3 border border-brand-mint/10">
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <Brain className="w-3.5 h-3.5 text-brand-mint" />
+                            <span className="text-xs font-medium text-brand-mint">AI 분석 요약</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div>
+                              <div className="text-lg font-bold text-expert-navy">{job.views}</div>
+                              <div className="text-[10px] text-text-tertiary">조회수</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-brand-mint">{job.applicants}</div>
+                              <div className="text-[10px] text-text-tertiary">지원자</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-info">{job.aiRecommended}</div>
+                              <div className="text-[10px] text-text-tertiary">AI 추천</div>
+                            </div>
+                          </div>
+                        </div>
 
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-text-tertiary">근무시간</span>
-                        <span className="text-text-primary">09:00 - 18:00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-tertiary">채용상품</span>
-                        <div className="flex gap-1">
-                          <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF2D55' }}>💰 매출 셰어</span>
-                          <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#AF52DE' }}>🎁 근속 보너스</span>
+                        {/* AI 인사이트 */}
+                        <div className={`rounded-lg p-2.5 mb-3 ${isPending ? 'bg-error/5' : 'bg-warning/5'}`}>
+                          <div className="flex items-start gap-2">
+                            {isPending ? (
+                              <AlertTriangle className="w-3.5 h-3.5 text-error flex-shrink-0 mt-0.5" />
+                            ) : (
+                              <Sparkles className="w-3.5 h-3.5 text-warning flex-shrink-0 mt-0.5" />
+                            )}
+                            <p className="text-xs text-text-secondary leading-relaxed" dangerouslySetInnerHTML={{
+                              __html: job.insight.replace(/(지원율 \d+% 증가|마감 \d+일 전!)/g, '<strong class="text-warning">$1</strong>')
+                            }} />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-text-tertiary">근무시간</span>
+                            <span className="text-text-primary">{job.workHours}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-text-tertiary">채용상품</span>
+                            <div className="flex gap-1 flex-wrap justify-end">
+                              {job.hiringProducts.map((productKey) => {
+                                const product = productLabels[productKey];
+                                return product ? (
+                                  <span key={productKey} className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: product.color }}>
+                                    {product.label}
+                                  </span>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 mt-4 pt-3 border-t border-border-light">
+                          <div className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium text-center flex items-center justify-center gap-1">
+                            <Eye className="w-4 h-4" />
+                            상세 보기
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex gap-2 mt-4 pt-3 border-t border-border-light">
-                      <div className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium text-center flex items-center justify-center gap-1">
-                        <Eye className="w-4 h-4" />
-                        상세 보기
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-
-                {/* 기존 채용공고 #2 - 피부과 간호조무사 (같은 분과) */}
-                <Link href="/employer/jobs/2/edit" className="block">
-                  <div className="bg-white rounded-2xl border border-border-light p-4 hover:shadow-card transition-all cursor-pointer">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 bg-warning/20 rounded-full flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-warning" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-text-primary">피부과 간호조무사</div>
-                        <div className="text-xs text-text-secondary mt-0.5">320~380만원 · 정규직</div>
-                      </div>
-                      <span className="px-2 py-1 bg-warning/10 text-warning text-xs rounded-full font-medium">D-7</span>
-                    </div>
-
-                    {/* AI 분석 요약 */}
-                    <div className="bg-gradient-to-r from-brand-mint/5 to-info/5 rounded-xl p-3 mb-3 border border-brand-mint/10">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Brain className="w-3.5 h-3.5 text-brand-mint" />
-                        <span className="text-xs font-medium text-brand-mint">AI 분석 요약</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center">
-                        <div>
-                          <div className="text-lg font-bold text-expert-navy">156</div>
-                          <div className="text-[10px] text-text-tertiary">조회수</div>
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold text-brand-mint">8</div>
-                          <div className="text-[10px] text-text-tertiary">지원자</div>
-                        </div>
-                        <div>
-                          <div className="text-lg font-bold text-info">5</div>
-                          <div className="text-[10px] text-text-tertiary">AI 추천</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* AI 인사이트 - 마감 임박 */}
-                    <div className="bg-error/5 rounded-lg p-2.5 mb-3">
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-3.5 h-3.5 text-error flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                          <strong className="text-error">마감 임박</strong> - 후보자 제안을 서둘러 주세요
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-text-tertiary">근무시간</span>
-                        <span className="text-text-primary">10:00 - 19:00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-tertiary">채용상품</span>
-                        <div className="flex gap-1">
-                          <span className="px-1.5 py-0.5 text-xs rounded text-white" style={{ backgroundColor: '#FF9500' }}>💵 수당 보장</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-4 pt-3 border-t border-border-light">
-                      <div className="flex-1 py-2.5 text-sm bg-expert-navy text-white rounded-lg font-medium text-center flex items-center justify-center gap-1">
-                        <Eye className="w-4 h-4" />
-                        상세 보기
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                    </Link>
+                  );
+                })}
 
                 {/* 새 채용공고 추가 안내 */}
                 <div className="bg-bg-secondary rounded-2xl p-6 text-center border-2 border-dashed border-border-light">
